@@ -148,6 +148,8 @@ read_possible_args() {
   # for all CLI input values and their properties,
   # starting from zero (convenient for arrays)
   CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
+
+  dbg "possible args are readed"
 }
 
 #######################################
@@ -248,7 +250,7 @@ validate_arg_type() {
 # Globals:
 #   CLI_ARGS_POSSIBLE SECTION[] SHORT_NAME[]
 #   FULL_NAME[] ARG_TYPE[] MANDATARY[] DESCRIPTION[]
-#   ARG_VALUE[] ARG_IS_GIVEN[] INTERNAL_*
+#   ARG_VALUE[] ARG_IS_GIVEN[] INTERNAL_* CLI_ARGS_CNT
 # Arguments:
 #   None
 # Returns:
@@ -256,6 +258,11 @@ validate_arg_type() {
 #######################################
 validate_args() {
   local i
+  local x=0
+  if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
+    usage "geven less then 1 argument" "2" "1"
+  fi
+
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
     if [[ ${ARG_IS_GIVEN[$i]+x} ]]; then
       # generate dynamic variables like "$INTERNAL_hostname"
@@ -264,12 +271,71 @@ validate_args() {
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     fi
   done
+}
 
-echo 
-#  if [[ ! -z "${INTERNAL_NAME+x}" ]]; then
-#    DB_CONNSTRING="${db-uri}"
-#  fi
-#  [[ ! -z "${db-uri+x}" ]] && dbg "db uri: '$db-uri'"
+usage() {
+  local i
+  local description="$1"
+  local out_descriptor="$2"
+  local out_descriptor=${out_descriptor:=1}
+  local code="$3"
+  local code=${code:=0}
+  if [[ "$out_descriptor" -eq "2" ]] || [[ "$out_descriptor" =~ "STDE" ]]; then
+    echo "ERROR:  " >&${out_descriptor}
+    echo "  '$description'" >&${out_descriptor}
+    echo >&${out_descriptor}
+  elif [[ "$out_descriptor" -eq "1" ]]; then
+    echo "PgHealth is a ultimate PostgreSQL healthcheck utility." >&${out_descriptor}
+  else
+    echo "FATAL: unknown output descriptor." >&${out_descriptor}
+    echo "  supported only 1, 2, 'STDOUT', 'STDERR'" >&${out_descriptor}
+    echo >&${out_descriptor}
+  fi
+
+  echo "Usage:" >&${out_descriptor} >&${out_descriptor}
+  echo "  ${SCRIPTNAME} [OPTION]... "  >&${out_descriptor}
+  echo >&${out_descriptor}  >&${out_descriptor}
+
+  # calc max size of FULL_NAME[]
+  local max_name_len=0
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do 
+    bytlen=${#FULL_NAME[$i]}
+    if [[ "$bytlen" -ge "$max_name_len" ]]; then
+      max_name_len=$bytlen
+    fi 
+  done
+
+  local space
+  local prev_section=lol
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
+    if [[ "${SECTION[$i]}" != "$prev_section" ]] || [[ -z ${SECTION[0]} ]] ; then
+      echo  "${SECTION[$i]}:" >&${out_descriptor}
+    fi
+    [[ "${SHORT_NAME[$i]}" = "None" ]] && SHORT_NAME[$i]=" "
+    if [[ "${SHORT_NAME[$i]}" = " " ]]; then
+      echo -n "    "${SHORT_NAME[$i]} >&${out_descriptor}
+    else
+      echo -n "  -"${SHORT_NAME[$i]} >&${out_descriptor}
+    fi
+    curr_byte_len=${#FULL_NAME[$i]}
+    # print space padding
+    for f in $(seq 0 $(( max_name_len - curr_byte_len + 2 )) ); do
+      echo -n " "  >&${out_descriptor}
+    done
+    echo -n " --"${FULL_NAME[$i]} >&${out_descriptor} 
+    echo    "   "${DESCRIPTION[$i]} >&${out_descriptor}
+    #echo $i >&${out_descriptor}
+    #echo "* ${SECTION[$i]}"
+    #dbg "1: section '${SECTION[$iter_num]}'"
+    #dbg "2: short_name '${SHORT_NAME[$iter_num]}'"
+    #dbg "3: full_name '${FULL_NAME[$iter_num]}'"
+    #dbg "4: internal_name '${INTERNAL_NAME[$iter_num]}'"
+    #dbg "5: arg_type '${ARG_TYPE[$iter_num]}'"
+    #dbg "6: mandatary '${MANDATARY[$iter_num]}'"
+    #dbg "7: description '${DESCRIPTION[$iter_num]}'"
+
+    prev_section=${SECTION[$i]}
+  done
 }
 
 main() {
@@ -278,10 +344,9 @@ main() {
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
   export LC_ALL=C
 
-  read_possible_args
+  read_possible_args && ARGS_ARE_READED="true"
   process_cli_args "$@"
   validate_args
-
 }
 
 main "$@"
