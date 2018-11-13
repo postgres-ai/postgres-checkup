@@ -28,6 +28,7 @@ NO_OUTPUT=false
 SCRIPTNAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
+FIRST_ARG="$1"
 
 #######################################
 # Print an message to STDOUT
@@ -166,6 +167,7 @@ process_cli_args() {
   local cli_arg_cur_value i
   local re='^-+'
   local while_loops_cnt=0
+  local second
   dbg "Valid CLI args possible count: ${CLI_ARGS_POSSIBLE}+1"
   CLI_ARGS_CNT=0
   while [[ ! -z "${1+x}" ]]; do
@@ -177,13 +179,21 @@ process_cli_args() {
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
-            dbg "argname: '$1', argvalue '$2'"
-            if [[ "$2" =~ $re ]]; then
+            if [[ ! -z "${2+x}" ]]; then
+              second=$2
+            else
+              second=None
+              err "empty value for variable '--${FULL_NAME[$i]}'"
+              exit 1
+            fi
+            [[ -z "$second" ]] && exit 1
+            dbg "argname: '$1', argvalue '${second}' "
+            if [[ "$second" =~ $re ]]; then
               err "empty value in '--${FULL_NAME[$i]}'"
               exit 1
             fi
             # save argument value as an indexed array
-            ARG_VALUE[$i]="$2"
+            ARG_VALUE[$i]="$second"
             ARG_IS_GIVEN[$i]="true"
             CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
             shift 2
@@ -209,39 +219,43 @@ validate_arg_type() {
   local value="$3"
   local re
 
+  if [ -z "$name" -o -z "$type" -o -z "$value" ]; then
+     err "name: '$name', type: '$type', value: '$value'"
+  fi
+
   if [[ "$type" = "number" ]]; then
-      re='^[0-9]+$'
-      if ! [[ $value =~ $re ]] ; then
-         err "'$name' = '$value' => is not a '$type' (${re})"
-         exit 1
-      fi
+    re='^[0-9]+$'
+    if ! [[ $value =~ $re ]] ; then
+       err "'$name' = '$value' => is not a '$type' (${re})"
+       exit 1
+    fi
   elif [ $type = "word" ]; then
-      re='^[a-zA-Z]+$'
-      if ! [[ $value =~ $re ]]; then
-         err "'$name' = '$value' => is not a '$type' (${re})"
-         exit 1
-      fi
+    re='^[a-zA-Z]+$'
+    if ! [[ $value =~ $re ]]; then
+       err "'$name' = '$value' => is not a '$type' (${re})"
+       exit 1
+    fi
   elif [ $type = "alnum" ]; then
-      re='^[a-zA-Z0-9\.]+$'
-      if ! [[ $value =~ $re ]]; then
-         err "'$name' = '$value' => is not a '$type' (${re})"
-         exit 1
-      fi
+    re='^[a-zA-Z0-9\.]+$'
+    if ! [[ $value =~ $re ]]; then
+       err "'$name' = '$value' => is not a '$type' (${re})"
+       exit 1
+    fi
   elif [[ $type = "uri" ]]; then
-      re='^[a-zA-Z\;\:\\\/]+.*'
-      if ! [[ $value =~ $re ]]; then
-         err "'$name' = '$value' => is not a '$type' (${re})"
-         exit 1
-      fi
+    re='^[a-zA-Z\;\:\\\/]+.*'
+    if ! [[ $value =~ $re ]]; then
+       err "'$name' = '$value' => is not a '$type' (${re})"
+       exit 1
+    fi
   elif [[ $type = "text" ]]; then
-      re='^[a-zA-Z\;]+.*'
-      if ! [[ $value =~ $re ]]; then
-         err "'$name' = '$value' => is not a '$type' (${re})"
-         exit 1
-      fi
+    re='^[a-zA-Z\;]+.*'
+    if ! [[ $value =~ $re ]]; then
+       err "'$name' = '$value' => is not a '$type' (${re})"
+       exit 1
+    fi
   else
-      err "'$name' = '$value' => unknown argument type, validation error"
-      exit 1
+    err "'$name' = '$value' => unknown argument type, validation error"
+    exit 1
   fi
 }
 
@@ -259,8 +273,13 @@ validate_arg_type() {
 validate_args() {
   local i
   local x=0
+  if [[ "$FIRST_ARG" = "--help" ]]; then
+     CLI_ARGS_POSSIBLE=1 usage "Help" "1" "0"
+     exit 0
+  fi
+
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
-    usage "geven less then 1 argument" "2" "1"
+    usage "given less then 1 argument" "2" "1"
   fi
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
@@ -276,7 +295,8 @@ validate_args() {
 #######################################
 # Generate usage/help
 # Globals:
-#   CLI_ARGS_POSSIBLE FULL_NAME[] SECTION[] SHORT_NAME[]
+#   CLI_ARGS_POSSIBLE FULL_NAME[] SECTION[)]
+#   SCRIPTNAME
 # Arguments:
 #   description out_descriptor code
 # Returns:
@@ -294,7 +314,7 @@ usage() {
     echo "  '$description'" >&${out_descriptor}
     echo >&${out_descriptor}
   elif [[ "$out_descriptor" -eq "1" ]]; then
-    echo "PgHealth is a ultimate PostgreSQL healthcheck utility." >&${out_descriptor}
+    echo "PgHealth is the PostgreSQL ultimate healthcheck utility." >&${out_descriptor}
   else
     echo "FATAL: unknown output descriptor." >&${out_descriptor}
     echo "  supported only 1, 2, 'STDOUT', 'STDERR'" >&${out_descriptor}
@@ -302,7 +322,7 @@ usage() {
   fi
 
   echo "Usage:" >&${out_descriptor} >&${out_descriptor}
-  echo "  ${SCRIPTNAME} [OPTION]... "  >&${out_descriptor}
+  echo "  ${SCRIPTNAME} OPTION OPTION... "  >&${out_descriptor}
   echo >&${out_descriptor}  >&${out_descriptor}
 
   # calc max size of FULL_NAME[]
@@ -333,16 +353,6 @@ usage() {
     done
     echo -n " --"${FULL_NAME[$i]} >&${out_descriptor} 
     echo    "   "${DESCRIPTION[$i]} >&${out_descriptor}
-    #echo $i >&${out_descriptor}
-    #echo "* ${SECTION[$i]}"
-    #dbg "1: section '${SECTION[$iter_num]}'"
-    #dbg "2: short_name '${SHORT_NAME[$iter_num]}'"
-    #dbg "3: full_name '${FULL_NAME[$iter_num]}'"
-    #dbg "4: internal_name '${INTERNAL_NAME[$iter_num]}'"
-    #dbg "5: arg_type '${ARG_TYPE[$iter_num]}'"
-    #dbg "6: mandatary '${MANDATARY[$iter_num]}'"
-    #dbg "7: description '${DESCRIPTION[$iter_num]}'"
-
     prev_section=${SECTION[$i]}
   done
 }
@@ -352,7 +362,6 @@ main() {
   trap error_handler ERR
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
   export LC_ALL=C
-
   read_possible_args && ARGS_ARE_READED="true"
   process_cli_args "$@"
   validate_args
