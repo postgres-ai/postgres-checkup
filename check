@@ -273,6 +273,15 @@ validate_args() {
   done
 }
 
+#######################################
+# Generate usage/help
+# Globals:
+#   CLI_ARGS_POSSIBLE FULL_NAME[] SECTION[] SHORT_NAME[]
+# Arguments:
+#   description out_descriptor code
+# Returns:
+#   None
+#######################################
 usage() {
   local i
   local description="$1"
