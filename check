@@ -1,0 +1,288 @@
+#!/bin/bash
+#
+# 2018 © Victor Yagofarov victor@postgres.ai
+# 2018 © Postgres.ai
+#
+# Perform a PostgreSQL instance(s) health checks
+# Usage: 
+#
+
+# TODO(vyagofarov):
+#
+# - Create cli.conf file with CLI settings and read with
+#     'load_cli_res' function
+# - Parse arguments readed by 'load_cli_res' function
+# - Validate CLI arguments
+# - Develop plugable system for healthcheck parts with
+# - Posibility to start from every step of healtcheck
+# - Generate help and usage from 'cli.conf' file
+# - Reporting system with submodules (stdout, yaml, .md)
+# - 'Collect artifacts' system with version (database)
+#
+
+# GLOBALS (normal variables)
+NO_OUTPUT=false
+
+# GLOBALS (autoload)
+: ${DEBUG:=FALSE}
+SCRIPTNAME=$(basename $0)
+SCRIPT_DIR=$(dirname $0)
+SAFE_IFS="$IFS"
+
+#######################################
+# Print an message to STDOUT
+# Globals:
+#   NO_OUTPUT
+# Arguments:
+#   None
+# Returns:
+#   (text) STDOUT
+#######################################
+function msg() {
+  if ! $NO_OUTPUT; then
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@"
+  fi
+}
+
+#######################################
+# Print a debug-level message to STDOUT
+# Globals:
+#   DEBUG
+# Arguments:
+#   (text) Message
+# Returns:
+#   None
+#######################################
+function dbg() {
+  if [[ $DEBUG == "true" ]] ; then
+    msg "DEBUG: ${FUNCNAME[1]}: $@"
+  fi
+}
+
+#######################################
+# Print an error/warning/notice message to STDERR
+# Globals:
+#   None
+# Arguments:
+#   (text) Error message
+# Returns:
+#   (text) STDERR
+#######################################
+function err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: $@" >&2
+}
+
+#######################################
+# Error trapping function, prints line number
+# Globals:
+#   SCRIPTNAME, BASH_LINENO[0]
+# Arguments:
+#   (text) Message
+# Returns:
+#   (lines with text) STDOUT
+#######################################
+error_handler() {
+  err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
+  #TODO(vyagofarov): save step here
+  echo
+}
+
+#######################################
+# Read non-comment and non-empty lines from cli.conf
+# Globals:
+#   SCRIPT_DIR
+# Arguments:
+#   None
+# Returns:
+#   (lines with text) STDOUT
+#######################################
+load_cli_res() {
+  local setting
+  while read -r setting; do
+    # skip comments
+    local re='^(#|$|[:blank:])'
+    [[ "$setting" =~ $re ]] && continue
+    echo "${setting}'"
+  done <${SCRIPT_DIR}/resources/cli.conf
+}
+
+#######################################
+# Fill structures with possible CLI arguments from file
+# Globals:
+#   CLI_ARGS_POSSIBLE SECTION[] SHORT_NAME[] FULL_NAME[] ARG_TYPE[] MANDATARY[] DESCRIPTION[]
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+read_possible_args() {
+  local iter_num=0
+  local section short_name full_name arg_type mandatary description
+  while IFS="|" read -r section short_name full_name internal_name arg_type mandatary description; do
+    # cut last garbage symbol
+    # TODO(vyagofarov): understand this 'cutting' behavior
+    description=${description%?}
+
+    SECTION[$iter_num]="$section"
+    SHORT_NAME[$iter_num]="$short_name"
+    FULL_NAME[$iter_num]="$full_name"
+    INTERNAL_NAME[$iter_num]="$internal_name"
+    ARG_TYPE[$iter_num]="$arg_type"
+    MANDATARY[$iter_num]="$mandatary"
+    DESCRIPTION[$iter_num]="$description"
+
+    dbg "iteration number: $iter_num"
+
+    dbg "1: section '${SECTION[$iter_num]}'"
+    dbg "2: short_name '${SHORT_NAME[$iter_num]}'"
+    dbg "3: full_name '${FULL_NAME[$iter_num]}'"
+    dbg "4: internal_name '${INTERNAL_NAME[$iter_num]}'"
+    dbg "5: arg_type '${ARG_TYPE[$iter_num]}'"
+    dbg "6: mandatary '${MANDATARY[$iter_num]}'"
+    dbg "7: description '${DESCRIPTION[$iter_num]}'"
+
+    iter_num=$(( iter_num + 1 ))
+  done < <(load_cli_res)
+  
+  # $CLI_ARGS_POSSIBLE is a global index 
+  # for all CLI input values and their properties,
+  # starting from zero (convenient for arrays)
+  CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
+}
+
+#######################################
+# Parse CLI arguments and save as an indexed array
+# Globals:
+#   $1 CLI_ARGS_POSSIBLE SHORT_NAME[] FULL_NAME[] ARG_VALUE[]
+#   CLI_ARGS_CNT ARG_IS_GIVEN[]
+# Arguments:
+#   $@
+# Returns:
+#   None
+#######################################
+process_cli_args() {
+  local cli_arg_cur_value i
+  local re='^-+'
+  local while_loops_cnt=0
+  dbg "Valid CLI args possible count: ${CLI_ARGS_POSSIBLE}+1"
+  CLI_ARGS_CNT=0
+  while [[ ! -z "${1+x}" ]]; do
+    # avoid infinite loop if argument is unknown
+    while_loops_cnt=$(( while_loops_cnt + 1 ))
+    [[ $while_loops_cnt -gt $(( CLI_ARGS_POSSIBLE * 2 )) ]] && break
+
+    for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
+      if [[ ! -z "${1+x}" ]]; then
+        case $1 in
+          "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
+            dbg "argname: '$1', argvalue '$2'"
+            if [[ "$2" =~ $re ]]; then
+              err "empty value in '--${FULL_NAME[$i]}'"
+              exit 1
+            fi
+            # save argument value as an indexed array
+            ARG_VALUE[$i]="$2"
+            ARG_IS_GIVEN[$i]="true"
+            CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
+            shift 2
+        esac
+      fi
+    done
+  done
+  dbg "given arguments count: '$CLI_ARGS_CNT'"
+}
+
+#######################################
+# Validate single argument type
+# Globals:
+#   None
+# Arguments:
+#   $1 $2 $3
+# Returns:
+#   None
+#######################################
+validate_arg_type() {
+  local name="$1"
+  local type="$2"
+  local value="$3"
+  local re
+
+  if [[ "$type" = "number" ]]; then
+      re='^[0-9]+$'
+      if ! [[ $value =~ $re ]] ; then
+         err "'$name' = '$value' => is not a '$type' (${re})"
+         exit 1
+      fi
+  elif [ $type = "word" ]; then
+      re='^[a-zA-Z]+$'
+      if ! [[ $value =~ $re ]]; then
+         err "'$name' = '$value' => is not a '$type' (${re})"
+         exit 1
+      fi
+  elif [ $type = "alnum" ]; then
+      re='^[a-zA-Z0-9\.]+$'
+      if ! [[ $value =~ $re ]]; then
+         err "'$name' = '$value' => is not a '$type' (${re})"
+         exit 1
+      fi
+  elif [[ $type = "uri" ]]; then
+      re='^[a-zA-Z\;\:\\\/]+.*'
+      if ! [[ $value =~ $re ]]; then
+         err "'$name' = '$value' => is not a '$type' (${re})"
+         exit 1
+      fi
+  elif [[ $type = "text" ]]; then
+      re='^[a-zA-Z\;]+.*'
+      if ! [[ $value =~ $re ]]; then
+         err "'$name' = '$value' => is not a '$type' (${re})"
+         exit 1
+      fi
+  else
+      err "'$name' = '$value' => unknown argument type, validation error"
+      exit 1
+  fi
+}
+
+#######################################
+# Validate arguments and and save input variables
+# Globals:
+#   CLI_ARGS_POSSIBLE SECTION[] SHORT_NAME[]
+#   FULL_NAME[] ARG_TYPE[] MANDATARY[] DESCRIPTION[]
+#   ARG_VALUE[] ARG_IS_GIVEN[] INTERNAL_*
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+validate_args() {
+  local i
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
+    if [[ ${ARG_IS_GIVEN[$i]+x} ]]; then
+      # generate dynamic variables like "$INTERNAL_hostname"
+      declare "INTERNAL_${FULL_NAME[$i]}=${ARG_VALUE[$i]}"
+      dbg "name: '${FULL_NAME[$i]}', var_type: '${ARG_TYPE[$i]}', value: '${ARG_VALUE[$i]}'"
+      validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
+    fi
+  done
+
+echo 
+#  if [[ ! -z "${INTERNAL_NAME+x}" ]]; then
+#    DB_CONNSTRING="${db-uri}"
+#  fi
+#  [[ ! -z "${db-uri+x}" ]] && dbg "db uri: '$db-uri'"
+}
+
+main() {
+  set -ueo pipefail
+  trap error_handler ERR
+  unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
+  export LC_ALL=C
+
+  read_possible_args
+  process_cli_args "$@"
+  validate_args
+
+}
+
+main "$@"
+
