@@ -4,20 +4,7 @@
 # 2018 © Postgres.ai
 #
 # Perform a PostgreSQL instance(s) health checks
-# Usage: 
-#
-
-# TODO(vyagofarov):
-#
-# - Create cli.conf file with CLI settings and read with
-#     'load_cli_res' function
-# - Parse arguments readed by 'load_cli_res' function
-# - Validate CLI arguments
-# - Develop plugable system for healthcheck parts with
-# - Posibility to start from every step of healtcheck
-# - Generate help and usage from 'cli.conf' file
-# - Reporting system with submodules (stdout, yaml, .md)
-# - 'Collect artifacts' system with version (database)
+# Usage: $0 --help
 #
 
 # GLOBALS (normal variables)
@@ -62,6 +49,8 @@ function dbg() {
 
 #######################################
 # Print an error/warning/notice message to STDERR
+#   Please use 'exit' with code after usage
+#   of this function (if needed)
 # Globals:
 #   None
 # Arguments:
@@ -85,7 +74,7 @@ function err() {
 error_handler() {
   err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
   #TODO(vyagofarov): save step here
-  echo
+  echo >&2
 }
 
 #######################################
@@ -99,6 +88,10 @@ error_handler() {
 #######################################
 load_cli_res() {
   local setting
+  if [[ ! -f "${SCRIPT_DIR}/resources/cli.conf" ]]; then
+    err "Can't load '${SCRIPT_DIR}/resources/cli.conf'"
+    exit 2
+  fi
   while read -r setting; do
     # skip comments
     local re='^(#|$|[:blank:])'
@@ -119,6 +112,12 @@ load_cli_res() {
 read_possible_args() {
   local iter_num=0
   local section short_name full_name arg_type mandatary description
+
+  if [[ ! -f "${SCRIPT_DIR}/resources/cli.conf" ]]; then
+    err "Can't load '${SCRIPT_DIR}/resources/cli.conf'"
+    exit 2
+  fi
+
   while IFS="|" read -r section short_name full_name internal_name arg_type mandatary description; do
     # cut last garbage symbol
     # TODO(vyagofarov): understand this 'cutting' behavior
@@ -265,6 +264,7 @@ validate_arg_type() {
 #   CLI_ARGS_POSSIBLE SECTION[] SHORT_NAME[]
 #   FULL_NAME[] ARG_TYPE[] MANDATARY[] DESCRIPTION[]
 #   ARG_VALUE[] ARG_IS_GIVEN[] INTERNAL_* CLI_ARGS_CNT
+#   MANDATORY[] PSQL_CONN_OPTIONS
 # Arguments:
 #   None
 # Returns:
@@ -273,59 +273,100 @@ validate_arg_type() {
 validate_args() {
   local i
   local x=0
-  if [[ "$FIRST_ARG" = "--help" ]]; then
-     CLI_ARGS_POSSIBLE=1 usage "Help" "1" "0"
+  local re="-+(help|usage|\?)"
+  local need_fail_exit="false"
+
+  if [[ "$FIRST_ARG" =~ $re ]]; then
+     usage "Help" "0"
      exit 0
   fi
 
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
-    usage "given less then 1 argument" "2" "1"
+    usage "given less then 1 argument" "1"
   fi
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
     if [[ ${ARG_IS_GIVEN[$i]+x} ]]; then
-      # generate dynamic variables like "$INTERNAL_hostname"
-      declare "INTERNAL_${FULL_NAME[$i]}=${ARG_VALUE[$i]}"
-      dbg "name: '${FULL_NAME[$i]}', var_type: '${ARG_TYPE[$i]}', value: '${ARG_VALUE[$i]}'"
+      # generate dynamic variables like "${INTERNAL_HOSTNAME}"
+      declare "INTERNAL_${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
+      dbg "internal name: '${INTERNAL_NAME[$i]}', var_type: '${ARG_TYPE[$i]}', value: '${ARG_VALUE[$i]}'"
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     fi
   done
+
+  # override --host, --port and --dbname by --db-uri
+  # and set connection options for a psql command
+  if [[ -z "${INTERNAL_DBURI+x}" ]]; then
+    PSQL_CONN_OPTIONS="--host=${INTERNAL_HOSTNAME+x} --port=${INTERNAL_PORT+x} --dbname=${INTERNAL_DBNAME+x}"
+  else
+    PSQL_CONN_OPTIONS="'$INTERNAL_DBURI'"
+    # threat arguments as given
+    for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
+      [[ "${INTERNAL_NAME[$i]}" = "HOSTNAME" ]] && ARG_IS_GIVEN[$i]="true"
+      [[ "${INTERNAL_NAME[$i]}" = "PORT" ]] && ARG_IS_GIVEN[$i]="true"
+      [[ "${INTERNAL_NAME[$i]}" = "DBNAME" ]] && ARG_IS_GIVEN[$i]="true"
+    done
+  fi
+
+  dbg ""
+  dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
+  dbg ""
+
+  # error if mandatory options are not set
+  local buf=""
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
+    if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ ! "${ARG_IS_GIVEN[$i]+x}" ]] ; then
+      # please do not change align for 'buf' variable text
+      buf="$buf
+  mandatory option '--${FULL_NAME[$i]}' is not set"
+      need_fail_exit="true"
+    fi
+  done
+  if [[ "$need_fail_exit" = "true" ]]; then
+    usage "$buf" "1"
+  fi
 }
 
 #######################################
 # Generate usage/help
 # Globals:
-#   CLI_ARGS_POSSIBLE FULL_NAME[] SECTION[)]
-#   SCRIPTNAME
+#   CLI_ARGS_POSSIBLE FULL_NAME[] SECTION[]
+#   SCRIPTNAME SHORT_NAME[] DESCRIPTION[]
 # Arguments:
-#   description out_descriptor code
+#   description exit_code code
 # Returns:
 #   None
 #######################################
 usage() {
   local i
   local description="$1"
-  local out_descriptor="$2"
-  local out_descriptor=${out_descriptor:=1}
-  local code="$3"
-  local code=${code:=0}
-  if [[ "$out_descriptor" -eq "2" ]] || [[ "$out_descriptor" =~ "STDE" ]]; then
+  local exit_code="$2"
+  local exit_code=${exit_code:=0}
+  local out_descriptor
+  local re="[a-zA-Z]"
+  if [[ ! "$description" =~ $re ]]; then
+    err "First argument of 'usage' must be a text description"
+    exit 1
+  fi
+  # if error: print reason before 'Usage:'
+  if [[ "$exit_code" -ne "0" ]]; then
+    out_descriptor="2" # STDERR
     echo "ERROR:  " >&${out_descriptor}
-    echo "  '$description'" >&${out_descriptor}
+    echo "  $description" >&${out_descriptor}
     echo >&${out_descriptor}
-  elif [[ "$out_descriptor" -eq "1" ]]; then
-    echo "PgHealth is the PostgreSQL ultimate healthcheck utility." >&${out_descriptor}
   else
-    echo "FATAL: unknown output descriptor." >&${out_descriptor}
-    echo "  supported only 1, 2, 'STDOUT', 'STDERR'" >&${out_descriptor}
+    out_descriptor="1" # STDOUT
+    # help part starts here
+    echo "PgHealth is the PostgreSQL ultimate healthcheck utility." >&${out_descriptor}
     echo >&${out_descriptor}
   fi
 
-  echo "Usage:" >&${out_descriptor} >&${out_descriptor}
-  echo "  ${SCRIPTNAME} OPTION OPTION... "  >&${out_descriptor}
-  echo >&${out_descriptor}  >&${out_descriptor}
+  echo "Usage:" >&${out_descriptor}
+  echo "  ${SCRIPTNAME} OPTION OPTION..." >&${out_descriptor}
+  echo "  ${SCRIPTNAME} --help" >&${out_descriptor}
+  echo >&${out_descriptor}
 
-  # calc max size of FULL_NAME[]
+  # calc max size of FULL_NAME[] for text alignment
   local max_name_len=0
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do 
     bytlen=${#FULL_NAME[$i]}
@@ -335,16 +376,16 @@ usage() {
   done
 
   local space
-  local prev_section=lol
+  local prev_section="Misc"
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${SECTION[$i]}" != "$prev_section" ]] || [[ -z ${SECTION[0]} ]] ; then
       echo  "${SECTION[$i]}:" >&${out_descriptor}
     fi
     [[ "${SHORT_NAME[$i]}" = "None" ]] && SHORT_NAME[$i]=" "
     if [[ "${SHORT_NAME[$i]}" = " " ]]; then
-      echo -n "    "${SHORT_NAME[$i]} >&${out_descriptor}
+      echo -n "     "${SHORT_NAME[$i]} >&${out_descriptor}
     else
-      echo -n "  -"${SHORT_NAME[$i]} >&${out_descriptor}
+      echo -n "  -"${SHORT_NAME[$i]}"," >&${out_descriptor}
     fi
     curr_byte_len=${#FULL_NAME[$i]}
     # print space padding
@@ -353,8 +394,26 @@ usage() {
     done
     echo -n " --"${FULL_NAME[$i]} >&${out_descriptor} 
     echo    "   "${DESCRIPTION[$i]} >&${out_descriptor}
+    # print options about this usage/help and additional info in the last iteration
+    curr_byte_len="help"
+    curr_byte_len=${#curr_byte_len}
+    if [[ "$i" -eq "$CLI_ARGS_POSSIBLE" ]]; then
+      echo -n "  -?," >&${out_descriptor}
+      for f in $(seq 0 $(( max_name_len - curr_byte_len + 2 )) ); do
+        echo -n " "  >&${out_descriptor}
+      done
+      echo -n " --help" >&${out_descriptor} 
+      echo    "   this help" >&${out_descriptor}
+      # additional info
+      echo >&${out_descriptor}
+      echo "To add more options please edit file 'resources/cli.conf'."
+      echo >&${out_descriptor}
+      echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
+    fi
     prev_section=${SECTION[$i]}
   done
+ 
+  exit $exit_code
 }
 
 main() {
