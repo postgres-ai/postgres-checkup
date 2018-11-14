@@ -7,10 +7,9 @@
 # Usage: $0 --help
 #
 
-# GLOBALS (normal variables)
-NO_OUTPUT=false
+# GLOBALS (user-assigned variables)
 
-# GLOBALS (autoload)
+# GLOBALS (autoload, do not change)
 : ${DEBUG:=FALSE}
 SCRIPTNAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
@@ -20,16 +19,14 @@ FIRST_ARG="$1"
 #######################################
 # Print an message to STDOUT
 # Globals:
-#   NO_OUTPUT
+#
 # Arguments:
 #   None
 # Returns:
 #   (text) STDOUT
 #######################################
 function msg() {
-  if ! $NO_OUTPUT; then
-    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@"
-  fi
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@"
 }
 
 #######################################
@@ -132,7 +129,6 @@ read_possible_args() {
     DESCRIPTION[$iter_num]="$description"
 
     dbg "iteration number: $iter_num"
-
     dbg "1: section '${SECTION[$iter_num]}'"
     dbg "2: short_name '${SHORT_NAME[$iter_num]}'"
     dbg "3: full_name '${FULL_NAME[$iter_num]}'"
@@ -335,7 +331,7 @@ validate_args() {
 # Arguments:
 #   description exit_code code
 # Returns:
-#   None
+#   (text) stdtout/stderror
 #######################################
 usage() {
   local i
@@ -416,6 +412,25 @@ usage() {
   exit $exit_code
 }
 
+#######################################
+# Perform checks
+# Globals:
+#   CURRENT_CHECK
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+run_checks() {
+  # TODO(vyagofarov): think is it safe globbing?
+  for CURRENT_CHECK in ${SCRIPT_DIR}/resources/templates/*_*.sh; do
+    msg "Current check: $CURRENT_CHECK"
+    eval "cat <<-EOF
+$(<"$CURRENT_CHECK")
+EOF"
+  done
+}
+
 main() {
   set -ueo pipefail
   trap error_handler ERR
@@ -424,6 +439,7 @@ main() {
   read_possible_args && ARGS_ARE_READED="true"
   process_cli_args "$@"
   validate_args
+  run_checks
 }
 
 main "$@"
