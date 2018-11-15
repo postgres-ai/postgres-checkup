@@ -423,11 +423,10 @@ usage() {
 #######################################
 run_checks() {
   # TODO(vyagofarov): think is it safe globbing?
-  for CURRENT_CHECK in ${SCRIPT_DIR}/resources/templates/*_*.sh; do
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/templates/*_*.sh; do
+    [[ -e "$CURRENT_CHECK" ]] || continue
     msg "Current check: $CURRENT_CHECK"
-    eval "cat <<-EOF
-$(<"$CURRENT_CHECK")
-EOF"
+    source "$CURRENT_CHECK"
   done
 }
 
