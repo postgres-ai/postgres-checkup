@@ -296,7 +296,7 @@ validate_args() {
   # override --host, --port and --dbname by --db-uri
   # and set connection options for a psql command
   if [[ "${DBURI}" = "None" ]]; then
-    PSQL_CONN_OPTIONS="--host=${HOSTNAME} --port=${PORT} --dbname='${DBNAME}'"
+    PSQL_CONN_OPTIONS="--host=${HOSTNAME} --port=${PORT} --dbname=${DBNAME}"
   else
     PSQL_CONN_OPTIONS="'$DBURI'"
     # threat arguments as given if we've got --db-uri (hack)
@@ -428,11 +428,23 @@ usage() {
 #   (text) stdtout/stderror
 #######################################
 run_checks() {
+  local output
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/templates/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
-    msg "Current check: $CURRENT_CHECK"
-    source "$CURRENT_CHECK" || true
+    msg "========== Perform check: =========="
+    msg "$CURRENT_CHECK"
+    msg ""
+    output=$(source "$CURRENT_CHECK" || true)
+    msg "========== End of check: ==========="
+    msg "$CURRENT_CHECK"
+    msg ""
   done
+}
+
+################ COMMANDS #############
+psql ()
+{
+  command psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off "$@"
 }
 
 main() {
