@@ -1,3 +1,2 @@
 
-echo "Hello world!"
-
+echo "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"

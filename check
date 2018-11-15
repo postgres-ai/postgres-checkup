@@ -282,20 +282,20 @@ validate_args() {
   fi
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
-    if [[ ${ARG_IS_GIVEN[$i]+x} ]]; then
-      # generate dynamic variables like "${INTERNAL_HOSTNAME}"
-      declare "INTERNAL_${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
-      dbg "internal name: '${INTERNAL_NAME[$i]}', var_type: '${ARG_TYPE[$i]}', value: '${ARG_VALUE[$i]}'"
+    if [[ ! -z "${ARG_IS_GIVEN[$i]+x}" ]]; then
+      # generate dynamic variables like "$HOSTNAME" and export them
+      # to make visible from healthcheck scripts
+      declare -x "${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     fi
   done
 
   # override --host, --port and --dbname by --db-uri
   # and set connection options for a psql command
-  if [[ -z "${INTERNAL_DBURI+x}" ]]; then
-    PSQL_CONN_OPTIONS="--host=${INTERNAL_HOSTNAME+x} --port=${INTERNAL_PORT+x} --dbname=${INTERNAL_DBNAME+x}"
+  if [[ -z "${DBURI+x}" ]]; then
+    PSQL_CONN_OPTIONS="--host=${HOSTNAME} --port=${PORT} --dbname=${DBNAME}"
   else
-    PSQL_CONN_OPTIONS="'$INTERNAL_DBURI'"
+    PSQL_CONN_OPTIONS="'$DBURI'"
     # threat arguments as given
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
       [[ "${INTERNAL_NAME[$i]}" = "HOSTNAME" ]] && ARG_IS_GIVEN[$i]="true"
@@ -304,6 +304,8 @@ validate_args() {
     done
   fi
 
+  export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
+
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
   dbg ""
@@ -311,7 +313,7 @@ validate_args() {
   # error if mandatory options are not set
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
-    if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ ! "${ARG_IS_GIVEN[$i]+x}" ]] ; then
+    if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
       # please do not change align for 'buf' variable text
       buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
@@ -422,11 +424,10 @@ usage() {
 #   (text) stdtout/stderror
 #######################################
 run_checks() {
-  # TODO(vyagofarov): think is it safe globbing?
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/templates/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
     msg "Current check: $CURRENT_CHECK"
-    source "$CURRENT_CHECK"
+    source "$CURRENT_CHECK" || true
   done
 }
 
@@ -443,3 +444,4 @@ main() {
 
 main "$@"
 
+# last line of the file
