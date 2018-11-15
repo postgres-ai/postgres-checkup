@@ -61,7 +61,12 @@ func GetFilePath(name string) string {
         if err != nil {
             dbg("Can't determine current path")
         }
-        filePath = dir + strings.Replace(name, "file://", "", 1)
+        givenPath := strings.Replace(name, "file://", "", 1)
+        if strings.HasPrefix(strings.ToLower(givenPath), "/") {
+            filePath = dir + givenPath
+        } else {
+            filePath = dir + "/" + givenPath
+        }
         return filePath
     }
     return name
@@ -70,7 +75,7 @@ func GetFilePath(name string) string {
 // Exists reports whether the named file or directory exists.
 func FileExists(name string) bool {
     filePath := GetFilePath(name)
-//    dbg("File path", filePath)
+    dbg("File path", filePath)
     if _, err := os.Stat(filePath); err != nil {
         if os.IsNotExist(err) {
             return false
