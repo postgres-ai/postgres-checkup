@@ -8,7 +8,7 @@ pghrep --checkid=XXX --checkdata=file:///path_to_check_results.json --outdir=/ho
 package main
 
 import (
-	"fmt"
+    "fmt"
     "os"
     "flag"
     "strings"
@@ -61,7 +61,6 @@ func GetFilePath(name string) string {
         if err != nil {
             dbg("Can't determine current path")
         }
-        dbg("Cur dir: ", dir)
         filePath = dir + strings.Replace(name, "file://", "", 1)
         return filePath
     }
@@ -117,7 +116,6 @@ func loadTemplates() *template.Template {
     if err != nil {
         dbg("Can't determine current path")
     }
-    log.Println("Cur dir: ", dir)
 
     var templates *template.Template
     var allFiles []string
@@ -132,7 +130,6 @@ func loadTemplates() *template.Template {
         }
     }
     
-    //dbg("ALL FILES", allFiles)
     templates, err = template.ParseFiles(allFiles...)
     if err != nil {
         dbg("Can't load templates")
@@ -149,10 +146,7 @@ func generateMdReport(reportData ReportData, outputDir string){
     } else {
         outputFileName = outputDir + "/" + reportData.Filename
     }
-    dbg("REPORT OUTPUT FILENAME", outputFileName)
-    dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-    dbg("CURRENT DIR", dir)
-    
+    _, err := filepath.Abs(filepath.Dir(os.Args[0]))
     f, err := os.OpenFile(outputFileName, os.O_CREATE | os.O_RDWR, 0777)
     if err != nil {
         dbg("Can't create report file", err)
@@ -178,7 +172,6 @@ func main() {
     checkDataPtr := flag.String("checkdata", "", "an report data in json format")
     outDirPtr := flag.String("outdir", "", "an directore where report need save")
     flag.Parse()
-    dbg("outDirPtr", *outDirPtr)
 
     if len(*checkIdPtr) > 0 {
         checkId = *checkIdPtr
@@ -196,53 +189,49 @@ func main() {
         mapCheckData = ParseJson(checkData)
     }
 
-    dbg("checkData ", mapCheckData)
     if mapCheckData != nil {
         checkId = pyraconv.ToString(mapCheckData["checkId"])
     } else {
         log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
     }
     
-    dbg("checkId:", checkId)
     if len(checkId) == 0 {
         log.Fatal("ERROR: --checkid value incorrect")
         return
     }
 
-    //check checkId!!!!
-    dbg("checkId:", checkId)
     if len(checkId) == 0 {
         log.Fatal("ERROR: --checkid value incorrect")
         return
     }
-    
-    loadDependencies(mapCheckData)
-    dbg("AFTER LOAD DEPENDENCIES:============")
-    dbg("checkData", mapCheckData)
     
     checkId = strings.ToLower(checkId)
-    dbg("ChecId ", checkId)
-    var reportData ReportData
-    switch checkId {
-    case "a001":
-        fmt.Println("a001")
-    case "a002":
-        fmt.Println("a002")
-    case "a003":
-        fmt.Println("a003")
-    case "a004":
-        fmt.Println("a004")
-    case "a011":
-        fmt.Println("Generate report a011")
-        //reportData = A011.PrepareReportData(mapCheckData)
+    loadDependencies(mapCheckData)
+
+    l, err := newLoader()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "%v", err)
+    }
+    defer l.destroy()
+    
+    objectPath, err := l.get(checkId);
+    result, err := l.call(objectPath, mapCheckData)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "%v", err)
     }
 
-    reportData = ReportData{"CUrRENT Values", "RECOMEnnDED VALUES", "CONCLUSION", "a011_shared_buffers.md"}
-    var outputDir string
-    if len(*outDirPtr) == 0 {
-        outputDir = "./"
+    reportData := ReportData{}
+    bodyBytes, _ := json.Marshal(result)
+    json.Unmarshal(bodyBytes, &reportData)
+    if len(result) > 0 && len(reportData.Filename) > 0 {
+        var outputDir string
+        if len(*outDirPtr) == 0 {
+            outputDir = "./"
+        } else {
+            outputDir = *outDirPtr
+        }
+        generateMdReport(reportData, outputDir)
     } else {
-        outputDir = *outDirPtr
+        log.Fatal("Can't generate report on wrong data")
     }
-    generateMdReport(reportData, outputDir)
 }
