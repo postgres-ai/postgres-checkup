@@ -1,0 +1,16 @@
+{
+  "checkId": null,
+  "hosts": [ null ],
+  "dependencies": {"null": "null"},
+  "checkData": {
+    "db1.postila.ru": {
+      "shared_buffers": "8GB"
+    },
+    "db2.postila.ru": {
+      "shared_buffers": "8GB"
+    },
+    "db3.postila.ru": {
+      "shared_buffers": "8GB"
+    }
+  }
+}

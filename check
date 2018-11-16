@@ -281,12 +281,14 @@ validate_args() {
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
     usage "given less then 1 argument" "1"
   fi
+  
+  DBURI="None"
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ ! -z "${ARG_IS_GIVEN[$i]+x}" ]]; then
-      # generate dynamic variables like "$HOSTNAME" and export them
+      # generate dynamic variables like "$HOST" and export them
       # to make visible from healthcheck scripts
-      declare -x "${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
+      eval "${INTERNAL_NAME[$i]}"="${ARG_VALUE[$i]}"
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     else
       declare -x "${INTERNAL_NAME[$i]}=None"
@@ -296,12 +298,12 @@ validate_args() {
   # override --host, --port and --dbname by --db-uri
   # and set connection options for a psql command
   if [[ "${DBURI}" = "None" ]]; then
-    PSQL_CONN_OPTIONS="--host=${HOSTNAME} --port=${PORT} --dbname=${DBNAME}"
+    PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME}"
   else
     PSQL_CONN_OPTIONS="'$DBURI'"
     # threat arguments as given if we've got --db-uri (hack)
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
-      [[ "${INTERNAL_NAME[$i]}" = "HOSTNAME" ]] && ARG_IS_GIVEN[$i]="true"
+      [[ "${INTERNAL_NAME[$i]}" = "HOST" ]] && ARG_IS_GIVEN[$i]="true"
       [[ "${INTERNAL_NAME[$i]}" = "PORT" ]] && ARG_IS_GIVEN[$i]="true"
       [[ "${INTERNAL_NAME[$i]}" = "DBNAME" ]] && ARG_IS_GIVEN[$i]="true"
     done
@@ -419,8 +421,9 @@ usage() {
 
 #######################################
 # Perform checks
+# All checks must return valid json into stdout
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR
+#   CURRENT_CHECK, SCRIPT_DIR, CHECK_ID
 #   and all exported internal globals
 # Arguments:
 #   None
@@ -429,16 +432,54 @@ usage() {
 #######################################
 run_checks() {
   local output
-  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/templates/*_*.sh; do
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK"
     msg ""
     output=$(source "$CURRENT_CHECK" || true)
     msg "========== End of check: ==========="
-    msg "$CURRENT_CHECK"
+    # extract checkId from check script path
+    local check_path_name="$CURRENT_CHECK"
+    check_path_name=${check_path_name%_*.sh}
+    check_path_name=${check_path_name##*/}
+    export CHECK_ID="$check_path_name"
+    msg "$CHECK_ID"
     msg ""
+    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
+    generate_report_json "$output" "$CHECK_ID"
   done
+}
+
+#######################################
+# Generate json report
+# Globals:
+#   CURRENT_CHECK, SCRIPT_DIR
+#   and all exported internal globals
+# Arguments:
+#   input, check_id
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+generate_report_json() {
+  local input_json="$1"
+  local check_id="$2"
+
+  #TODO(vyagofarov): make uniq temp file names
+
+  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  # insert json object data into template
+  local tmp_input_json_fname="${SCRIPT_DIR}/artifacts/${check_id}.tmp"
+  touch "$tmp_input_json_fname"
+  echo "$input_json" > "$tmp_input_json_fname"
+  local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
+  mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
+
+  jq --argfile Data \
+    "${tmp_input_json_fname}" '.checkId = "'"${check_id}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname"
+ #       > "${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
+
+  rm "$tmp_input_json_fname"
 }
 
 ################ COMMANDS #############
