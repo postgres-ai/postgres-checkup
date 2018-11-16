@@ -53,11 +53,14 @@ func (l *loader) compileAndRun(name string, data map[string]interface{}) (map[st
     }
     defer os.Remove(obj)
 
-    result, err := l.call(obj, data)
-    if err != nil {
-        return nil, fmt.Errorf("Cannot run plugin %s: %v", obj, err)
+    if len(obj) > 0 {
+        result, err := l.call(obj, data)
+        if err != nil {
+            return nil, fmt.Errorf("Cannot run plugin %s: %v", obj, err)
+        }
+        return result, nil
     }
-    return result, nil
+    return nil, fmt.Errorf("Plugin %s compilation error: %v", obj, err)
 }
 
 // check existance of binary plugin library or compile it from sources
@@ -66,10 +69,10 @@ func (l *loader) get(name string) (string, error) {
     pluginPath := filepath.Join(l.binDir, name + ".so")
     _, err := os.Stat(filepath.Join(l.binDir, name + ".so"))
     if err != nil && os.IsNotExist(err) {
-        log.Printf("WARNING: Binary plugin %s not found. Try compile.", pluginPath)
+        log.Printf("WARNING: Binary plugin %s not found. Try compile.\n", pluginPath)
         pluginPath, err = l.compile(name)
     } else {
-        log.Printf("Binary plugin %s found.", pluginPath)
+        log.Printf("Binary plugin %s found.\n", pluginPath)
         err = nil
     }
     return pluginPath, err
@@ -111,7 +114,7 @@ func (l *loader) compile(name string) (string, error) {
 func (l *loader) call(object string, checkData map[string]interface{}) (map[string]interface{}, error) {
     p, err := plugin.Open(object)
     if err != nil {
-        return nil, fmt.Errorf("Check plugin %s not found.", object)
+        return nil, fmt.Errorf("Check plugin %s not found.\n", object)
     }
     symPreparer, err := p.Lookup("Preparer")
 	if err != nil {

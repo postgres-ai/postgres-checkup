@@ -220,6 +220,9 @@ func main() {
     defer l.destroy()
     
     objectPath, err := l.get(checkId);
+    if err != nil {
+        log.Fatal("Cannot find and load plugin.", err)
+    }
     result, err := l.call(objectPath, mapCheckData)
     if err != nil {
         fmt.Fprintf(os.Stderr, "%v", err)
@@ -237,6 +240,6 @@ func main() {
         }
         generateMdReport(reportData, outputDir)
     } else {
-        log.Fatal("Cannot generate report. Data file is empty.")
+        log.Fatal("Cannot generate report. Data file or plugin is wrong.")
     }
 }
