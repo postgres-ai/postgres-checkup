@@ -7,10 +7,9 @@
 # Usage: $0 --help
 #
 
-# GLOBALS (normal variables)
-NO_OUTPUT=false
+# GLOBALS (user-assigned variables)
 
-# GLOBALS (autoload)
+# GLOBALS (autoload, do not change)
 : ${DEBUG:=FALSE}
 SCRIPTNAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
@@ -20,16 +19,14 @@ FIRST_ARG="$1"
 #######################################
 # Print an message to STDOUT
 # Globals:
-#   NO_OUTPUT
+#   None
 # Arguments:
 #   None
 # Returns:
 #   (text) STDOUT
 #######################################
 function msg() {
-  if ! $NO_OUTPUT; then
-    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@"
-  fi
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@"
 }
 
 #######################################
@@ -103,7 +100,8 @@ load_cli_res() {
 #######################################
 # Fill structures with possible CLI arguments from file
 # Globals:
-#   CLI_ARGS_POSSIBLE SECTION[] SHORT_NAME[] FULL_NAME[] ARG_TYPE[] MANDATARY[] DESCRIPTION[]
+#   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
+#   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[]
 # Arguments:
 #   None
 # Returns:
@@ -132,7 +130,6 @@ read_possible_args() {
     DESCRIPTION[$iter_num]="$description"
 
     dbg "iteration number: $iter_num"
-
     dbg "1: section '${SECTION[$iter_num]}'"
     dbg "2: short_name '${SHORT_NAME[$iter_num]}'"
     dbg "3: full_name '${FULL_NAME[$iter_num]}'"
@@ -155,8 +152,8 @@ read_possible_args() {
 #######################################
 # Parse CLI arguments and save as an indexed array
 # Globals:
-#   $1 CLI_ARGS_POSSIBLE SHORT_NAME[] FULL_NAME[] ARG_VALUE[]
-#   CLI_ARGS_CNT ARG_IS_GIVEN[]
+#   $1, CLI_ARGS_POSSIBLE, SHORT_NAME[], FULL_NAME[], ARG_VALUE[],
+#   CLI_ARGS_CNT, ARG_IS_GIVEN[]
 # Arguments:
 #   $@
 # Returns:
@@ -174,7 +171,7 @@ process_cli_args() {
     while_loops_cnt=$(( while_loops_cnt + 1 ))
     [[ $while_loops_cnt -gt $(( CLI_ARGS_POSSIBLE * 2 )) ]] && break
 
-    for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
+    for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
@@ -208,7 +205,7 @@ process_cli_args() {
 # Globals:
 #   None
 # Arguments:
-#   $1 $2 $3
+#   $1, $2, $3
 # Returns:
 #   None
 #######################################
@@ -261,10 +258,10 @@ validate_arg_type() {
 #######################################
 # Validate arguments and and save input variables
 # Globals:
-#   CLI_ARGS_POSSIBLE SECTION[] SHORT_NAME[]
-#   FULL_NAME[] ARG_TYPE[] MANDATARY[] DESCRIPTION[]
-#   ARG_VALUE[] ARG_IS_GIVEN[] INTERNAL_* CLI_ARGS_CNT
-#   MANDATORY[] PSQL_CONN_OPTIONS
+#   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
+#   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
+#   ARG_VALUE[], ARG_IS_GIVEN[], INTERNAL_*, CLI_ARGS_CNT,
+#   MANDATORY[], PSQL_CONN_OPTIONS
 # Arguments:
 #   None
 # Returns:
@@ -285,28 +282,32 @@ validate_args() {
     usage "given less then 1 argument" "1"
   fi
 
-  for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
-    if [[ ${ARG_IS_GIVEN[$i]+x} ]]; then
-      # generate dynamic variables like "${INTERNAL_HOSTNAME}"
-      declare "INTERNAL_${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
-      dbg "internal name: '${INTERNAL_NAME[$i]}', var_type: '${ARG_TYPE[$i]}', value: '${ARG_VALUE[$i]}'"
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
+    if [[ ! -z "${ARG_IS_GIVEN[$i]+x}" ]]; then
+      # generate dynamic variables like "$HOSTNAME" and export them
+      # to make visible from healthcheck scripts
+      declare -x "${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
+    else
+      declare -x "${INTERNAL_NAME[$i]}=None"
     fi
   done
 
   # override --host, --port and --dbname by --db-uri
   # and set connection options for a psql command
-  if [[ -z "${INTERNAL_DBURI+x}" ]]; then
-    PSQL_CONN_OPTIONS="--host=${INTERNAL_HOSTNAME+x} --port=${INTERNAL_PORT+x} --dbname=${INTERNAL_DBNAME+x}"
+  if [[ "${DBURI}" = "None" ]]; then
+    PSQL_CONN_OPTIONS="--host=${HOSTNAME} --port=${PORT} --dbname=${DBNAME}"
   else
-    PSQL_CONN_OPTIONS="'$INTERNAL_DBURI'"
-    # threat arguments as given
-    for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
+    PSQL_CONN_OPTIONS="'$DBURI'"
+    # threat arguments as given if we've got --db-uri (hack)
+    for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       [[ "${INTERNAL_NAME[$i]}" = "HOSTNAME" ]] && ARG_IS_GIVEN[$i]="true"
       [[ "${INTERNAL_NAME[$i]}" = "PORT" ]] && ARG_IS_GIVEN[$i]="true"
       [[ "${INTERNAL_NAME[$i]}" = "DBNAME" ]] && ARG_IS_GIVEN[$i]="true"
     done
   fi
+
+  export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
@@ -314,8 +315,8 @@ validate_args() {
 
   # error if mandatory options are not set
   local buf=""
-  for i in $(seq 0 ${CLI_ARGS_POSSIBLE} ); do
-    if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ ! "${ARG_IS_GIVEN[$i]+x}" ]] ; then
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
+    if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
       # please do not change align for 'buf' variable text
       buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
@@ -330,12 +331,12 @@ validate_args() {
 #######################################
 # Generate usage/help
 # Globals:
-#   CLI_ARGS_POSSIBLE FULL_NAME[] SECTION[]
-#   SCRIPTNAME SHORT_NAME[] DESCRIPTION[]
+#   CLI_ARGS_POSSIBLE, FULL_NAME[], SECTION[]
+#   SCRIPTNAME, SHORT_NAME[], DESCRIPTION[]
 # Arguments:
 #   description exit_code code
 # Returns:
-#   None
+#   (text) stdtout/stderror
 #######################################
 usage() {
   local i
@@ -416,6 +417,36 @@ usage() {
   exit $exit_code
 }
 
+#######################################
+# Perform checks
+# Globals:
+#   CURRENT_CHECK, SCRIPT_DIR
+#   and all exported internal globals
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+run_checks() {
+  local output
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/templates/*_*.sh; do
+    [[ -e "$CURRENT_CHECK" ]] || continue
+    msg "========== Perform check: =========="
+    msg "$CURRENT_CHECK"
+    msg ""
+    output=$(source "$CURRENT_CHECK" || true)
+    msg "========== End of check: ==========="
+    msg "$CURRENT_CHECK"
+    msg ""
+  done
+}
+
+################ COMMANDS #############
+psql ()
+{
+  command psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off "$@"
+}
+
 main() {
   set -ueo pipefail
   trap error_handler ERR
@@ -424,7 +455,9 @@ main() {
   read_possible_args && ARGS_ARE_READED="true"
   process_cli_args "$@"
   validate_args
+  run_checks
 }
 
 main "$@"
 
+# last line of the file
