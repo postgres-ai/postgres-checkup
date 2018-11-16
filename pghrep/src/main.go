@@ -237,6 +237,6 @@ func main() {
         }
         generateMdReport(reportData, outputDir)
     } else {
-        log.Fatal("Can't generate report on wrong data")
+        log.Fatal("Cannot generate report. Data file is empty.")
     }
 }

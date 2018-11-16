@@ -21,8 +21,20 @@ LDFLAGS = -ldflags "-s -w \
 	-X main.branch=${BRANCH}\
 	-X main.buildTime=${BUILD_TIME}"
 
+PLUGINS_SRC := $(wildcard plugins/*.go)
+
 # Build the project
-all: clean vet linux freebsd darwin windows
+all: clean vet buildplugins linux freebsd darwin windows
+
+
+buildplugins:
+	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
+		go build ${LDFLAGS} -buildmode=plugin -o bin/$$f.so ./plugins/$$f.go ; \
+	done
+
+test:
+	go test ./src/
+
 
 linux:
 	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./src/

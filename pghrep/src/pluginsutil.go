@@ -28,7 +28,7 @@ func newLoader() (*loader, error) {
     // The directory that will be watched for new plugins.
     wd, err := os.Getwd()
     if err != nil {
-        return nil, fmt.Errorf("could not find current directory: %v", err)
+        return nil, fmt.Errorf("Cannot find plugins: %v", err)
     }
     pluginsDir := filepath.Join(wd, "plugins")
     binDir := filepath.Join(wd, "bin")
@@ -37,7 +37,7 @@ func newLoader() (*loader, error) {
     // The directory where all .so files will be stored.
     tmp, err := ioutil.TempDir("", "")
     if err != nil {
-        return nil, fmt.Errorf("could not create objects dir: %v", err)
+        return nil, fmt.Errorf("Cannot create tmp dir: %v", err)
     }
     return &loader{pluginsDir: pluginsDir, objectsDir: tmp, binDir: binDir}, nil
 }
@@ -49,13 +49,13 @@ func (l *loader) destroy() {
 func (l *loader) compileAndRun(name string, data map[string]interface{}) (map[string]interface{}, error) {
     obj, err := l.compile(name)
     if err != nil {
-        return nil, fmt.Errorf("could not compile %s: %v", name, err)
+        return nil, fmt.Errorf("Cannot compile %s: %v", name, err)
     }
     defer os.Remove(obj)
 
     result, err := l.call(obj, data)
     if err != nil {
-        return nil, fmt.Errorf("could not run %s: %v", obj, err)
+        return nil, fmt.Errorf("Cannot run plugin %s: %v", obj, err)
     }
     return result, nil
 }
@@ -66,10 +66,10 @@ func (l *loader) get(name string) (string, error) {
     pluginPath := filepath.Join(l.binDir, name + ".so")
     _, err := os.Stat(filepath.Join(l.binDir, name + ".so"))
     if err != nil && os.IsNotExist(err) {
-        log.Println("WARNING: Binary plugin not found. Try compile")
+        log.Printf("WARNING: Binary plugin %s not found. Try compile.", pluginPath)
         pluginPath, err = l.compile(name)
     } else {
-        log.Println("Binary plugin found", )
+        log.Printf("Binary plugin %s found.", pluginPath)
         err = nil
     }
     return pluginPath, err
@@ -85,13 +85,13 @@ func (l *loader) compile(name string) (string, error) {
 
     f, err := ioutil.ReadFile(filepath.Join(l.pluginsDir, name + ".go"))
     if err != nil {
-        return "", fmt.Errorf("could not read %s.go: %v", name, err)
+        return "", fmt.Errorf("Cannot read %s.go: %v", name, err)
     }
 
     name = fmt.Sprintf("%d.go", rand.Int())
     srcPath := filepath.Join(l.objectsDir, name)
     if err := ioutil.WriteFile(srcPath, f, 0666); err != nil {
-        return "", fmt.Errorf("could not write %s: %v", name, err)
+        return "", fmt.Errorf("Cannot write %s: %v", name, err)
     }
 
     objectPath := srcPath[:len(srcPath)-3] + ".so"
@@ -100,7 +100,7 @@ func (l *loader) compile(name string) (string, error) {
     cmd.Stderr = os.Stderr
     cmd.Stdout = os.Stdout
     if err := cmd.Run(); err != nil {
-        return "", fmt.Errorf("could not compile %s: %v", name, err)
+        return "", fmt.Errorf("Cannot compile %s: %v", name, err)
     }
 
     return objectPath, nil
@@ -111,18 +111,18 @@ func (l *loader) compile(name string) (string, error) {
 func (l *loader) call(object string, checkData map[string]interface{}) (map[string]interface{}, error) {
     p, err := plugin.Open(object)
     if err != nil {
-        return nil, fmt.Errorf("Check plugin not found.")
+        return nil, fmt.Errorf("Check plugin %s not found.", object)
     }
     symPreparer, err := p.Lookup("Preparer")
 	if err != nil {
 		fmt.Println(err)
-		return nil, fmt.Errorf("plugin failed with error %v", err)
+		return nil, fmt.Errorf("Plugin processing failed with error %v", err)
 	}
     
     var preparer Preparer
 	preparer, ok := symPreparer.(Preparer)
 	if !ok {
-        return nil, fmt.Errorf("unexpected type from module symbol")
+        return nil, fmt.Errorf("Plugin processing failed.")
 	}
 
 	result := preparer.Prepare(checkData)
