@@ -409,6 +409,9 @@ usage() {
       echo    "   this help" >&${out_descriptor}
       # additional info
       echo >&${out_descriptor}
+      echo "Example:" >&${out_descriptor}
+      echo "./${SCRIPTNAME} -h localhost -p 5432 --dbname postgres --project dummy" >&${out_descriptor}
+      echo >&${out_descriptor}
       echo "To add more options please edit file 'resources/cli.conf'."
       echo >&${out_descriptor}
       echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
