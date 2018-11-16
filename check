@@ -445,7 +445,6 @@ run_checks() {
     check_path_name=${check_path_name##*/}
     export CHECK_ID="$check_path_name"
     msg "$CHECK_ID"
-    msg ""
     mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
     generate_report_json "$output" "$CHECK_ID"
   done
@@ -454,8 +453,8 @@ run_checks() {
 #######################################
 # Generate json report
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR
-#   and all exported internal globals
+#   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
+#   HOST, 
 # Arguments:
 #   input, check_id
 # Returns:
@@ -474,11 +473,12 @@ generate_report_json() {
   echo "$input_json" > "$tmp_input_json_fname"
   local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
   mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
+  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
 
   jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId = "'"${check_id}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname"
- #       > "${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
-
+    "${tmp_input_json_fname}" '.checkId = "'"${check_id}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname" \
+    > "$report_fname"
+  msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
 }
 
