@@ -300,7 +300,7 @@ validate_args() {
   # override --host, --port and --dbname by --db-uri
   # and set connection options for a psql command
   if [[ "${DBURI}" = "None" ]]; then
-    PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} -U '${USERNAME}'"
+    PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} -U ${USERNAME}"
   else
     PSQL_CONN_OPTIONS="'$DBURI'"
     # threat arguments as given if we've got --db-uri (hack)
