@@ -101,7 +101,8 @@ load_cli_res() {
 # Fill structures with possible CLI arguments from file
 # Globals:
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
-#   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[]
+#   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
+#   ARGS_ARE_READED
 # Arguments:
 #   None
 # Returns:
@@ -146,6 +147,7 @@ read_possible_args() {
   # starting from zero (convenient for arrays)
   CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
 
+  ARGS_ARE_READED="true"
   dbg "possible args are readed"
 }
 
@@ -226,7 +228,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [ $type = "word" ]; then
-    re='^[a-zA-Z]+$'
+    re='^[a-zA-Z_-]+$'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
@@ -281,12 +283,14 @@ validate_args() {
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
     usage "given less then 1 argument" "1"
   fi
+  
+  DBURI="None"
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ ! -z "${ARG_IS_GIVEN[$i]+x}" ]]; then
-      # generate dynamic variables like "$HOSTNAME" and export them
+      # generate dynamic variables like "$HOST" and export them
       # to make visible from healthcheck scripts
-      declare -x "${INTERNAL_NAME[$i]}=${ARG_VALUE[$i]}"
+      eval "${INTERNAL_NAME[$i]}"="${ARG_VALUE[$i]}"
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     else
       declare -x "${INTERNAL_NAME[$i]}=None"
@@ -296,12 +300,12 @@ validate_args() {
   # override --host, --port and --dbname by --db-uri
   # and set connection options for a psql command
   if [[ "${DBURI}" = "None" ]]; then
-    PSQL_CONN_OPTIONS="--host=${HOSTNAME} --port=${PORT} --dbname=${DBNAME}"
+    PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} -U ${USERNAME}"
   else
     PSQL_CONN_OPTIONS="'$DBURI'"
     # threat arguments as given if we've got --db-uri (hack)
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
-      [[ "${INTERNAL_NAME[$i]}" = "HOSTNAME" ]] && ARG_IS_GIVEN[$i]="true"
+      [[ "${INTERNAL_NAME[$i]}" = "HOST" ]] && ARG_IS_GIVEN[$i]="true"
       [[ "${INTERNAL_NAME[$i]}" = "PORT" ]] && ARG_IS_GIVEN[$i]="true"
       [[ "${INTERNAL_NAME[$i]}" = "DBNAME" ]] && ARG_IS_GIVEN[$i]="true"
     done
@@ -407,6 +411,9 @@ usage() {
       echo    "   this help" >&${out_descriptor}
       # additional info
       echo >&${out_descriptor}
+      echo "Example:" >&${out_descriptor}
+      echo "./${SCRIPTNAME} -h localhost -p 5432 --dbname postgres --project dummy" >&${out_descriptor}
+      echo >&${out_descriptor}
       echo "To add more options please edit file 'resources/cli.conf'."
       echo >&${out_descriptor}
       echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
@@ -419,8 +426,9 @@ usage() {
 
 #######################################
 # Perform checks
+# All checks must return valid json into stdout
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR
+#   CURRENT_CHECK, SCRIPT_DIR,
 #   and all exported internal globals
 # Arguments:
 #   None
@@ -429,16 +437,63 @@ usage() {
 #######################################
 run_checks() {
   local output
-  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/templates/*_*.sh; do
+  local check_id
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK"
     msg ""
-    output=$(source "$CURRENT_CHECK" || true)
-    msg "========== End of check: ==========="
-    msg "$CURRENT_CHECK"
-    msg ""
+    local check_is_failed=false
+    output=$(source "$CURRENT_CHECK") || check_is_failed="true"
+    msg "========== End of check ==========="
+    # extract checkId from check script path
+    local check_path_name="$CURRENT_CHECK"
+    check_path_name=${check_path_name%_*.sh}
+    check_path_name=${check_path_name##*/}
+    check_id="$check_path_name"
+    if [[ "$check_is_failed" == "true" ]]; then
+      msg "WARNING: check '${check_id}' failed with error ^^^"
+      continue
+    else
+      msg "check '$check_id' is finished"
+    fi
+    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
+    generate_report_json "$output" "$check_id"
   done
+}
+
+#######################################
+# Generate json report
+# Globals:
+#   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
+#   HOST, 
+# Arguments:
+#   input, check_id
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+generate_report_json() {
+  local input_json="$1"
+  local check_id="$2"
+
+  #TODO(vyagofarov): make uniq temp file names
+
+  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  # insert json object data into template
+  local tmp_input_json_fname="${SCRIPT_DIR}/artifacts/${check_id}.tmp"
+  touch "$tmp_input_json_fname"
+  echo "$input_json" > "$tmp_input_json_fname"
+  local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
+  local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
+  mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
+  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
+
+  #TODO(vyagofarov): use native jq placeholders
+  jq --argfile Data \
+    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz += "'"${timestamptz}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname" \
+    > "$report_fname"
+  msg "Artifacts saved at: '${report_fname}'"
+  rm "$tmp_input_json_fname"
 }
 
 ################ COMMANDS #############
@@ -452,7 +507,7 @@ main() {
   trap error_handler ERR
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
   export LC_ALL=C
-  read_possible_args && ARGS_ARE_READED="true"
+  read_possible_args
   process_cli_args "$@"
   validate_args
   run_checks
