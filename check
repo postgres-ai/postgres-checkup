@@ -101,7 +101,8 @@ load_cli_res() {
 # Fill structures with possible CLI arguments from file
 # Globals:
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
-#   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[]
+#   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
+#   ARGS_ARE_READED
 # Arguments:
 #   None
 # Returns:
@@ -146,6 +147,7 @@ read_possible_args() {
   # starting from zero (convenient for arrays)
   CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
 
+  ARGS_ARE_READED="true"
   dbg "possible args are readed"
 }
 
@@ -226,7 +228,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [ $type = "word" ]; then
-    re='^[a-zA-Z]+$'
+    re='^[a-zA-Z_-]+$'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
@@ -426,7 +428,7 @@ usage() {
 # Perform checks
 # All checks must return valid json into stdout
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR, CHECK_ID
+#   CURRENT_CHECK, SCRIPT_DIR,
 #   and all exported internal globals
 # Arguments:
 #   None
@@ -435,21 +437,27 @@ usage() {
 #######################################
 run_checks() {
   local output
+  local check_id
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK"
     msg ""
-    output=$(source "$CURRENT_CHECK" || true)
-    msg "========== End of check: ==========="
+    local check_is_failed=false
+    output=$(source "$CURRENT_CHECK") || check_is_failed="true"
+    msg "========== End of check ==========="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK"
     check_path_name=${check_path_name%_*.sh}
     check_path_name=${check_path_name##*/}
-    export CHECK_ID="$check_path_name"
-    msg "$CHECK_ID"
+    check_id="$check_path_name"
+    if [[ "$check_is_failed" == "true" ]]; then
+      msg "WARNING: check '${check_id}' failed with error ^^^"
+    else
+      msg "check '$check_id' is finished"
+    fi
     mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
-    generate_report_json "$output" "$CHECK_ID"
+    generate_report_json "$output" "$check_id"
   done
 }
 
@@ -475,11 +483,13 @@ generate_report_json() {
   touch "$tmp_input_json_fname"
   echo "$input_json" > "$tmp_input_json_fname"
   local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
+  local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
   mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
   local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
 
+  #TODO(vyagofarov): use native jq placeholders
   jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId = "'"${check_id}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname" \
+    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz += "'"${timestamptz}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
@@ -496,7 +506,7 @@ main() {
   trap error_handler ERR
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
   export LC_ALL=C
-  read_possible_args && ARGS_ARE_READED="true"
+  read_possible_args
   process_cli_args "$@"
   validate_args
   run_checks

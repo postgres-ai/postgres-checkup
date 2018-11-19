@@ -1,5 +1,6 @@
 {
   "checkId": null,
+  "timestamptz": null,
   "hosts": [ null ],
   "dependencies": {"null": "null"},
   "checkData": {
