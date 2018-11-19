@@ -453,6 +453,7 @@ run_checks() {
     check_id="$check_path_name"
     if [[ "$check_is_failed" == "true" ]]; then
       msg "WARNING: check '${check_id}' failed with error ^^^"
+      continue
     else
       msg "check '$check_id' is finished"
     fi
