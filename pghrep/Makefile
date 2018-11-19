@@ -34,7 +34,7 @@ buildplugins:
 
 test:
 	go test ./src/
-
+	go test ./src/fmtutils/
 
 linux:
 	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./src/
