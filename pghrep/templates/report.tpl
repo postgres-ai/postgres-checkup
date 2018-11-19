@@ -2,10 +2,10 @@ Current values
 ===
 {{.Current}}
 
-Recomended values
-===
-{{.Recommended}}
-
 Conclusions
 ===
 {{.Conclusion}}
+
+Recomended values
+===
+{{.Recommended}}
