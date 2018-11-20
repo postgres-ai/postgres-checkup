@@ -1,5 +1,5 @@
 #Collect system information
-HOSTS=(localhost) #(db2.imgdata.ru db3.imgdata.ru)
+HOSTS=(localhost)
 CPU_INFO=""
 MEM_INFO=""
 
