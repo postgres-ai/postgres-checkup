@@ -94,7 +94,7 @@ load_cli_res() {
     local re='^(#|$|[:blank:])'
     [[ "$setting" =~ $re ]] && continue
     echo "${setting}'"
-  done <${SCRIPT_DIR}/resources/cli.conf
+  done <"${SCRIPT_DIR}"/resources/cli.conf
 }
 
 #######################################
@@ -178,7 +178,7 @@ process_cli_args() {
         case $1 in
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
             if [[ ! -z "${2+x}" ]]; then
-              second=$2
+              second="$2"
             else
               second=None
               err "empty value for variable '--${FULL_NAME[$i]}'"
@@ -281,36 +281,26 @@ validate_args() {
   fi
 
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
-    usage "given less then 1 argument" "1"
+    usage "given less then 1 mandatory argument" "1"
   fi
-  
-  DBURI="None"
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ ! -z "${ARG_IS_GIVEN[$i]+x}" ]]; then
       # generate dynamic variables like "$HOST" and export them
       # to make visible from healthcheck scripts
-      eval "${INTERNAL_NAME[$i]}"="${ARG_VALUE[$i]}"
+      eval "export ${INTERNAL_NAME[$i]}"="${ARG_VALUE[$i]}"
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     else
-      declare -x "${INTERNAL_NAME[$i]}=None"
+      export "${INTERNAL_NAME[$i]}=None"
     fi
   done
 
-  # override --host, --port and --dbname by --db-uri
-  # and set connection options for a psql command
-  if [[ "${DBURI}" = "None" ]]; then
-    PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} -U ${USERNAME}"
-  else
-    PSQL_CONN_OPTIONS="'$DBURI'"
-    # threat arguments as given if we've got --db-uri (hack)
-    for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
-      [[ "${INTERNAL_NAME[$i]}" = "HOST" ]] && ARG_IS_GIVEN[$i]="true"
-      [[ "${INTERNAL_NAME[$i]}" = "PORT" ]] && ARG_IS_GIVEN[$i]="true"
-      [[ "${INTERNAL_NAME[$i]}" = "DBNAME" ]] && ARG_IS_GIVEN[$i]="true"
-    done
-  fi
+  # fill default (not given) psql connection related variables
+  [[ "${PORT}" = "None" ]] && export PORT=5432
+  [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
+  [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
+  PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
   export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
 
   dbg ""
@@ -367,7 +357,7 @@ usage() {
   fi
 
   echo "Usage:" >&${out_descriptor}
-  echo "  ${SCRIPTNAME} OPTION OPTION..." >&${out_descriptor}
+  echo "  ${SCRIPTNAME} OPTION [OPTION] ..." >&${out_descriptor}
   echo "  ${SCRIPTNAME} --help" >&${out_descriptor}
   echo >&${out_descriptor}
 
@@ -412,9 +402,9 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "./${SCRIPTNAME} -h localhost -p 5432 --dbname postgres --project dummy" >&${out_descriptor}
+      echo "./${SCRIPTNAME} -h localhost -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "To add more options please edit file 'resources/cli.conf'."
+      echo "To add more options please edit file 'resources/cli.conf'." >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
     fi
@@ -490,7 +480,7 @@ generate_report_json() {
 
   #TODO(vyagofarov): use native jq placeholders
   jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz += "'"${timestamptz}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname" \
+    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .results += { '$HOST': $Data } | .results.'$HOST' += [ { timestamptz: "'"${timestamptz}"'" }] ' "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
