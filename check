@@ -94,7 +94,7 @@ load_cli_res() {
     local re='^(#|$|[:blank:])'
     [[ "$setting" =~ $re ]] && continue
     echo "${setting}'"
-  done <${SCRIPT_DIR}/resources/cli.conf
+  done <"${SCRIPT_DIR}"/resources/cli.conf
 }
 
 #######################################
@@ -412,7 +412,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "./${SCRIPTNAME} -h localhost -p 5432 --dbname postgres --project dummy" >&${out_descriptor}
+      echo "./${SCRIPTNAME} -h localhost -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
       echo "To add more options please edit file 'resources/cli.conf'."
       echo >&${out_descriptor}
@@ -490,7 +490,7 @@ generate_report_json() {
 
   #TODO(vyagofarov): use native jq placeholders
   jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz += "'"${timestamptz}"'" | .hosts[] += "'"${HOST}"'" | .checkData += {'"$HOST"': $Data }' "$template_fname" \
+    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .checkData += { '$HOST': $Data } | .checkData.'$HOST' += [ { timestamptz: "'"${timestamptz}"'" }] ' "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
