@@ -300,7 +300,7 @@ validate_args() {
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
-  PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username ${USERNAME}"
+  PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
   export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
 
   dbg ""
@@ -357,7 +357,7 @@ usage() {
   fi
 
   echo "Usage:" >&${out_descriptor}
-  echo "  ${SCRIPTNAME} OPTION OPTION..." >&${out_descriptor}
+  echo "  ${SCRIPTNAME} OPTION [OPTION] ..." >&${out_descriptor}
   echo "  ${SCRIPTNAME} --help" >&${out_descriptor}
   echo >&${out_descriptor}
 
@@ -404,7 +404,7 @@ usage() {
       echo "Example:" >&${out_descriptor}
       echo "./${SCRIPTNAME} -h localhost -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "To add more options please edit file 'resources/cli.conf'."
+      echo "To add more options please edit file 'resources/cli.conf'." >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
     fi
