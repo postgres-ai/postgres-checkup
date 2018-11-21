@@ -50,7 +50,7 @@ function get_system_info() {
 
 function get_ctl_info() {
   local host=$1
-  local sys_info="$(ssh "$host" "hostnamectl status")"
+  local ctl_info="$(ssh "$host" "hostnamectl status")"
   #local ctl_info="$(hostnamectl status)"
   ctl_info="${ctl_info/\"/\\\"}"
   local res_obj="{\"cmd2check\": \"hostnamectl status\""
@@ -66,7 +66,7 @@ function get_ctl_info() {
 
 function get_disk_info() {
   local host=$1
-  local sys_info="$(ssh "$host" "df -T")"
+  local disk_info="$(ssh "$host" "df -T")"
   #local disk_info="$(df -T | sed 's/"/\\"/g')"
   res_obj="{\"cmd2check\": \"df -T\", \"raw\": \"$disk_info\"}"
   DISK_INFO=$res_obj #$(jq -n "$res_obj")
