@@ -19,7 +19,7 @@ function get_cpu_info() {
   done <<< "$cpu_info"
   res_obj="$res_obj, \"raw\": \"$cpu_info\""
   res_obj="${res_obj} }"
-  CPU_INFO=$(jq -n "$res_obj")
+  CPU_INFO=$res_obj #$(jq -n "$res_obj")
 }
 
 function get_mem_info() {
@@ -36,7 +36,7 @@ function get_mem_info() {
   done <<< "$mem_info"
   res_obj="$res_obj, \"raw\": \"$mem_info\""
   res_obj="${res_obj} }"
-  MEM_INFO=$(jq -n "$res_obj")
+  MEM_INFO=$res_obj #$(jq -n "$res_obj")
 }
 
 function get_system_info() {
@@ -44,7 +44,7 @@ function get_system_info() {
   #local sys_info="$(ssh "$host" "uname -a" | sed 's/"/\\"/g')"
   local sys_info="$(uname -a | sed 's/"/\\"/g')"
   res_obj="{\"cmd2check\": \"uname -a\", \"raw\": \"$sys_info\"}"
-  OS_INFO=$(jq -n "$res_obj")
+  OS_INFO=$res_obj #$(jq -n "$res_obj")
 }
 
 function get_ctl_info() {
@@ -59,7 +59,7 @@ function get_ctl_info() {
   done <<< "$ctl_info"
   res_obj="$res_obj, \"raw\": \"$ctl_info\""
   res_obj="${res_obj} }"
-  CTL_INFO=$(jq -n "$res_obj")
+  CTL_INFO=$res_obj #$(jq -n "$res_obj")
 }
 
 function get_disk_info() {
@@ -67,7 +67,7 @@ function get_disk_info() {
   #local sys_info="$(ssh "$host" "dt -T" | sed 's/"/\\"/g')"
   local disk_info="$(df -T | sed 's/"/\\"/g')"
   res_obj="{\"cmd2check\": \"df -T\", \"raw\": \"$disk_info\"}"
-  DISK_INFO=$(jq -n "$res_obj")
+  DISK_INFO=$res_obj #$(jq -n "$res_obj")
 }
 
 result="["
