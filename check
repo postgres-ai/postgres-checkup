@@ -8,6 +8,9 @@
 #
 
 # GLOBALS (user-assigned variables)
+CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
+                 # TODO(vyagofarov): think about timing 
+                 # out commands in macOS
 
 # GLOBALS (autoload, do not change)
 : ${DEBUG:=FALSE}
@@ -72,6 +75,24 @@ error_handler() {
   err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
   #TODO(vyagofarov): save step here
   echo >&2
+}
+
+#######################################
+# Cleanup function: close ssh sockets, etc.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   (lines with text) STDOUT/STDERR
+#######################################
+cleanup_and_exit() {
+  local host
+  for host in ${HOSTS}; do
+    msg ""
+    msg "closing ssh conenction to host '$host'"
+    ssh -O exit ${host} 2>/dev/null || msg "WARNING: Cant close ssh session for '${host}' : nothing to close"
+  done
 }
 
 #######################################
@@ -300,6 +321,9 @@ validate_args() {
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
+  #TODO(vyagofarov): add multiple hosts support here:
+  HOSTS="$HOST"
+
   PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
   export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
 
@@ -487,21 +511,38 @@ generate_report_json() {
   rm "$tmp_input_json_fname"
 }
 
-################ COMMANDS #############
-psql ()
-{
+######### COMMANDS WRAPPERS ###########
+psql() {
   command psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off "$@"
 }
+
+ssh() {
+  local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
+  local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
+
+  local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
+  local ssh_master_options="-o ControlMaster=auto -o ControlPersist=yes"
+  local ssh_persist=true
+
+  if [[ "$ssh_persist" = "true" ]]; then
+      ssh_options="$ssh_options -S $ssh_master_socket $ssh_master_options"
+  fi
+
+  command ssh $ssh_options "$@"
+}
+#######################################
 
 main() {
   set -ueo pipefail
   trap error_handler ERR
+  trap cleanup_and_exit 1 2 13 15 EXIT
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
   export LC_ALL=C
   read_possible_args
   process_cli_args "$@"
   validate_args
   run_checks
+  exit 0
 }
 
 main "$@"
