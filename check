@@ -430,11 +430,12 @@ run_checks() {
   local check_id
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
+    msg ""
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK"
-    msg ""
     local check_is_failed=false
-    output=$(source "$CURRENT_CHECK") || check_is_failed="true"
+    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
+    dbg "check_is_failed: $check_is_failed"
     msg "========== End of check ==========="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK"
