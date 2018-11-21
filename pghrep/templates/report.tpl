@@ -6,6 +6,6 @@ Conclusions
 ===
 {{.Conclusion}}
 
-Recomended values
+Recommendations
 ===
 {{.Recommended}}

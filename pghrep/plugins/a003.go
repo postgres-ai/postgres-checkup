@@ -5,13 +5,14 @@ import (
     "../src/pyraconv"
     "../src/fmtutils"
     "strconv"
+    "os"
 )
 
 var Data map[string]interface{}
 
 type prepare string
 
-func getSharefBuffersValue(hostSettings []interface{}) int64 {
+func getSharedBuffersValue(hostSettings []interface{}) int64 {
     for _, setting := range hostSettings {
         curSetting := setting.(map[string]interface{})
         if curSetting["name"] == "shared_buffers" {
@@ -36,12 +37,14 @@ func (g prepare) Prepare(data map[string]interface{}) map[string]interface{} {
     hosts := pyraconv.ToStringArray(data["hosts"])
     checkData := data["checkData"].(map[string]interface{})
     for _, host := range hosts {
-        fmt.Println("Host:", host)
         hostSettings := checkData[host].([]interface{})
-        shared_buffers := getSharefBuffersValue(hostSettings)
-        result["current"] = "Current value of settings shared_buffers is " + fmtutils.ByteFormat(float64(shared_buffers), 0)
+        shared_buffers := getSharedBuffersValue(hostSettings)
+        if shared_buffers != -1 {
+            result["current"] = "Shared buffers: " + fmtutils.ByteFormat(float64(shared_buffers), 0)
+        } else {
+            fmt.Fprintf(os.Stderr, "ERROR: Can't determine shared_buffers value for %s", host)
+        }
     }
-
     result["recommended"] = "RECOMMENDED VALUES"
     result["conclusion"] = "CONCLUSION VALUES"
     result["filename"] = "a011_shared_buffers.md"
