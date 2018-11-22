@@ -18,6 +18,7 @@ SCRIPTNAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 FIRST_ARG="$1"
+OPTIONS_ERROR_EXIT=false
 
 #######################################
 # Print an message to STDOUT
@@ -73,26 +74,21 @@ function err() {
 #######################################
 error_handler() {
   err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
-  #TODO(vyagofarov): save step here
   echo >&2
 }
 
 #######################################
 # Cleanup function: close ssh sockets, etc.
 # Globals:
-#   None
+#   HOST
 # Arguments:
 #   None
 # Returns:
 #   (lines with text) STDOUT/STDERR
 #######################################
 cleanup_and_exit() {
-  local host
-  for host in ${HOSTS}; do
-    msg ""
-    msg "closing ssh conenction to host '$host'"
-    ssh -O exit ${host} 2>/dev/null || msg "WARNING: Cant close ssh session for '${host}' : nothing to close"
-  done
+  msg "closing ssh conenction to host '$HOST'"
+  ssh -O exit ${HOST} 2>/dev/null || msg "WARNING: Cant close ssh session for '${HOST}' : nothing to close"
 }
 
 #######################################
@@ -267,7 +263,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [[ $type = "text" ]]; then
-    re='^[a-zA-Z\;]+.*'
+    re='^[a-zA-Z\;\s\\\/]+.*'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
@@ -284,7 +280,7 @@ validate_arg_type() {
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
 #   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
 #   ARG_VALUE[], ARG_IS_GIVEN[], INTERNAL_*, CLI_ARGS_CNT,
-#   MANDATORY[], PSQL_CONN_OPTIONS
+#   MANDATORY[], PSQL_CONN_OPTIONS, HOST, OPTIONS_ERROR_EXIT
 # Arguments:
 #   None
 # Returns:
@@ -321,24 +317,21 @@ validate_args() {
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
-  #TODO(vyagofarov): add multiple hosts support here:
-  HOSTS="$HOST"
-
-  PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
-  export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
+  export PSQL_CONN_OPTIONS="--port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
   dbg ""
 
-  # error if mandatory options are not set
+  # error if mandatory options are not set (print as a stack)
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
       # please do not change align for 'buf' variable text
       buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
-      need_fail_exit="true"
+      need_fail_exit=true
+      OPTIONS_ERROR_EXIT=true
     fi
   done
   if [[ "$need_fail_exit" = "true" ]]; then
@@ -439,45 +432,6 @@ usage() {
 }
 
 #######################################
-# Perform checks
-# All checks must return valid json into stdout
-# Globals:
-#   CURRENT_CHECK, SCRIPT_DIR,
-#   and all exported internal globals
-# Arguments:
-#   None
-# Returns:
-#   (text) stdtout/stderror
-#######################################
-run_checks() {
-  local output
-  local check_id
-  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
-    [[ -e "$CURRENT_CHECK" ]] || continue
-    msg ""
-    msg "========== Perform check: =========="
-    msg "$CURRENT_CHECK"
-    local check_is_failed=false
-    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
-    dbg "check_is_failed: $check_is_failed"
-    msg "========== End of check ==========="
-    # extract checkId from check script path
-    local check_path_name="$CURRENT_CHECK"
-    check_path_name=${check_path_name%_*.sh}
-    check_path_name=${check_path_name##*/}
-    check_id="$check_path_name"
-    if [[ "$check_is_failed" == "true" ]]; then
-      msg "WARNING: check '${check_id}' failed with error ^^^"
-      continue
-    else
-      msg "check '$check_id' is finished"
-    fi
-    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
-    generate_report_json "$output" "$check_id"
-  done
-}
-
-#######################################
 # Generate json report
 # Globals:
 #   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
@@ -509,6 +463,50 @@ generate_report_json() {
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
+}
+
+#######################################
+# Perform checks
+# All checks must return valid json into stdout
+# Globals:
+#   CURRENT_CHECK, SCRIPT_DIR, HOST
+#   and all exported internal globals
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+run_checks() {
+  local output
+  local check_id
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
+    [[ -e "$CURRENT_CHECK" ]] || continue
+    msg ""
+    msg "========== Perform check: =========="
+    msg "$CURRENT_CHECK"
+
+    local check_is_failed=false
+
+    export PSQL_CONN_OPTIONS="--host ${HOST} $PSQL_CONN_OPTIONS"
+
+    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
+
+    dbg "is check failed?: $check_is_failed"
+    msg "========== End of check ==========="
+    # extract checkId from check script path
+    local check_path_name="$CURRENT_CHECK"
+    check_path_name=${check_path_name%_*.sh}
+    check_path_name=${check_path_name##*/}
+    check_id="$check_path_name"
+    if [[ "$check_is_failed" == "true" ]]; then
+      msg "WARNING: check '${check_id}' failed with error ^^^"
+      continue
+    else
+      msg "check '$check_id' is finished"
+    fi
+    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
+    generate_report_json "$output" "$check_id"
+  done
 }
 
 ######### COMMANDS WRAPPERS ###########
