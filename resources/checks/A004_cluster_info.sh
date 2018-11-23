@@ -1,6 +1,6 @@
 # Collect pg_settings artifact
 #dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
-pgver=$(psql ${PSQL_CONN_OPTIONS}  -c "SHOW server_version" -t -A)
+pgver=$(ssh ${HOST} "${_PSQL} -c \"SHOW server_version\"")
 vers=(${pgver//./ })
 majorVer=${vers[0]}
 
@@ -127,7 +127,7 @@ EOF
 
 fi
 
-psql ${PSQL_CONN_OPTIONS} <<SQL
+ssh ${HOST} "${_PSQL} -f - " <<SQL
 $prepare_sql 
 $main_sql
 SQL

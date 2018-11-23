@@ -87,8 +87,10 @@ error_handler() {
 #   (lines with text) STDOUT/STDERR
 #######################################
 cleanup_and_exit() {
-  msg "closing ssh conenction to host '$HOST'"
-  ssh -O exit ${HOST} 2>/dev/null || msg "WARNING: Cant close ssh session for '${HOST}' : nothing to close"
+  if [[ ! -z ${HOST+x} ]]; then
+    dbg "closing ssh conenction to host '$HOST' (if exists)"
+    ssh -O exit ${HOST} 2>/dev/null || true
+  fi
 }
 
 #######################################
@@ -317,11 +319,19 @@ validate_args() {
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
-  export PSQL_CONN_OPTIONS="--port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
+  # custom UNIX domain socket directory for PostgreSQL
+  local psql_host_opt=""
+  if [[ "${PGSOCKET}" != "None" ]]; then
+    psql_host_opt=" --host '${PGSOCKET}' "  
+  fi
+
+  export PSQL_CONN_OPTIONS="--port=${PORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_host_opt}"
+  export _PSQL="psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
   dbg ""
+
 
   # error if mandatory options are not set (print as a stack)
   local buf=""
@@ -459,13 +469,13 @@ generate_report_json() {
   mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
   local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}_${check_name}.json"
 
-  jq --argfile results "${tmp_input_json_fname}" \
+  jq --argfile Results "${tmp_input_json_fname}" \
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
      --arg TimestampTz "${timestamptz}" \
      --arg Host "${HOST}" \
      --arg Project "${PROJECT}" \
-    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | .hosts[] += $Host | ."project" = $Project | .results += { ($Host): $results }' \
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results = { ($Host): $Results }' \
     "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
@@ -493,8 +503,6 @@ run_checks() {
 
     local check_is_failed=false
 
-    export PSQL_CONN_OPTIONS="--host ${HOST} $PSQL_CONN_OPTIONS"
-
     output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
@@ -520,10 +528,6 @@ run_checks() {
 }
 
 ######### COMMANDS WRAPPERS ###########
-psql() {
-  command psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off "$@"
-}
-
 ssh() {
   local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
   local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
