@@ -542,8 +542,8 @@ ssh() {
 
   command ssh $ssh_options "$@"
 }
-#######################################
 
+#######################################
 main() {
   set -ueo pipefail
   trap error_handler ERR

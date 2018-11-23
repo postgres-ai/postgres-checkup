@@ -1,6 +1,8 @@
-# Collect pg_settings artifact
+# Collect pg cluster info
 #dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
+
 pgver=$(ssh ${HOST} "${_PSQL} -c \"SHOW server_version\"")
+
 vers=(${pgver//./ })
 majorVer=${vers[0]}
 
