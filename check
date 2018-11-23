@@ -60,7 +60,7 @@ function dbg() {
 #   (text) STDERR
 #######################################
 function err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: $@" >&2
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: ${FUNCNAME[1]}: $@" >&2
 }
 
 #######################################
@@ -444,22 +444,29 @@ usage() {
 generate_report_json() {
   local input_json="$1"
   local check_id="$2"
+  local check_name="$3"
 
-  #TODO(vyagofarov): make uniq temp file names
+  local epoch=null
 
-  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  [[ -z ${3+x} ]] && err "function needs 3 arguments"
+
   # insert json object data into template
-  local tmp_input_json_fname="${SCRIPT_DIR}/artifacts/${check_id}.tmp"
-  touch "$tmp_input_json_fname"
+  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  local tmp_input_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
   echo "$input_json" > "$tmp_input_json_fname"
   local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
   local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
   mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
-  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
+  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}_${check_name}.json"
 
-  #TODO(vyagofarov): use native jq placeholders
-  jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .results += {"'"${HOST}"'": $Data} | .results.'${HOST}' += { timestamptz: "'"${timestamptz}"'" } ' "$template_fname" \
+  jq --argfile results "${tmp_input_json_fname}" \
+     --arg CheckId "${check_id}" \
+     --arg CheckName "${check_name}" \
+     --arg TimestampTz "${timestamptz}" \
+     --arg Host "${HOST}" \
+     --arg Project "${PROJECT}" \
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | .hosts[] += $Host | ."project" = $Project | .results += { ($Host): $results }' \
+    "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
@@ -478,7 +485,6 @@ generate_report_json() {
 #######################################
 run_checks() {
   local output
-  local check_id
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
     msg ""
@@ -495,9 +501,13 @@ run_checks() {
     msg "========== End of check ==========="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK"
-    check_path_name=${check_path_name%_*.sh}
-    check_path_name=${check_path_name##*/}
-    check_id="$check_path_name"
+    local check_id_tmp_a=${check_path_name%_*.sh}
+    local check_id="${check_id_tmp_a##*/}"
+
+    local check_name_a="${check_path_name##*/}"
+    local check_name_b="${check_name_a##*_}"
+    local check_name="${check_name_b%.sh}"
+
     if [[ "$check_is_failed" == "true" ]]; then
       msg "WARNING: check '${check_id}' failed with error ^^^"
       continue
@@ -505,7 +515,7 @@ run_checks() {
       msg "check '$check_id' is finished"
     fi
     mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
-    generate_report_json "$output" "$check_id"
+    generate_report_json "$output" "$check_id" "$check_name"
   done
 }
 
