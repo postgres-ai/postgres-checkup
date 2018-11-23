@@ -459,7 +459,7 @@ generate_report_json() {
 
   #TODO(vyagofarov): use native jq placeholders
   jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .results += { '$HOST': $Data } | .results.'$HOST' += [ { timestamptz: "'"${timestamptz}"'" }] ' "$template_fname" \
+    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .results += {"'"${HOST}"'": $Data} | .results.'${HOST}' += { timestamptz: "'"${timestamptz}"'" } ' "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
