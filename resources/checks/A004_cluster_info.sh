@@ -1,5 +1,4 @@
 # Collect pg_settings artifact
-[[ -z ${PSQL_CONN_OPTIONS+x} ]] && PSQL_CONN_OPTIONS="-U postila_ru"
 #dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
 pgver=$(psql ${PSQL_CONN_OPTIONS}  -c "SHOW server_version" -t -A)
 vers=(${pgver//./ })
