@@ -18,6 +18,7 @@ SCRIPTNAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 FIRST_ARG="$1"
+OPTIONS_ERROR_EXIT=false
 
 #######################################
 # Print an message to STDOUT
@@ -59,7 +60,7 @@ function dbg() {
 #   (text) STDERR
 #######################################
 function err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: $@" >&2
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: ${FUNCNAME[1]}: $@" >&2
 }
 
 #######################################
@@ -73,26 +74,23 @@ function err() {
 #######################################
 error_handler() {
   err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
-  #TODO(vyagofarov): save step here
   echo >&2
 }
 
 #######################################
 # Cleanup function: close ssh sockets, etc.
 # Globals:
-#   None
+#   HOST
 # Arguments:
 #   None
 # Returns:
 #   (lines with text) STDOUT/STDERR
 #######################################
 cleanup_and_exit() {
-  local host
-  for host in ${HOSTS}; do
-    msg ""
-    msg "closing ssh conenction to host '$host'"
-    ssh -O exit ${host} 2>/dev/null || msg "WARNING: Cant close ssh session for '${host}' : nothing to close"
-  done
+  if [[ ! -z ${HOST+x} ]]; then
+    dbg "closing ssh conenction to host '$HOST' (if exists)"
+    ssh -O exit ${HOST} 2>/dev/null || true
+  fi
 }
 
 #######################################
@@ -267,7 +265,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [[ $type = "text" ]]; then
-    re='^[a-zA-Z\;]+.*'
+    re='^[a-zA-Z\;\s\\\/]+.*'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
@@ -284,7 +282,7 @@ validate_arg_type() {
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
 #   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
 #   ARG_VALUE[], ARG_IS_GIVEN[], INTERNAL_*, CLI_ARGS_CNT,
-#   MANDATORY[], PSQL_CONN_OPTIONS
+#   MANDATORY[], PSQL_CONN_OPTIONS, HOST, OPTIONS_ERROR_EXIT
 # Arguments:
 #   None
 # Returns:
@@ -317,28 +315,33 @@ validate_args() {
   done
 
   # fill default (not given) psql connection related variables
-  [[ "${PORT}" = "None" ]] && export PORT=5432
+  [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
-  #TODO(vyagofarov): add multiple hosts support here:
-  HOSTS="$HOST"
+  # custom UNIX domain socket directory for PostgreSQL
+  local psql_host_opt=""
+  if [[ "${PGSOCKET}" != "None" ]]; then
+    psql_host_opt=" --host '${PGSOCKET}' "  
+  fi
 
-  PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
-  export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_host_opt}"
+  export _PSQL="psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
   dbg ""
 
-  # error if mandatory options are not set
+
+  # error if mandatory options are not set (print as a stack)
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
       # please do not change align for 'buf' variable text
       buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
-      need_fail_exit="true"
+      need_fail_exit=true
+      OPTIONS_ERROR_EXIT=true
     fi
   done
   if [[ "$need_fail_exit" = "true" ]]; then
@@ -439,49 +442,10 @@ usage() {
 }
 
 #######################################
-# Perform checks
-# All checks must return valid json into stdout
-# Globals:
-#   CURRENT_CHECK, SCRIPT_DIR,
-#   and all exported internal globals
-# Arguments:
-#   None
-# Returns:
-#   (text) stdtout/stderror
-#######################################
-run_checks() {
-  local output
-  local check_id
-  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
-    [[ -e "$CURRENT_CHECK" ]] || continue
-    msg ""
-    msg "========== Perform check: =========="
-    msg "$CURRENT_CHECK"
-    local check_is_failed=false
-    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
-    dbg "check_is_failed: $check_is_failed"
-    msg "========== End of check ==========="
-    # extract checkId from check script path
-    local check_path_name="$CURRENT_CHECK"
-    check_path_name=${check_path_name%_*.sh}
-    check_path_name=${check_path_name##*/}
-    check_id="$check_path_name"
-    if [[ "$check_is_failed" == "true" ]]; then
-      msg "WARNING: check '${check_id}' failed with error ^^^"
-      continue
-    else
-      msg "check '$check_id' is finished"
-    fi
-    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
-    generate_report_json "$output" "$check_id"
-  done
-}
-
-#######################################
 # Generate json report
 # Globals:
 #   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
-#   HOST, 
+#   HOST
 # Arguments:
 #   input, check_id
 # Returns:
@@ -490,33 +454,80 @@ run_checks() {
 generate_report_json() {
   local input_json="$1"
   local check_id="$2"
+  local check_name="$3"
 
-  #TODO(vyagofarov): make uniq temp file names
+  local epoch=null
 
-  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  [[ -z ${3+x} ]] && err "function needs 3 arguments"
+
   # insert json object data into template
-  local tmp_input_json_fname="${SCRIPT_DIR}/artifacts/${check_id}.tmp"
-  touch "$tmp_input_json_fname"
+  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  local tmp_input_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
   echo "$input_json" > "$tmp_input_json_fname"
   local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
   local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
   mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
-  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
+  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}_${check_name}.json"
 
-  #TODO(vyagofarov): use native jq placeholders
-
-  jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .results += {"'"${HOST}"'": $Data} | .results.'${HOST}' += { timestamptz: "'"${timestamptz}"'" } ' "$template_fname" \
+  jq --argfile Results "${tmp_input_json_fname}" \
+     --arg CheckId "${check_id}" \
+     --arg CheckName "${check_name}" \
+     --arg TimestampTz "${timestamptz}" \
+     --arg Host "${HOST}" \
+     --arg Project "${PROJECT}" \
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results = { ($Host): $Results }' \
+    "$template_fname" \
     > "$report_fname"
   msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
 }
 
-######### COMMANDS WRAPPERS ###########
-psql() {
-  command psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off "$@"
+#######################################
+# Perform checks
+# All checks must return valid json into stdout
+# Globals:
+#   CURRENT_CHECK, SCRIPT_DIR, HOST
+#   and all exported internal globals
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+run_checks() {
+  local output
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
+    [[ -e "$CURRENT_CHECK" ]] || continue
+    msg ""
+    msg "========== Perform check: =========="
+    msg "$CURRENT_CHECK"
+
+    local check_is_failed=false
+
+    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
+
+    dbg "is check failed?: $check_is_failed"
+    msg "========== End of check ==========="
+    # extract checkId from check script path
+    local check_path_name="$CURRENT_CHECK"
+    local check_id_tmp_a=${check_path_name%_*.sh}
+    local check_id="${check_id_tmp_a##*/}"
+
+    local check_name_a="${check_path_name##*/}"
+    local check_name_b="${check_name_a##*_}"
+    local check_name="${check_name_b%.sh}"
+
+    if [[ "$check_is_failed" == "true" ]]; then
+      msg "WARNING: check '${check_id}' failed with error ^^^"
+      continue
+    else
+      msg "check '$check_id' is finished"
+    fi
+    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
+    generate_report_json "$output" "$check_id" "$check_name"
+  done
 }
 
+######### COMMANDS WRAPPERS ###########
 ssh() {
   local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
   local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
@@ -531,8 +542,8 @@ ssh() {
 
   command ssh $ssh_options "$@"
 }
-#######################################
 
+#######################################
 main() {
   set -ueo pipefail
   trap error_handler ERR
