@@ -1,7 +1,7 @@
 # Collect pg cluster info
 #dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
 
-pgver=$(ssh ${HOST} "${_PSQL} -c \"SHOW server_version\"")
+pgver=$(ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -c \"SHOW server_version\"")
 
 vers=(${pgver//./ })
 majorVer=${vers[0]}
@@ -129,7 +129,7 @@ EOF
 
 fi
 
-ssh ${HOST} "${_PSQL} -f - " <<SQL
+ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f - " <<SQL
 $prepare_sql 
 $main_sql
 SQL
