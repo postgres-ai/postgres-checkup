@@ -315,7 +315,7 @@ validate_args() {
   done
 
   # fill default (not given) psql connection related variables
-  [[ "${PORT}" = "None" ]] && export PORT=5432
+  [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
@@ -325,7 +325,7 @@ validate_args() {
     psql_host_opt=" --host '${PGSOCKET}' "  
   fi
 
-  export PSQL_CONN_OPTIONS="--port=${PORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_host_opt}"
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_host_opt}"
   export _PSQL="psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
 
   dbg ""
@@ -445,7 +445,7 @@ usage() {
 # Generate json report
 # Globals:
 #   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
-#   HOST, 
+#   HOST
 # Arguments:
 #   input, check_id
 # Returns:
