@@ -1,6 +1,5 @@
 # Collect settings whish is altered
-dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
-ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f - " <<SQL
+ssh ${HOST} "${_PSQL} -f - " <<SQL
 with settings_count as (
     select json_object_agg(coalesce(s.sourcefile, 'default'), s.count) from (select sourcefile, count(ps.*) as count from pg_settings ps group by 1) s
 ), changes as (
