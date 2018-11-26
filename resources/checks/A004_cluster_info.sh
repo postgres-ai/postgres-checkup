@@ -1,6 +1,4 @@
 # Collect pg cluster info
-#dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
-
 pgver=$(ssh ${HOST} "${_PSQL} -c \"SHOW server_version\"")
 
 vers=(${pgver//./ })
@@ -124,12 +122,12 @@ else
 \set postgres_dba_last_wal_replay_lsn pg_last_wal_replay_lsn
 \set postgres_dba_is_wal_replay_paused pg_is_wal_replay_paused
 
-EOF
+EOF 
 )
 
 fi
 
 ssh ${HOST} "${_PSQL} -f - " <<SQL
-$prepare_sql 
+$prepare_sql
 $main_sql
 SQL
