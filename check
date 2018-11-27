@@ -320,13 +320,19 @@ validate_args() {
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
   # custom UNIX domain socket directory for PostgreSQL
-  local psql_host_opt=""
+  local psql_unix_socket_option=""
   if [[ "${PGSOCKET}" != "None" ]]; then
-    psql_host_opt=" --host '${PGSOCKET}' "  
+    psql_unix_socket_option=" --host '${PGSOCKET}' "
   fi
 
-  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_host_opt}"
-  export _PSQL="psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
+  # custom psql binary path support
+  local psql_bin="psql"
+  if [[ "${PSQLBINARY}" != "None" ]]; then
+    psql_bin="${PSQLBINARY}"
+  fi
+
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_unix_socket_option}"
+  export _PSQL="${psql_bin} -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
@@ -429,7 +435,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "./${SCRIPTNAME} -h localhost -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
+      echo "./${SCRIPTNAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
       echo "To add more options please edit file 'resources/cli.conf'." >&${out_descriptor}
       echo >&${out_descriptor}
