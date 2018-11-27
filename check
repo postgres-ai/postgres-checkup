@@ -489,10 +489,66 @@ generate_report_json() {
 }
 
 #######################################
+# Check is host in recovery mode or not
+# Globals:
+#   HOST
+# Arguments:
+#   None
+# Returns:
+#   Integer
+#######################################
+is_in_recovery() {
+  local res="$(ssh "$HOST" "${_PSQL} -c \"select * from pg_is_in_recovery()\"")"
+  if [[ "$res" = "f" ]];
+    dbg "host $HOST is 'master'"
+    return 12
+  else
+    dbg "host $HOST is 'standby'"
+    return 0
+  fi
+  return 13
+}
+
+#######################################
+# Update/create 'nodes.json' in the project dir
+# Fill/update hostname, role, internal alias
+# Start/update 'epoch' of the check
+# Globals:
+#   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
+#   ALIAS_NAME, ALIAS_NUM
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+update_nodes_json() {
+  true
+  # if file does not exist generate alias for a first host
+  if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
+    ALIAS_NAME="db1"
+    ALIAS_NUM="1"
+  fi
+
+  if is_in_recovery; then
+    ROLE=standby
+  else
+    ROLE=master
+  fi
+  export ROLE
+
+  export ALIAS_NAME ALIAS_NUM
+  dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
+  dbg "ALIAS_NAME: '$ALIAS_NAME'"
+  dbg "ALIAS_NUM: '$ALIAS_NUM'"
+  dbg "ROLE: '$ROLE'"
+}
+
+#######################################
 # Perform checks
 # All checks must return valid json into stdout
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR, HOST
+#   CURRENT_CHECK, SCRIPT_DIR, HOST, PROJECT_DIR,
+#   NATIVE_HOSTNAME
 #   and all exported internal globals
 # Arguments:
 #   None
@@ -500,6 +556,16 @@ generate_report_json() {
 #   (text) stdtout/stderror
 #######################################
 run_checks() {
+  # perform pre-checks here
+
+  # get native hostname from remote host due to accurate
+  # mapping in the future
+  if ! NATIVE_HOSTNAME="$(ssh "$HOST" "hostname")"; then
+    NATIVE_HOSTNAME="$HOST" 
+  fi
+  export NATIVE_HOSTNAME
+
+  # perform all checks from './resources/checks/' directory
   local output
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
@@ -528,7 +594,10 @@ run_checks() {
     else
       msg "check '$check_id' is finished"
     fi
-    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
+
+    export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+    test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
+    update_nodes_json
     generate_report_json "$output" "$check_id" "$check_name"
   done
 }
