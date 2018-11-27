@@ -13,7 +13,7 @@ CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
                  # out commands in macOS
 
 # GLOBALS (autoload, do not change)
-: ${DEBUG:=FALSE}
+: ${DEBUG:=false}
 SCRIPTNAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
@@ -437,7 +437,7 @@ usage() {
       echo "Example:" >&${out_descriptor}
       echo "./${SCRIPTNAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "To add more options please edit file 'resources/cli.conf'." >&${out_descriptor}
+      echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
     fi
@@ -484,8 +484,16 @@ generate_report_json() {
     '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results = { ($Host): $Results }' \
     "$template_fname" \
     > "$report_fname"
-  msg "Artifacts saved at: '${report_fname}'"
   rm "$tmp_input_json_fname"
+
+  # extend check with actual 'nodes.json'
+  local tmp_output_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
+  jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
+     '.results.'"${NATIVE_HOSTNAME}"'."nodes.json" = $nodes_json' \
+     "$report_fname" > "$tmp_output_json_fname"
+  mv "$tmp_output_json_fname" "$report_fname"
+
+  msg "Artifacts saved at: '${report_fname}'"
 }
 
 #######################################
@@ -499,7 +507,7 @@ generate_report_json() {
 #######################################
 is_in_recovery() {
   local res="$(ssh "$HOST" "${_PSQL} -c \"select * from pg_is_in_recovery()\"")"
-  if [[ "$res" = "f" ]];
+  if [[ "$res" = "f" ]]; then
     dbg "host $HOST is 'master'"
     return 12
   else
@@ -515,32 +523,65 @@ is_in_recovery() {
 # Start/update 'epoch' of the check
 # Globals:
 #   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
-#   ALIAS_NAME, ALIAS_NUM
+#   ALIAS_NAME, ALIAS_INDEX, ROLE
 # Arguments:
 #   None
 # Returns:
 #   (text) stdtout/stderror
 #######################################
 update_nodes_json() {
-  true
+  local first_run=false
+  local epoch=1
   # if file does not exist generate alias for a first host
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
-    ALIAS_NAME="db1"
-    ALIAS_NUM="1"
+    ALIAS_NAME=db1
+    ALIAS_INDEX=1
+    local first_run=true
+  else
+    # read current
+    ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.alias')
+    ALIAS_INDEX=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.index')
+    PREV_ROLE=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.role')
   fi
-
+  # check role on every run
   if is_in_recovery; then
     ROLE=standby
   else
     ROLE=master
   fi
-  export ROLE
 
-  export ALIAS_NAME ALIAS_NUM
+  if [[ "$PREV_ROLE" != "$ROLE" ]]; then
+    #TODO(vyagofarov): fix last change in the nodes.json
+    msg "WARNING: important difference between checks detected:"
+    msg "WARNING: host's role has been changed from '$PREV_ROLE' to '$ROLE'"
+  fi
+
+  if [[ "$EPOCH" -ne "1" ]]; then
+    #TODO(vyagofarov): process this event here and exit
+    # err
+    msg "ERROR: please choise epoch via CLI: './${SCRIPT_NAME} -e %NUMBER%'"
+  fi
+
+  export ALIAS_NAME ALIAS_INDEX ROLE
   dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
   dbg "ALIAS_NAME: '$ALIAS_NAME'"
-  dbg "ALIAS_NUM: '$ALIAS_NUM'"
+  dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
   dbg "ROLE: '$ROLE'"
+
+  local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
+
+  local template_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
+  local result_fname="${PROJECT_DIR}/nodes.json"
+  if [[ "$first_run" = "true" ]]; then
+    jq --arg NativeHostname "${NATIVE_HOSTNAME}" \
+       --arg alias "${ALIAS_NAME}" \
+       --arg index "${ALIAS_INDEX}" \
+       --arg role "${ROLE}" \
+       --arg TimestampTz "${timestamptz}" \
+       '.hosts += { ($NativeHostname): { $alias, $index, $role } } | .last_check = { epoch: 1, timestamptz: $TimestampTz }' \
+       "${template_fname}" \
+       > "${result_fname}"
+  fi
 }
 
 #######################################
@@ -575,6 +616,7 @@ run_checks() {
 
     local check_is_failed=false
 
+    # perform a check from file
     output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
