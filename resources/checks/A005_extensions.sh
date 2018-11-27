@@ -1,17 +1,13 @@
 # Collect pg_settings artifact
-dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
-ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
-with row as (
-  select
-    ae.name,
-    installed_version,
-    default_version,
-    extversion as available_version,
-    case when installed_version <> extversion then 'OLD' end as actuality
-  from pg_extension e
-  join pg_available_extensions ae on extname = ae.name
-  order by ae.name
+sql=$(wget --quiet -O - https://github.com/NikolayS/postgres_dba/raw/master/sql/e1_extensions.sql)
+sql=${sql%;} #remove last ;
+
+#ssh ${HOST} "
+${_PSQL} ${PSQL_CONN_OPTIONS} -f - <<SQL
+with data as (
+$sql
 )
-select json_object_agg(row.name, row) from row;
+select json_agg(jsondata.json) from (select row_to_json(data) as json from data) jsondata;
+
 SQL
 
