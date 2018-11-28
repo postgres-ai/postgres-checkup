@@ -6,7 +6,7 @@ ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with data as (
 $sql
 )
-select json_agg(jsondata.json) from (select row_to_json(data) as json from data) jsondata;
+select json_object_agg(data.name, data) as json from data;
 
 SQL
 

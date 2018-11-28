@@ -36,5 +36,6 @@ $prepare_sql
 with data as (
 $main_sql
 )
-select json_agg(jsondata.json) from (select row_to_json(data) as json from data) jsondata;
+select json_object_agg(data.metric, data) as json from data;
+
 SQL
