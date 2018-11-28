@@ -1,5 +1,5 @@
 # Collect pg cluster info
-sql=$(wget --quiet -O - https://github.com/NikolayS/postgres_dba/raw/master/sql/0_node.sql)
+sql=$(curl -s -L https://github.com/NikolayS/postgres_dba/raw/master/sql/0_node.sql)
 main_sql=${sql%;} #remove last ;
 
 pgver=$(ssh ${HOST} "${_PSQL} -c \"SHOW server_version\"")

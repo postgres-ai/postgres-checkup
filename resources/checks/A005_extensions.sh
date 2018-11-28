@@ -1,9 +1,8 @@
 # Collect pg_settings artifact
-sql=$(wget --quiet -O - https://github.com/NikolayS/postgres_dba/raw/master/sql/e1_extensions.sql)
+sql=$(curl -s -L https://github.com/NikolayS/postgres_dba/raw/master/sql/e1_extensions.sql)
 sql=${sql%;} #remove last ;
 
-#ssh ${HOST} "
-${_PSQL} ${PSQL_CONN_OPTIONS} -f - <<SQL
+ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with data as (
 $sql
 )
