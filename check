@@ -464,35 +464,47 @@ generate_report_json() {
   local check_id="$2"
   local check_name="$3"
 
-  local epoch=null
+  local epoch="null"
 
   [[ -z ${3+x} ]] && err "function needs 3 arguments"
 
   # insert json object data into template
   local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
   local tmp_input_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
-  echo "$input_json" > "$tmp_input_json_fname"
-  local report_fname="${JSON_REPORT_DIR}/${check_id}_${check_name}.json"
 
+  # save function's input as a temporary file
+  echo "$input_json" > "$tmp_input_json_fname"
+
+  # use template or existing file
+  local json_output_fname="${JSON_REPORT_DIR}/${check_id}_${check_name}.json"
+  if [[ -f "$json_output_fname" ]]; then
+    local json_input_fname="${json_output_fname}"
+  else
+    local json_input_fname="${template_fname}"
+  fi
+
+  local tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_XXXXXX)
   jq --argfile Results "${tmp_input_json_fname}" \
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg Host "${HOST}" \
      --arg Project "${PROJECT}" \
-    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results = { ($Host): $Results }' \
-    "$template_fname" \
-    > "$report_fname"
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results += { ($Host): $Results }' \
+    "${json_input_fname}" \
+    > "${tmp_output_json_fname}"
+  mv "${tmp_output_json_fname}" "${json_output_fname}"
   rm "$tmp_input_json_fname"
 
   # extend check with actual 'nodes.json'
-  local tmp_output_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
+  tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
   jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
      '.results.'"${NATIVE_HOSTNAME}"'."nodes.json" = $nodes_json' \
-     "$report_fname" > "$tmp_output_json_fname"
-  mv "$tmp_output_json_fname" "$report_fname"
+     "${json_output_fname}" \
+     > "$tmp_output_json_fname"
+  mv "$tmp_output_json_fname" "${json_output_fname}"
 
-  msg "Artifacts saved at: '${report_fname}'"
+  msg "Artifacts saved at: '${json_output_fname}'"
 }
 
 #######################################
@@ -530,12 +542,11 @@ is_in_recovery() {
 #   (text) stdtout/stderror
 #######################################
 update_nodes_json() {
-  local first_run=false
-
   local prev_role=""
   local prev_epoch=""
   local prev_role=""
   local prev_dir=""
+  local host_is_new="false"
   ALIAS_NAME=""
   ALIAS_INDEX=""
   ROLE=""
@@ -551,42 +562,60 @@ update_nodes_json() {
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
     ALIAS_NAME="db1"
     ALIAS_INDEX="1"
-    local first_run="true"
     EPOCH="1"
     prev_role="${ROLE}"
     JSON_REPORT_DIR="${PROJECT_DIR}/${EPOCH}_${TIMESTAMP_DIR}"
     SHORT_DIR="${EPOCH}_${TIMESTAMP_DIR}"
+
+    local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
   else
-    # read current
+    # read current nodes.json
     ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.alias' "${PROJECT_DIR}/nodes.json")
+
+    # mark host as new if we can't find alias by path with NATIVE_HOSTNAME
+    if [[ "${ALIAS_NAME}" = "null" ]]; then
+      host_is_new="true"
+      dbg "host '${NATIVE_HOSTNAME}' is a new host"
+    fi
+
     ALIAS_INDEX=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.index' "${PROJECT_DIR}/nodes.json")
     prev_role=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.role' "${PROJECT_DIR}/nodes.json")
     prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
     prev_dir=$(jq -r '.last_check.dir' "${PROJECT_DIR}/nodes.json")
     JSON_REPORT_DIR="${PROJECT_DIR}/${prev_dir}"
     SHORT_DIR="${prev_dir}"
+
     # exit with error if epoch is not given and this is not first run
     if [[ "${EPOCH}" = "None" ]]; then
-      err "epoch '${prev_epoch}' already exist"
+      err "epoch not given but epoch '${prev_epoch}' already exist"
       err "due to avoid overwriting, please choise health-check epoch"
       err "example: ' ./${SCRIPT_NAME} ${ALL_ARGS} -e %NUMBER% '"
       exit 1
     fi
+
+    local input_json_fname="${PROJECT_DIR}/nodes.json"
   fi
 
   export JSON_REPORT_DIR SHORT_DIR
 
-  if [[ "${prev_role}" != "${ROLE}" ]]; then
-    #TODO(vyagofarov): fix last change in the nodes.json
+  local role_changed_at="never"
+  if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
     msg "WARNING: important difference between checks detected:"
     msg "WARNING: host's role has been changed from '${prev_role}' to '${ROLE}'"
+    role_changed_at="${TIMESTAMPTZ}" 
   fi
 
-  if [[ "$EPOCH" != "1" ]]; then
-    #TODO(vyagofarov): process this event here and exit
-    # err
-    msg "ERROR: please choise epoch via CLI: './${SCRIPT_NAME} -e %NUMBER%'"
+  # generate new ALIAS_INDEX and ALIAS_NAME for a new host
+  if [[ "$host_is_new" = "true" ]]; then
+    # get maximum index
+    local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)"] | max' "${PROJECT_DIR}/nodes.json")
+    local new_alias_index=$(( prev_index + 1 ))
+    local new_alias_name="db${new_alias_index}"
+    ALIAS_INDEX="${new_alias_index}"
+    ALIAS_NAME="${new_alias_name}"
   fi
+
+  #TODO(vyagofarov): insert last_check_epoch into each hostname of nodes.json
 
   export ALIAS_NAME ALIAS_INDEX ROLE EPOCH
   dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
@@ -604,19 +633,20 @@ update_nodes_json() {
     exit 1
   fi
 
-  local template_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
   local result_fname="${PROJECT_DIR}/nodes.json"
-  if [[ "$first_run" = "true" ]]; then
-    jq --arg NativeHostname "${NATIVE_HOSTNAME}" \
-       --arg alias "${ALIAS_NAME}" \
-       --arg index "${ALIAS_INDEX}" \
-       --arg role "${ROLE}" \
-       --arg TimestampTz "${TIMESTAMPTZ}" \
-       --arg dir "${SHORT_DIR}" \
-       '.hosts += { ($NativeHostname): { $alias, $index, $role } } | .last_check = { epoch: 1, timestamptz: $TimestampTz, dir: $dir }' \
-       "${template_fname}" \
-       > "${result_fname}"
-  fi
+  local result_fname_tmp=$(mktemp "${PROJECT_DIR}"/nodes.json.tmp_XXXXXX)
+  jq --arg NativeHostname "${NATIVE_HOSTNAME}" \
+     --arg alias "${ALIAS_NAME}" \
+     --arg index ${ALIAS_INDEX} \
+     --arg role "${ROLE}" \
+     --arg TimestampTz "${TIMESTAMPTZ}" \
+     --arg dir "${SHORT_DIR}" \
+     --arg epoch "${EPOCH}" \
+     --arg role_change_detected_at "${role_changed_at}" \
+     '.hosts += { ($NativeHostname): { $alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     "${input_json_fname}" \
+     > "${result_fname_tmp}"
+  mv "${result_fname_tmp}" "${result_fname}"
 }
 
 #######################################
@@ -679,7 +709,10 @@ run_checks() {
     export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
     test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
 
+    # alot of magic is here
     update_nodes_json
+
+    # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
   done
 }
