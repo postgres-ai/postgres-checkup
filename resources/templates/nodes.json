@@ -3,6 +3,7 @@
   },
   "last_check": {
     "epoch": null,
-    "timestamptz": null
+    "timestamptz": null,
+    "dir": null
   }
 }

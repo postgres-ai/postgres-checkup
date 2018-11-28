@@ -14,10 +14,11 @@ CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
 
 # GLOBALS (autoload, do not change)
 : ${DEBUG:=false}
-SCRIPTNAME=$(basename $0)
+SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 FIRST_ARG="$1"
+ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT=false
 
 #######################################
@@ -66,14 +67,14 @@ function err() {
 #######################################
 # Error trapping function, prints line number
 # Globals:
-#   SCRIPTNAME, BASH_LINENO[0]
+#   SCRIPT_NAME, BASH_LINENO[0]
 # Arguments:
 #   (text) Message
 # Returns:
 #   (lines with text) STDOUT
 #######################################
 error_handler() {
-  err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
+  err "^^^ ERROR at [file: '${SCRIPT_NAME}', line: '${BASH_LINENO[0]}']" >&2
   echo >&2
 }
 
@@ -359,7 +360,7 @@ validate_args() {
 # Generate usage/help
 # Globals:
 #   CLI_ARGS_POSSIBLE, FULL_NAME[], SECTION[]
-#   SCRIPTNAME, SHORT_NAME[], DESCRIPTION[]
+#   SCRIPT_NAME, SHORT_NAME[], DESCRIPTION[]
 # Arguments:
 #   description exit_code code
 # Returns:
@@ -390,8 +391,8 @@ usage() {
   fi
 
   echo "Usage:" >&${out_descriptor}
-  echo "  ${SCRIPTNAME} OPTION [OPTION] ..." >&${out_descriptor}
-  echo "  ${SCRIPTNAME} --help" >&${out_descriptor}
+  echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
+  echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
   echo >&${out_descriptor}
 
   # calc max size of FULL_NAME[] for text alignment
@@ -435,7 +436,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "./${SCRIPTNAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
+      echo "./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
@@ -451,7 +452,8 @@ usage() {
 # Generate json report
 # Globals:
 #   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
-#   HOST
+#   HOST, JSON_REPORT_DIR, TIMESTAMP_DIR,
+#   TIMESTAMPTZ
 # Arguments:
 #   input, check_id
 # Returns:
@@ -470,15 +472,12 @@ generate_report_json() {
   local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
   local tmp_input_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
   echo "$input_json" > "$tmp_input_json_fname"
-  local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
-  local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
-  mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
-  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}_${check_name}.json"
+  local report_fname="${JSON_REPORT_DIR}/${check_id}_${check_name}.json"
 
   jq --argfile Results "${tmp_input_json_fname}" \
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
-     --arg TimestampTz "${timestamptz}" \
+     --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg Host "${HOST}" \
      --arg Project "${PROJECT}" \
     '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results = { ($Host): $Results }' \
@@ -523,7 +522,8 @@ is_in_recovery() {
 # Start/update 'epoch' of the check
 # Globals:
 #   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
-#   ALIAS_NAME, ALIAS_INDEX, ROLE
+#   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORT_DIR
+#   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR
 # Arguments:
 #   None
 # Returns:
@@ -531,44 +531,78 @@ is_in_recovery() {
 #######################################
 update_nodes_json() {
   local first_run=false
-  local epoch=1
+
+  local prev_role=""
+  local prev_epoch=""
+  local prev_role=""
+  local prev_dir=""
+  ALIAS_NAME=""
+  ALIAS_INDEX=""
+  ROLE=""
+
+  # check 'is role has been changed?"
+  if is_in_recovery; then
+    ROLE="standby"
+  else
+    ROLE="master"
+  fi
+
   # if file does not exist generate alias for a first host
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
-    ALIAS_NAME=db1
-    ALIAS_INDEX=1
-    local first_run=true
+    ALIAS_NAME="db1"
+    ALIAS_INDEX="1"
+    local first_run="true"
+    EPOCH="1"
+    prev_role="${ROLE}"
+    JSON_REPORT_DIR="${PROJECT_DIR}/${EPOCH}_${TIMESTAMP_DIR}"
+    SHORT_DIR="${EPOCH}_${TIMESTAMP_DIR}"
   else
     # read current
-    ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.alias')
-    ALIAS_INDEX=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.index')
-    PREV_ROLE=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.role')
-  fi
-  # check role on every run
-  if is_in_recovery; then
-    ROLE=standby
-  else
-    ROLE=master
+    ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.alias' "${PROJECT_DIR}/nodes.json")
+    ALIAS_INDEX=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.index' "${PROJECT_DIR}/nodes.json")
+    prev_role=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.role' "${PROJECT_DIR}/nodes.json")
+    prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
+    prev_dir=$(jq -r '.last_check.dir' "${PROJECT_DIR}/nodes.json")
+    JSON_REPORT_DIR="${PROJECT_DIR}/${prev_dir}"
+    SHORT_DIR="${prev_dir}"
+    # exit with error if epoch is not given and this is not first run
+    if [[ "${EPOCH}" = "None" ]]; then
+      err "epoch '${prev_epoch}' already exist"
+      err "due to avoid overwriting, please choise health-check epoch"
+      err "example: ' ./${SCRIPT_NAME} ${ALL_ARGS} -e %NUMBER% '"
+      exit 1
+    fi
   fi
 
-  if [[ "$PREV_ROLE" != "$ROLE" ]]; then
+  export JSON_REPORT_DIR SHORT_DIR
+
+  if [[ "${prev_role}" != "${ROLE}" ]]; then
     #TODO(vyagofarov): fix last change in the nodes.json
     msg "WARNING: important difference between checks detected:"
-    msg "WARNING: host's role has been changed from '$PREV_ROLE' to '$ROLE'"
+    msg "WARNING: host's role has been changed from '${prev_role}' to '${ROLE}'"
   fi
 
-  if [[ "$EPOCH" -ne "1" ]]; then
+  if [[ "$EPOCH" != "1" ]]; then
     #TODO(vyagofarov): process this event here and exit
     # err
     msg "ERROR: please choise epoch via CLI: './${SCRIPT_NAME} -e %NUMBER%'"
   fi
 
-  export ALIAS_NAME ALIAS_INDEX ROLE
+  export ALIAS_NAME ALIAS_INDEX ROLE EPOCH
   dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
   dbg "ALIAS_NAME: '$ALIAS_NAME'"
   dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
   dbg "ROLE: '$ROLE'"
 
-  local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
+  mkdir -p "${JSON_REPORT_DIR}"
+
+  # error if two dir names like '${EPOCH}_*' exist
+  local cur_epochs_count="0"
+  cur_epochs_count=$(find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" | wc -l)
+  if [[ "$cur_epochs_count" -ge "2" ]]; then
+    err "directory name with mask 'EPOCH_*' already exist"
+    exit 1
+  fi
 
   local template_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
   local result_fname="${PROJECT_DIR}/nodes.json"
@@ -577,8 +611,9 @@ update_nodes_json() {
        --arg alias "${ALIAS_NAME}" \
        --arg index "${ALIAS_INDEX}" \
        --arg role "${ROLE}" \
-       --arg TimestampTz "${timestamptz}" \
-       '.hosts += { ($NativeHostname): { $alias, $index, $role } } | .last_check = { epoch: 1, timestamptz: $TimestampTz }' \
+       --arg TimestampTz "${TIMESTAMPTZ}" \
+       --arg dir "${SHORT_DIR}" \
+       '.hosts += { ($NativeHostname): { $alias, $index, $role } } | .last_check = { epoch: 1, timestamptz: $TimestampTz, dir: $dir }' \
        "${template_fname}" \
        > "${result_fname}"
   fi
@@ -616,6 +651,10 @@ run_checks() {
 
     local check_is_failed=false
 
+    # fix timestamp before check
+    export TIMESTAMP_DIR=$(date +'%Y_%m_%dT%H_%M_%S_%z') # for use in directories names
+    export TIMESTAMPTZ=$(date +'%Y-%m-%d %H:%M:%S.0%z')
+
     # perform a check from file
     output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
 
@@ -623,7 +662,7 @@ run_checks() {
     msg "========== End of check ==========="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK"
-    local check_id_tmp_a=${check_path_name%_*.sh}
+    local check_id_tmp_a=${check_path_name%%_*.sh}
     local check_id="${check_id_tmp_a##*/}"
 
     local check_name_a="${check_path_name##*/}"
@@ -639,6 +678,7 @@ run_checks() {
 
     export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
     test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
+
     update_nodes_json
     generate_report_json "$output" "$check_id" "$check_name"
   done
