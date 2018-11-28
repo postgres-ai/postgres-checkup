@@ -488,7 +488,7 @@ generate_report_json() {
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
-     --arg Host "${HOST}" \
+     --arg Host "${NATIVE_HOSTNAME}" \
      --arg Project "${PROJECT}" \
     '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results += { ($Host): $Results }' \
     "${json_input_fname}" \
@@ -570,7 +570,7 @@ update_nodes_json() {
     local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
   else
     # read current nodes.json
-    ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.alias' "${PROJECT_DIR}/nodes.json")
+    ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.internal_alias' "${PROJECT_DIR}/nodes.json")
 
     # mark host as new if we can't find alias by path with NATIVE_HOSTNAME
     if [[ "${ALIAS_NAME}" = "null" ]]; then
@@ -636,14 +636,14 @@ update_nodes_json() {
   local result_fname="${PROJECT_DIR}/nodes.json"
   local result_fname_tmp=$(mktemp "${PROJECT_DIR}"/nodes.json.tmp_XXXXXX)
   jq --arg NativeHostname "${NATIVE_HOSTNAME}" \
-     --arg alias "${ALIAS_NAME}" \
+     --arg internal_alias "${ALIAS_NAME}" \
      --arg index ${ALIAS_INDEX} \
      --arg role "${ROLE}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg dir "${SHORT_DIR}" \
      --arg epoch "${EPOCH}" \
      --arg role_change_detected_at "${role_changed_at}" \
-     '.hosts += { ($NativeHostname): { $alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     '.hosts += { ($NativeHostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
      "${input_json_fname}" \
      > "${result_fname_tmp}"
   mv "${result_fname_tmp}" "${result_fname}"
@@ -672,10 +672,12 @@ run_checks() {
   export NATIVE_HOSTNAME
 
   # perform all checks from './resources/checks/' directory
+  msg
+  msg "########## Perform checks for host '${NATIVE_HOSTNAME}':"
   local output
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "$CURRENT_CHECK" ]] || continue
-    msg ""
+    msg
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK"
 
@@ -696,7 +698,7 @@ run_checks() {
     local check_id="${check_id_tmp_a##*/}"
 
     local check_name_a="${check_path_name##*/}"
-    local check_name_b="${check_name_a##*_}"
+    local check_name_b="${check_name_a#*_}"
     local check_name="${check_name_b%.sh}"
 
     if [[ "$check_is_failed" == "true" ]]; then
@@ -715,6 +717,9 @@ run_checks() {
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
   done
+
+  msg
+  msg "All checks has been finished for host '$HOST'!"
 }
 
 ######### COMMANDS WRAPPERS ###########
