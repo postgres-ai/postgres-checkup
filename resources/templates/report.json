@@ -2,9 +2,7 @@
   "project": null,
   "name": null,
   "checkId": null,
-  "epoch": null,
   "timestamptz": null,
-  "hosts": [ null ],
   "dependencies": {"null": "null"},
   "results": {
   }
