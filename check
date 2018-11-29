@@ -743,7 +743,7 @@ main() {
   set -ueo pipefail
   trap error_handler ERR
   trap cleanup_and_exit 1 2 13 15 EXIT
-  unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
+  unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC >/dev/null 2>&1 || true
   export LC_ALL=C
   read_possible_args
   process_cli_args "$@"
