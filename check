@@ -629,7 +629,7 @@ update_nodes_json() {
   local cur_epochs_count="0"
   cur_epochs_count=$(find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" | wc -l)
   if [[ "$cur_epochs_count" -ge "2" ]]; then
-    err "FATAL: more then one directories witn name '${EPOCH}_*' exist:"
+    err "more then one directories witn name '${EPOCH}_*' exist:"
     find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" || true
     exit 1
   fi
