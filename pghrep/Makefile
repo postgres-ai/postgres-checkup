@@ -49,7 +49,8 @@ windows:
 #	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY}.exe .
 
 vet:
-	go vet ./... > ${VET_REPORT} 2>&1
+	go vet ./... 
+#> ${VET_REPORT} 2>&1
 
 fmt:
 	go fmt $$(go list ./... | grep -v /vendor/)
@@ -57,7 +58,7 @@ fmt:
 clean:
 	-rm -f ${TEST_REPORT}
 	-rm -f ${VET_REPORT}
-	-rm -f bin/${BINARY}*
+	-rm -f bin/*
 
 run:
 	go run ${LDFLAGS} ./src/*

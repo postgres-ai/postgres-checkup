@@ -1,5 +1,8 @@
-/* 2018 © Dmitry Udalov dmius@postgres.ai
- 2018 © Postgres.ai
+/*
+Postgres Healt Reporter
+
+2018 © Dmitry Udalov dmius@postgres.ai
+2018 © Postgres.ai
 
 Perform a generation *md reports on base of results health checks
 Usage: 
@@ -18,12 +21,14 @@ import (
     "./pyraconv"
     "log"
     "text/template"
+    "sort"
+    "strconv"
 )
 
 const (
     DEBUG  = true
 )
-    
+
 type CheckData struct {
     checkId string
     dependencies interface{}
@@ -84,13 +89,12 @@ func FileExists(name string) bool {
 }
 
 func ParseJson(jsonData string) map[string]interface{} {
-    var data interface{}
+    var data map[string]interface{}
     if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
         dbg("Can't parse json data:", err)
         return nil
     } else {
-        mapData := data.(map[string]interface{})
-        return mapData
+        return data
     }
 }
 
@@ -143,35 +147,46 @@ func loadTemplates() *template.Template {
     return templates
 }
 
-func generateMdReport(reportData ReportData, outputDir string){
+func generateMdReport(checkId string, reportData map[string]interface{}, outputDir string) bool{
     var outputFileName string
     if strings.HasSuffix(strings.ToLower(outputDir), "/") {
-        outputFileName = outputDir + reportData.Filename
+        outputFileName = outputDir + checkId + ".md"
     } else {
-        outputFileName = outputDir + "/" + reportData.Filename
+        outputFileName = outputDir + "/" + checkId + ".md"
     }
     _, err := filepath.Abs(filepath.Dir(os.Args[0]))
     f, err := os.OpenFile(outputFileName, os.O_CREATE | os.O_RDWR, 0777)
     if err != nil {
         dbg("Can't create report file", err)
-        return
+        return false
     }
-    defer f.Close()   
+    defer f.Close()
     f.Truncate(0)
-    
+
     templates := loadTemplates()
     if templates == nil {
         log.Fatal("Can't load template")
     }
-    reporTpl := templates.Lookup("report.tpl")
-    reporTpl.ExecuteTemplate(f, "report.tpl", reportData)
+    reporTpl := templates.Lookup(checkId + ".tpl")
+    dbg("reportTpl", reporTpl)
+    if reporTpl != nil {
+        err = reporTpl.ExecuteTemplate(f, checkId + ".tpl", reportData)
+        dbg("Template execute error is", err)
+        if err != nil {
+            return false
+        } else {
+            return true
+        }
+    } else {
+        return false
+    }
 }
 
 func main() {
     // get input data checkId, checkData
     var checkId string
     var checkData string
-    var mapCheckData map[string]interface{}
+    var resultData map[string]interface{}
     checkIdPtr := flag.String("checkid", "", "an check id")
     checkDataPtr := flag.String("checkdata", "", "an report data in json format")
     outDirPtr := flag.String("outdir", "", "an directore where report need save")
@@ -183,18 +198,19 @@ func main() {
     checkData=*checkDataPtr
 
     if (strings.HasPrefix(strings.ToLower(checkData), "file://") && FileExists(checkData)) {
-        mapCheckData = LoadJsonFile(checkData)
-        if mapCheckData == nil {
+        resultData = LoadJsonFile(checkData)
+        //log.Fatal("resultData", resultData["result"]["localhost"])
+        if resultData == nil {
             log.Fatal("ERROR: File given by --checkdata content wrong json data.")
             return
         }
     } else {
         log.Println("ERROR: File given by --checkdata not found, will used as json data", checkData)
-        mapCheckData = ParseJson(checkData)
+        resultData = ParseJson(checkData)
     }
 
-    if mapCheckData != nil {
-        checkId = pyraconv.ToString(mapCheckData["checkId"])
+    if resultData != nil {
+        checkId = pyraconv.ToString(resultData["checkId"])
     } else {
         log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
     }
@@ -210,7 +226,10 @@ func main() {
     }
     
     checkId = strings.ToLower(checkId)
-    loadDependencies(mapCheckData)
+    loadDependencies(resultData)
+    dbg("Data: ", resultData)
+    determineMasterReplica(resultData)
+    dbg("Data with hosts: ", resultData)
 
     l, err := newLoader()
     if err != nil {
@@ -218,27 +237,59 @@ func main() {
     }
     defer l.destroy()
     
+    var reportData map[string]interface{}
     objectPath, err := l.get(checkId);
     if err != nil {
-        log.Fatal("Cannot find and load plugin.", err)
-    }
-    result, err := l.call(objectPath, mapCheckData)
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "%v", err)
+        fmt.Println("Cannot find and load plugin.", err)
+        reportData = resultData
+    } else {
+        result, err := l.call(objectPath, resultData)
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "%v", err)
+        }
+        //reportData := ReportData{}
+        bodyBytes, _ := json.Marshal(result)
+        json.Unmarshal(bodyBytes, &reportData)
     }
 
-    reportData := ReportData{}
-    bodyBytes, _ := json.Marshal(result)
-    json.Unmarshal(bodyBytes, &reportData)
-    if len(result) > 0 && len(reportData.Filename) > 0 {
-        var outputDir string
-        if len(*outDirPtr) == 0 {
-            outputDir = "./"
-        } else {
-            outputDir = *outDirPtr
-        }
-        generateMdReport(reportData, outputDir)
+    var outputDir string
+    if len(*outDirPtr) == 0 {
+        outputDir = "./"
     } else {
-        log.Fatal("Cannot generate report. Data file or plugin is wrong.")
+        outputDir = *outDirPtr
     }
+
+    reportDone := generateMdReport(checkId, reportData, outputDir)
+    if ! reportDone  {
+        log.Fatal("Cannot generate report. Data file or template is wrong.")
+    }
+}
+
+func determineMasterReplica(data map[string]interface{}) {
+    hostRoles := make(map[string]interface{})
+    var sortedReplicas []string
+    replicas := make(map[int]string)
+    nodes_json := pyraconv.ToInterfaceMap(data["nodes.json"])
+    hosts := pyraconv.ToInterfaceMap(nodes_json["hosts"]);
+    for host, value := range hosts {
+        hostData := pyraconv.ToInterfaceMap(value)
+        dbg("host:", host, hostData);
+        if hostData["role"] == "master" {
+            hostRoles["master"] = host
+        } else {
+            index, _ := strconv.Atoi(pyraconv.ToString(hostData["index"]))
+            replicas[index] = host
+        }
+    }
+    var keys []int
+    for k := range replicas {
+        keys = append(keys, k)
+    }
+    sort.Ints(keys)
+    for _, k := range keys {
+        sortedReplicas = append(sortedReplicas, replicas[k])
+    }
+
+    hostRoles["replicas"] = sortedReplicas
+    data["hosts"] = hostRoles
 }
