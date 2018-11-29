@@ -4,6 +4,7 @@
   "checkId": null,
   "timestamptz": null,
   "dependencies": {"null": "null"},
+  "last_nodes_json": null,
   "results": {
   }
 }
