@@ -6,7 +6,7 @@ Postgres Healt Reporter
 
 Perform a generation *md reports on base of results health checks
 Usage: 
-pghrep --checkid=XXX --checkdata=file:///path_to_check_results.json --outdir=/home/results
+pghrep --checkdata=file:///path_to_check_results.json --outdir=/home/results
 */
 package main
 
@@ -28,21 +28,6 @@ import (
 const (
     DEBUG  = true
 )
-
-type CheckData struct {
-    checkId string
-    dependencies interface{}
-    hosts []string 
-    checkData interface{}
-}
-
-type ReportData struct {
-    Current string
-    Recommended string
-    Conclusion string
-    Filename string
-}
-
 
 func dbg(v ...interface{}) {
     if DEBUG {
@@ -137,10 +122,10 @@ func loadTemplates() *template.Template {
             allFiles = append(allFiles, dir + "/../templates/" + fileName)
         }
     }
-    
+
     templates, err = template.ParseFiles(allFiles...)
     if err != nil {
-        dbg("Can't load templates")
+        dbg("Can't load templates", err)
         return nil
     }
 
@@ -167,6 +152,7 @@ func generateMdReport(checkId string, reportData map[string]interface{}, outputD
     if templates == nil {
         log.Fatal("Can't load template")
     }
+    dbg("Find", checkId + ".tpl")
     reporTpl := templates.Lookup(checkId + ".tpl")
     dbg("reportTpl", reporTpl)
     if reporTpl != nil {
@@ -187,14 +173,9 @@ func main() {
     var checkId string
     var checkData string
     var resultData map[string]interface{}
-    checkIdPtr := flag.String("checkid", "", "an check id")
     checkDataPtr := flag.String("checkdata", "", "an report data in json format")
     outDirPtr := flag.String("outdir", "", "an directore where report need save")
     flag.Parse()
-
-    if len(*checkIdPtr) > 0 {
-        checkId = *checkIdPtr
-    }
     checkData=*checkDataPtr
 
     if (strings.HasPrefix(strings.ToLower(checkData), "file://") && FileExists(checkData)) {
@@ -215,21 +196,9 @@ func main() {
         log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
     }
     
-    if len(checkId) == 0 {
-        log.Fatal("ERROR: --checkid value incorrect")
-        return
-    }
-
-    if len(checkId) == 0 {
-        log.Fatal("ERROR: --checkid value incorrect")
-        return
-    }
-    
-    checkId = strings.ToLower(checkId)
+    checkId = strings.ToUpper(checkId)
     loadDependencies(resultData)
-    dbg("Data: ", resultData)
     determineMasterReplica(resultData)
-    dbg("Data with hosts: ", resultData)
 
     l, err := newLoader()
     if err != nil {
@@ -247,7 +216,6 @@ func main() {
         if err != nil {
             fmt.Fprintf(os.Stderr, "%v", err)
         }
-        //reportData := ReportData{}
         bodyBytes, _ := json.Marshal(result)
         json.Unmarshal(bodyBytes, &reportData)
     }
@@ -269,11 +237,10 @@ func determineMasterReplica(data map[string]interface{}) {
     hostRoles := make(map[string]interface{})
     var sortedReplicas []string
     replicas := make(map[int]string)
-    nodes_json := pyraconv.ToInterfaceMap(data["nodes.json"])
+    nodes_json := pyraconv.ToInterfaceMap(data["last_nodes_json"])
     hosts := pyraconv.ToInterfaceMap(nodes_json["hosts"]);
     for host, value := range hosts {
         hostData := pyraconv.ToInterfaceMap(value)
-        dbg("host:", host, hostData);
         if hostData["role"] == "master" {
             hostRoles["master"] = host
         } else {
@@ -281,6 +248,7 @@ func determineMasterReplica(data map[string]interface{}) {
             replicas[index] = host
         }
     }
+    dbg("Replicas", replicas)
     var keys []int
     for k := range replicas {
         keys = append(keys, k)
@@ -291,5 +259,6 @@ func determineMasterReplica(data map[string]interface{}) {
     }
 
     hostRoles["replicas"] = sortedReplicas
+    dbg("Hosts", hostRoles)
     data["hosts"] = hostRoles
 }
