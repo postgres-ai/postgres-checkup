@@ -1,0 +1,9 @@
+{
+  "hosts": {
+  },
+  "last_check": {
+    "epoch": null,
+    "timestamptz": null,
+    "dir": null
+  }
+}

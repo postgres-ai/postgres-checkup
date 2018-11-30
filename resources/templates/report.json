@@ -3,8 +3,8 @@
   "name": null,
   "checkId": null,
   "timestamptz": null,
-  "hosts": [ null ],
   "dependencies": {"null": "null"},
+  "last_nodes_json": null,
   "results": {
   }
 }

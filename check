@@ -13,11 +13,13 @@ CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
                  # out commands in macOS
 
 # GLOBALS (autoload, do not change)
-: ${DEBUG:=FALSE}
-SCRIPTNAME=$(basename $0)
+: ${DEBUG:=false}
+SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 FIRST_ARG="$1"
+ALL_ARGS="$@"
+OPTIONS_ERROR_EXIT=false
 
 #######################################
 # Print an message to STDOUT
@@ -59,40 +61,37 @@ function dbg() {
 #   (text) STDERR
 #######################################
 function err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: $@" >&2
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: ${FUNCNAME[1]}: $@" >&2
 }
 
 #######################################
 # Error trapping function, prints line number
 # Globals:
-#   SCRIPTNAME, BASH_LINENO[0]
+#   SCRIPT_NAME, BASH_LINENO[0]
 # Arguments:
 #   (text) Message
 # Returns:
 #   (lines with text) STDOUT
 #######################################
 error_handler() {
-  err "^^^ ERROR at [file: '${SCRIPTNAME}', line: '${BASH_LINENO[0]}']" >&2
-  #TODO(vyagofarov): save step here
+  err "^^^ ERROR at [file: '${SCRIPT_NAME}', line: '${BASH_LINENO[0]}']" >&2
   echo >&2
 }
 
 #######################################
 # Cleanup function: close ssh sockets, etc.
 # Globals:
-#   None
+#   HOST
 # Arguments:
 #   None
 # Returns:
 #   (lines with text) STDOUT/STDERR
 #######################################
 cleanup_and_exit() {
-  local host
-  for host in ${HOSTS}; do
-    msg ""
-    msg "closing ssh conenction to host '$host'"
-    ssh -O exit ${host} 2>/dev/null || msg "WARNING: Cant close ssh session for '${host}' : nothing to close"
-  done
+  if [[ ! -z ${HOST+x} ]]; then
+    dbg "closing ssh conenction to host '$HOST' (if exists)"
+    ssh -O exit ${HOST} 2>/dev/null || true
+  fi
 }
 
 #######################################
@@ -267,7 +266,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [[ $type = "text" ]]; then
-    re='^[a-zA-Z\;]+.*'
+    re='^[a-zA-Z\;\s\\\/]+.*'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
@@ -284,7 +283,7 @@ validate_arg_type() {
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
 #   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
 #   ARG_VALUE[], ARG_IS_GIVEN[], INTERNAL_*, CLI_ARGS_CNT,
-#   MANDATORY[], PSQL_CONN_OPTIONS
+#   MANDATORY[], PSQL_CONN_OPTIONS, HOST, OPTIONS_ERROR_EXIT
 # Arguments:
 #   None
 # Returns:
@@ -317,28 +316,39 @@ validate_args() {
   done
 
   # fill default (not given) psql connection related variables
-  [[ "${PORT}" = "None" ]] && export PORT=5432
+  [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
-  #TODO(vyagofarov): add multiple hosts support here:
-  HOSTS="$HOST"
+  # custom UNIX domain socket directory for PostgreSQL
+  local psql_unix_socket_option=""
+  if [[ "${PGSOCKET}" != "None" ]]; then
+    psql_unix_socket_option=" --host '${PGSOCKET}' "
+  fi
 
-  PSQL_CONN_OPTIONS="--host=${HOST} --port=${PORT} --dbname=${DBNAME} --username=${USERNAME}"
-  export PSQL_CONN_OPTIONS="$PSQL_CONN_OPTIONS"
+  # custom psql binary path support
+  local psql_bin="psql"
+  if [[ "${PSQLBINARY}" != "None" ]]; then
+    psql_bin="${PSQLBINARY}"
+  fi
+
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_unix_socket_option}"
+  export _PSQL="${psql_bin} -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
   dbg ""
 
-  # error if mandatory options are not set
+
+  # error if mandatory options are not set (print as a stack)
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
       # please do not change align for 'buf' variable text
       buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
-      need_fail_exit="true"
+      need_fail_exit=true
+      OPTIONS_ERROR_EXIT=true
     fi
   done
   if [[ "$need_fail_exit" = "true" ]]; then
@@ -350,7 +360,7 @@ validate_args() {
 # Generate usage/help
 # Globals:
 #   CLI_ARGS_POSSIBLE, FULL_NAME[], SECTION[]
-#   SCRIPTNAME, SHORT_NAME[], DESCRIPTION[]
+#   SCRIPT_NAME, SHORT_NAME[], DESCRIPTION[]
 # Arguments:
 #   description exit_code code
 # Returns:
@@ -381,8 +391,8 @@ usage() {
   fi
 
   echo "Usage:" >&${out_descriptor}
-  echo "  ${SCRIPTNAME} OPTION [OPTION] ..." >&${out_descriptor}
-  echo "  ${SCRIPTNAME} --help" >&${out_descriptor}
+  echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
+  echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
   echo >&${out_descriptor}
 
   # calc max size of FULL_NAME[] for text alignment
@@ -426,9 +436,9 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "./${SCRIPTNAME} -h localhost -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
+      echo "./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "To add more options please edit file 'resources/cli.conf'." >&${out_descriptor}
+      echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
     fi
@@ -439,49 +449,11 @@ usage() {
 }
 
 #######################################
-# Perform checks
-# All checks must return valid json into stdout
-# Globals:
-#   CURRENT_CHECK, SCRIPT_DIR,
-#   and all exported internal globals
-# Arguments:
-#   None
-# Returns:
-#   (text) stdtout/stderror
-#######################################
-run_checks() {
-  local output
-  local check_id
-  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
-    [[ -e "$CURRENT_CHECK" ]] || continue
-    msg ""
-    msg "========== Perform check: =========="
-    msg "$CURRENT_CHECK"
-    local check_is_failed=false
-    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
-    dbg "check_is_failed: $check_is_failed"
-    msg "========== End of check ==========="
-    # extract checkId from check script path
-    local check_path_name="$CURRENT_CHECK"
-    check_path_name=${check_path_name%_*.sh}
-    check_path_name=${check_path_name##*/}
-    check_id="$check_path_name"
-    if [[ "$check_is_failed" == "true" ]]; then
-      msg "WARNING: check '${check_id}' failed with error ^^^"
-      continue
-    else
-      msg "check '$check_id' is finished"
-    fi
-    mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}"
-    generate_report_json "$output" "$check_id"
-  done
-}
-
-#######################################
 # Generate json report
 # Globals:
 #   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
-#   HOST, 
+#   HOST, JSON_REPORT_DIR, TIMESTAMP_DIR,
+#   TIMESTAMPTZ
 # Arguments:
 #   input, check_id
 # Returns:
@@ -490,33 +462,279 @@ run_checks() {
 generate_report_json() {
   local input_json="$1"
   local check_id="$2"
+  local check_name="$3"
 
-  #TODO(vyagofarov): make uniq temp file names
+  local epoch="null"
 
-  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  [[ -z ${3+x} ]] && err "function needs 3 arguments"
+
   # insert json object data into template
-  local tmp_input_json_fname="${SCRIPT_DIR}/artifacts/${check_id}.tmp"
-  touch "$tmp_input_json_fname"
+  local template_fname="${SCRIPT_DIR}/resources/templates/report.json"
+  local tmp_input_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
+
+  # save function's input as a temporary file
   echo "$input_json" > "$tmp_input_json_fname"
-  local timestamp=$(date +'%Y_%m_%dT%H_%M_%S_%z')
-  local timestamptz=$(date +'%Y-%m-%d %H:%M:%S.0%z')
-  mkdir -p "${SCRIPT_DIR}/artifacts/${PROJECT}/${timestamp}"
-  local report_fname="${SCRIPT_DIR}/artifacts/${PROJECT}/$timestamp/${check_id}.json"
 
-  #TODO(vyagofarov): use native jq placeholders
+  # final report file name
+  local json_output_fname="${JSON_REPORT_DIR}/${check_id}_${check_name}.json"
 
-  jq --argfile Data \
-    "${tmp_input_json_fname}" '.checkId += "'"${check_id}"'" | .timestamptz = "'"${timestamptz}"'" | .hosts[] += "'${HOST}'" | .project = "'"${PROJECT}"'" | .results += {"'"${HOST}"'": $Data} | .results.'${HOST}' += { timestamptz: "'"${timestamptz}"'" } ' "$template_fname" \
-    > "$report_fname"
-  msg "Artifacts saved at: '${report_fname}'"
+  # use template or existing file
+  if [[ -f "$json_output_fname" ]]; then
+    local json_input_fname="${json_output_fname}"
+  else
+    local json_input_fname="${template_fname}"
+  fi
+
+  local tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_XXXXXX)
+  jq --argfile Results "${tmp_input_json_fname}" \
+     --arg CheckId "${check_id}" \
+     --arg CheckName "${check_name}" \
+     --arg TimestampTz "${TIMESTAMPTZ}" \
+     --arg Host "${NATIVE_HOSTNAME}" \
+     --arg Project "${PROJECT}" \
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results += { ($Host): { data: $Results } }' \
+    "${json_input_fname}" \
+    > "${tmp_output_json_fname}"
+  mv "${tmp_output_json_fname}" "${json_output_fname}"
   rm "$tmp_input_json_fname"
+
+  # extend check for current host with actual 'nodes.json' inside a json report
+  tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
+  jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
+     '.results.'"${NATIVE_HOSTNAME}"'."nodes.json" = $nodes_json' \
+     "${json_output_fname}" \
+     > "$tmp_output_json_fname"
+  mv "$tmp_output_json_fname" "${json_output_fname}"
+
+  # update json report by attaching 'nodes.json' into top of the report
+  tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
+  jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
+     '.last_nodes_json = $nodes_json' \
+     "${json_output_fname}" \
+     > "$tmp_output_json_fname"
+  mv "$tmp_output_json_fname" "${json_output_fname}"
+
+  msg "Artifacts saved at: '${json_output_fname}'"
+}
+
+#######################################
+# Check is host in recovery mode or not
+# Globals:
+#   HOST
+# Arguments:
+#   None
+# Returns:
+#   Integer
+#######################################
+is_in_recovery() {
+  local res="$(ssh "$HOST" "${_PSQL} -c \"select * from pg_is_in_recovery()\"")"
+  if [[ "$res" = "f" ]]; then
+    dbg "host $HOST is 'master'"
+    return 12
+  else
+    dbg "host $HOST is 'standby'"
+    return 0
+  fi
+  return 13
+}
+
+#######################################
+# Update/create 'nodes.json' in the project dir
+# Fill/update hostname, role, internal alias
+# Start/update 'epoch' of the check
+# Globals:
+#   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
+#   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORT_DIR
+#   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+update_nodes_json() {
+  local prev_role=""
+  local prev_epoch=""
+  local prev_role=""
+  local prev_dir=""
+  local host_is_new="false"
+  ALIAS_NAME=""
+  ALIAS_INDEX=""
+  ROLE=""
+
+  # check 'is role has been changed?"
+  if is_in_recovery; then
+    ROLE="standby"
+  else
+    ROLE="master"
+  fi
+
+  # if file does not exist generate alias for a first host
+  if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
+    ALIAS_NAME="db1"
+    ALIAS_INDEX="1"
+    EPOCH="1"
+    prev_role="${ROLE}"
+    JSON_REPORT_DIR="${PROJECT_DIR}/${EPOCH}_${TIMESTAMP_DIR}"
+    SHORT_DIR="${EPOCH}_${TIMESTAMP_DIR}"
+
+    local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
+  else
+    # read current nodes.json
+    ALIAS_NAME=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.internal_alias' "${PROJECT_DIR}/nodes.json")
+
+    # mark host as new if we can't find alias by path with NATIVE_HOSTNAME
+    if [[ "${ALIAS_NAME}" = "null" ]]; then
+      host_is_new="true"
+      dbg "host '${NATIVE_HOSTNAME}' is a new host"
+    fi
+
+    ALIAS_INDEX=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.index' "${PROJECT_DIR}/nodes.json")
+    prev_role=$(jq -r '.hosts.'"${NATIVE_HOSTNAME}"'.role' "${PROJECT_DIR}/nodes.json")
+    prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
+    prev_dir=$(jq -r '.last_check.dir' "${PROJECT_DIR}/nodes.json")
+    JSON_REPORT_DIR="${PROJECT_DIR}/${prev_dir}"
+    SHORT_DIR="${prev_dir}"
+
+    # exit with error if epoch is not given and this is not first run
+    if [[ "${EPOCH}" = "None" ]]; then
+      err "epoch not given but epoch '${prev_epoch}' already exist"
+      err "due to avoid overwriting, please choise health-check epoch"
+      err "example: ' ./${SCRIPT_NAME} ${ALL_ARGS} -e %NUMBER% '"
+      exit 1
+    fi
+
+    local input_json_fname="${PROJECT_DIR}/nodes.json"
+  fi
+
+  export JSON_REPORT_DIR SHORT_DIR
+
+  local role_changed_at="never"
+  if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
+    msg "WARNING: important difference between checks detected:"
+    msg "WARNING: host's role has been changed from '${prev_role}' to '${ROLE}'"
+    role_changed_at="${TIMESTAMPTZ}" 
+  fi
+
+  # generate new ALIAS_INDEX and ALIAS_NAME for a new host
+  if [[ "$host_is_new" = "true" ]]; then
+    # get maximum index
+    local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)"] | max' "${PROJECT_DIR}/nodes.json")
+    local new_alias_index=$(( prev_index + 1 ))
+    local new_alias_name="db${new_alias_index}"
+    ALIAS_INDEX="${new_alias_index}"
+    ALIAS_NAME="${new_alias_name}"
+  fi
+
+  #TODO(vyagofarov): insert last_check_epoch into each hostname of nodes.json
+
+  export ALIAS_NAME ALIAS_INDEX ROLE EPOCH
+  dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
+  dbg "ALIAS_NAME: '$ALIAS_NAME'"
+  dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
+  dbg "ROLE: '$ROLE'"
+
+  mkdir -p "${JSON_REPORT_DIR}"
+
+  # error if two dir names like '${EPOCH}_*' exist
+  local cur_epochs_count="0"
+  cur_epochs_count=$(find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" | wc -l)
+  if [[ "$cur_epochs_count" -ge "2" ]]; then
+    err "more then one directories witn name '${EPOCH}_*' exist:"
+    find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" || true
+    exit 1
+  fi
+
+  # finally, fill nodes.json file
+  local result_fname="${PROJECT_DIR}/nodes.json"
+  local result_fname_tmp=$(mktemp "${PROJECT_DIR}"/nodes.json.tmp_XXXXXX)
+  jq --arg NativeHostname "${NATIVE_HOSTNAME}" \
+     --arg internal_alias "${ALIAS_NAME}" \
+     --arg index ${ALIAS_INDEX} \
+     --arg role "${ROLE}" \
+     --arg TimestampTz "${TIMESTAMPTZ}" \
+     --arg dir "${SHORT_DIR}" \
+     --arg epoch "${EPOCH}" \
+     --arg role_change_detected_at "${role_changed_at}" \
+     '.hosts += { ($NativeHostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     "${input_json_fname}" \
+     > "${result_fname_tmp}"
+  mv "${result_fname_tmp}" "${result_fname}"
+}
+
+#######################################
+# Perform checks
+# All checks must return valid json into stdout
+# Globals:
+#   CURRENT_CHECK, SCRIPT_DIR, HOST, PROJECT_DIR,
+#   NATIVE_HOSTNAME
+#   and all exported internal globals
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+run_checks() {
+  # perform pre-checks here
+
+  # get native hostname from remote host due to accurate
+  # mapping in the future
+  if ! NATIVE_HOSTNAME="$(ssh "$HOST" "hostname")"; then
+    NATIVE_HOSTNAME="$HOST" 
+  fi
+  export NATIVE_HOSTNAME
+
+  # perform all checks from './resources/checks/' directory
+  msg
+  msg "########## Perform checks for host '${NATIVE_HOSTNAME}':"
+  local output
+  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
+    [[ -e "$CURRENT_CHECK" ]] || continue
+    msg
+    msg "========== Perform check: =========="
+    msg "$CURRENT_CHECK"
+
+    local check_is_failed=false
+
+    # fix timestamp before check
+    export TIMESTAMP_DIR=$(date +'%Y_%m_%dT%H_%M_%S_%z') # for use in directories names
+    export TIMESTAMPTZ=$(date +'%Y-%m-%d %H:%M:%S.0%z')
+
+    # perform a check from file
+    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
+
+    dbg "is check failed?: $check_is_failed"
+    msg "========== End of check ==========="
+    # extract checkId from check script path
+    local check_path_name="$CURRENT_CHECK"
+    local check_id_tmp_a=${check_path_name%%_*.sh}
+    local check_id="${check_id_tmp_a##*/}"
+
+    local check_name_a="${check_path_name##*/}"
+    local check_name_b="${check_name_a#*_}"
+    local check_name="${check_name_b%.sh}"
+
+    if [[ "$check_is_failed" == "true" ]]; then
+      msg "WARNING: check '${check_id}' failed with error ^^^"
+      continue
+    else
+      msg "check '$check_id' is finished"
+    fi
+
+    export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+    test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
+
+    # alot of magic is here
+    update_nodes_json
+
+    # generate/extend report
+    generate_report_json "$output" "$check_id" "$check_name"
+  done
+
+  msg
+  msg "All checks has been finished for host '$HOST'!"
 }
 
 ######### COMMANDS WRAPPERS ###########
-psql() {
-  command psql -X -At -q -v ON_ERROR_STOP=1 -P pager=off "$@"
-}
-
 ssh() {
   local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
   local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
@@ -531,13 +749,13 @@ ssh() {
 
   command ssh $ssh_options "$@"
 }
-#######################################
 
+#######################################
 main() {
   set -ueo pipefail
   trap error_handler ERR
   trap cleanup_and_exit 1 2 13 15 EXIT
-  unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC
+  unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC >/dev/null 2>&1 || true
   export LC_ALL=C
   read_possible_args
   process_cli_args "$@"
