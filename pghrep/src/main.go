@@ -25,9 +25,7 @@ import (
     "strconv"
 )
 
-const (
-    DEBUG  = true
-)
+var DEBUG bool = false
 
 func dbg(v ...interface{}) {
     if DEBUG {
@@ -154,82 +152,19 @@ func generateMdReport(checkId string, reportData map[string]interface{}, outputD
     }
     dbg("Find", checkId + ".tpl")
     reporTpl := templates.Lookup(checkId + ".tpl")
-    dbg("reportTpl", reporTpl)
     if reporTpl != nil {
         err = reporTpl.ExecuteTemplate(f, checkId + ".tpl", reportData)
-        dbg("Template execute error is", err)
         if err != nil {
+            dbg("Template execute error is", err)
+            defer os.Remove(outputFileName)
             return false
         } else {
             return true
         }
     } else {
+        dbg("Template " + checkId + ".tpl not found.")
+        defer os.Remove(outputFileName)
         return false
-    }
-}
-
-func main() {
-    // get input data checkId, checkData
-    var checkId string
-    var checkData string
-    var resultData map[string]interface{}
-    checkDataPtr := flag.String("checkdata", "", "an report data in json format")
-    outDirPtr := flag.String("outdir", "", "an directore where report need save")
-    flag.Parse()
-    checkData=*checkDataPtr
-
-    if (strings.HasPrefix(strings.ToLower(checkData), "file://") && FileExists(checkData)) {
-        resultData = LoadJsonFile(checkData)
-        //log.Fatal("resultData", resultData["result"]["localhost"])
-        if resultData == nil {
-            log.Fatal("ERROR: File given by --checkdata content wrong json data.")
-            return
-        }
-    } else {
-        log.Println("ERROR: File given by --checkdata not found, will used as json data", checkData)
-        resultData = ParseJson(checkData)
-    }
-
-    if resultData != nil {
-        checkId = pyraconv.ToString(resultData["checkId"])
-    } else {
-        log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
-    }
-    
-    checkId = strings.ToUpper(checkId)
-    loadDependencies(resultData)
-    determineMasterReplica(resultData)
-
-    l, err := newLoader()
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "%v", err)
-    }
-    defer l.destroy()
-    
-    var reportData map[string]interface{}
-    objectPath, err := l.get(checkId);
-    if err != nil {
-        fmt.Println("Cannot find and load plugin.", err)
-        reportData = resultData
-    } else {
-        result, err := l.call(objectPath, resultData)
-        if err != nil {
-            fmt.Fprintf(os.Stderr, "%v", err)
-        }
-        bodyBytes, _ := json.Marshal(result)
-        json.Unmarshal(bodyBytes, &reportData)
-    }
-
-    var outputDir string
-    if len(*outDirPtr) == 0 {
-        outputDir = "./"
-    } else {
-        outputDir = *outDirPtr
-    }
-
-    reportDone := generateMdReport(checkId, reportData, outputDir)
-    if ! reportDone  {
-        log.Fatal("Cannot generate report. Data file or template is wrong.")
     }
 }
 
@@ -259,6 +194,74 @@ func determineMasterReplica(data map[string]interface{}) {
     }
 
     hostRoles["replicas"] = sortedReplicas
-    dbg("Hosts", hostRoles)
     data["hosts"] = hostRoles
+}
+
+func main() {
+    // get input data checkId, checkData
+    var checkId string
+    var checkData string
+    var resultData map[string]interface{}
+    checkDataPtr := flag.String("checkdata", "", "an filepath to json report with file:// prefix")
+    outDirPtr := flag.String("outdir", "", "an directory where report need save")
+    debugPtr := flag.String("debug", "", "enable debug mode (must be defined 1 or 0 (default))")
+    flag.Parse()
+    checkData=*checkDataPtr
+
+    if *debugPtr == "1"  {
+        DEBUG = true
+    }
+
+    if (strings.HasPrefix(strings.ToLower(checkData), "file://") && FileExists(checkData)) {
+        resultData = LoadJsonFile(checkData)
+        if resultData == nil {
+            log.Fatal("ERROR: File given by --checkdata content wrong json data.")
+            return
+        }
+    } else {
+        log.Println("ERROR: File given by --checkdata not found")
+        return
+    }
+
+    if resultData != nil {
+        checkId = pyraconv.ToString(resultData["checkId"])
+    } else {
+        log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
+    }
+    
+    checkId = strings.ToUpper(checkId)
+    loadDependencies(resultData)
+    determineMasterReplica(resultData)
+
+    l, err := newLoader()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "%v", err)
+    }
+    defer l.destroy()
+    
+    var reportData map[string]interface{}
+    objectPath, err := l.get(checkId);
+    if err != nil {
+        dbg("Cannot find and load plugin.", err)
+        reportData = resultData
+    } else {
+        result, err := l.call(objectPath, resultData)
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "%v", err)
+        }
+        bodyBytes, _ := json.Marshal(result)
+        json.Unmarshal(bodyBytes, &reportData)
+    }
+
+    var outputDir string
+    if len(*outDirPtr) == 0 {
+        outputDir = "./"
+    } else {
+        outputDir = *outDirPtr
+    }
+
+    reportDone := generateMdReport(checkId, reportData, outputDir)
+    if ! reportDone  {
+        log.Fatal("Cannot generate report. Data file or template is wrong.")
+    }
 }

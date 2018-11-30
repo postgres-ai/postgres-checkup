@@ -71,13 +71,13 @@ func (l *loader) get(name string) (string, error) {
     if err != nil && os.IsNotExist(err) {
         _, err := os.Stat(filepath.Join(l.pluginsDir, name + ".go"))
         if err != nil {
-            log.Printf("WARNING: Plugin %s not found.\n", pluginPath)
+            dbg("WARNING: Plugin not found.", pluginPath)
             return pluginPath, err
         }
-        log.Printf("WARNING: Binary plugin %s not found. Try compile.\n", pluginPath)
+        dbg("WARNING: Binary plugin " + pluginPath + " not found. Try compile.")
         pluginPath, err = l.compile(name)
     } else {
-        log.Printf("Binary plugin %s found.\n", pluginPath)
+        dbg("Binary plugin " + pluginPath + " found.\n")
         err = nil
     }
     return pluginPath, err
