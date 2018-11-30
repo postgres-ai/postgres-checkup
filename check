@@ -492,7 +492,7 @@ generate_report_json() {
      --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg Host "${NATIVE_HOSTNAME}" \
      --arg Project "${PROJECT}" \
-    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results += { ($Host): $Results }' \
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | .results += { ($Host): { data: $Results } }' \
     "${json_input_fname}" \
     > "${tmp_output_json_fname}"
   mv "${tmp_output_json_fname}" "${json_output_fname}"
