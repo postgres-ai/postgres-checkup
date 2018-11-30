@@ -1,26 +1,28 @@
 Current values
 ===
 
+System information
+
 Master DB server is {{.hosts.master}}
   System information
   `
-  {{(index .results .hosts.master).system.raw}}
+  {{(index (index .results .hosts.master) "data").system.raw}}
   `
   Cpu information 
   `
-  {{(index .results .hosts.master).cpu.raw}}
+  {{(index (index .results .hosts.master) "data").cpu.raw}}
   `
   Memory information
   `
-  {{(index .results .hosts.master).ram.raw}}
+  {{(index (index .results .hosts.master) "data").ram.raw}}
   `
   Disk information
   `
-  {{(index .results .hosts.master).disk.raw}}
+  {{(index (index .results .hosts.master) "data").disk.raw}}
   `
   Virtualization information
   `
-  {{(index .results .hosts.master).virtualization.raw}}
+  {{(index (index .results .hosts.master) "data").virtualization.raw}}
   `
 
 {{ if gt (len .hosts.replicas) 0 }}
@@ -30,23 +32,23 @@ Slave DB servers:
        {{ if (index $.results $value) }}
     System information
       `
-{{(index $.results $.value).system.raw}}
+{{ (index (index $.results $value) "data").system.raw }}
       `
     Cpu information 
       `
-{{(index $.results $.value).cpu.raw}}
+{{(index (index $.results $value) "data").cpu.raw}}
       `
     Memory information
       `
-{{(index $.results $.value).ram.raw}}
+{{(index (index $.results $value) "data").ram.raw}}
       `
     Disk information
       `
-{{(index $.results $.value).disk.raw}}
+{{(index (index $.results $value) "data").disk.raw}}
       `
     Virtualization information
       `
-  {{(index $.results $.value).virtualization.raw}}
+  {{(index (index $.results $value) "data").virtualization.raw}}
       `      
       {{ else }}
       No data

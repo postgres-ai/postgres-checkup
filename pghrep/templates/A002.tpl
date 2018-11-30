@@ -1,21 +1,23 @@
 Current values
 ===
 
+Versions
+
 Master DB server is {{.hosts.master}}
-  Version: {{(index .results .hosts.master).version}}
-  Server version number: {{(index .results .hosts.master).server_version_num}}
-  Server major version: {{(index .results .hosts.master).server_major_ver}}
-  Server minor version: {{(index .results .hosts.master).server_minor_ver}}
+  Version: {{ (index (index .results .hosts.master) "data").version }}
+  Server version number: {{ (index (index .results .hosts.master) "data").server_version_num }}
+  Server major version: {{ (index (index .results .hosts.master) "data").server_major_ver }}
+  Server minor version: {{ (index (index .results .hosts.master) "data").server_minor_ver }}
 
 {{ if gt (len .hosts.replicas) 0 }}
 Slave DB servers:
     {{ range $key, $value := .hosts.replicas }}
   DB slave server: {{ $value }}
       {{ if (index $.results $value) }}
-    Version: {{(index $.results $value).version}}
-    Server version number: {{(index $.results $value).server_version_num}}
-    Server major version: {{(index $.results $value).server_major_ver}}
-    Server minor version: {{(index $.results $value).server_minor_ver}}
+    Version: {{ (index (index $.results $value) "data").version }}
+    Server version number: {{ (index (index $.results $value) "data").server_version_num }}
+    Server major version: {{ (index (index $.results $value) "data").server_major_ver }}
+    Server minor version: {{ (index (index $.results $value) "data").server_minor_ver }}
       {{ else }}
     No data
       {{ end}}

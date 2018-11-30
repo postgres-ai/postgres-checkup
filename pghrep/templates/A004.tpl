@@ -1,11 +1,11 @@
 Current values
 ===
 
-Postgres settings
+Cluster info
 
 Master DB server is {{.hosts.master}}
 {{ range $key, $value := (index (index .results .hosts.master) "data") }}
-  {{ $key }} = {{ $value.setting}} {{ if $value.unit }}{{ $value.unit }} {{ end }}
+  {{ $key }}: {{ $value}}
 {{ end }}
 
 {{ if gt (len .hosts.replicas) 0 }}
@@ -14,7 +14,7 @@ Slave DB servers:
   DB slave server: {{ $host }}
     {{ if (index $.results $host) }}
       {{ range $key, $value := (index (index $.results $host) "data") }}
-        {{ $key }} = {{ $value.setting}} {{ if $value.unit }}{{ $value.unit }} {{ end }}
+        {{ $key }}: {{ $value}}
       {{ end }}
     {{ else }}
       No data
