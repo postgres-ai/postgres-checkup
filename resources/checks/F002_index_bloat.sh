@@ -1,6 +1,4 @@
-sql=$(curl -s -L https://github.com/NikolayS/postgres_dba/raw/master/sql/b2_btree_estimation.sql | sed -r ':a; s%(.*)/\*.*\*/%\1%; ta; /\/\*/ !b; N; ba' | sed '/^--/d' | sed '/^$/d')
-sql="$sql"
-sql=${sql%;} #remove last ;
+sql=$(curl -s -L https://github.com/NikolayS/postgres_dba/raw/master/sql/b2_btree_estimation.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 ssh ${HOST} "psql -U postila_ru -t -f - " <<SQL
 with data as (
