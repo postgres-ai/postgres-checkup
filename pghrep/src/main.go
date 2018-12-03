@@ -64,7 +64,6 @@ func GetFilePath(name string) string {
 // Exists reports whether the named file or directory exists.
 func FileExists(name string) bool {
     filePath := GetFilePath(name)
-    dbg("File path", filePath)
     if _, err := os.Stat(filePath); err != nil {
         if os.IsNotExist(err) {
             return false
