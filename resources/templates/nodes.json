@@ -1,12 +1,9 @@
 {
   "hosts": {
-    "hostname": {
-      "role": null,
-      "alias": null
-    }
   },
   "last_check": {
     "epoch": null,
-    "timestamp": null
+    "timestamptz": null,
+    "dir": null
   }
 }

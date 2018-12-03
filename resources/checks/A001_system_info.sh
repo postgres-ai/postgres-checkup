@@ -80,8 +80,7 @@ get_disk_info $HOST
 get_ctl_info $HOST
 host_obj="{\"cpu\": $CPU_INFO, \"ram\": $MEM_INFO, \"system\": $OS_INFO, \"disk\": $DISK_INFO}"
 host_obj="{\"cpu\": $CPU_INFO, \"ram\": $MEM_INFO, \"system\": $OS_INFO, \"disk\": $DISK_INFO, \"virtualization\": $CTL_INFO }"
-result="{\"$HOST\": ${host_obj}}"
-result="[${result}]"
+result="${host_obj}"
 
 result=$(jq -n "$result")
 echo "$result"
