@@ -1,5 +1,10 @@
-For generate report use:
+To build report generator use:
 
-`./bin/pghrep --checkdata=file:///path_to_json_repots_storage/A002_pgversion.json --outdir=/path_to_md_reports_storage/ `
+`cd /pghrep`
+make all`
 
-also for enable debug mode add option `--debug 1`
+To generate report use:
+
+`./bin/pghrep --checkdata=/path_to_json_repots_storage/A002_pgversion.json --outdir=/path_to_md_reports_storage/ `
+
+also, to enable debug mode, use `--debug 1`

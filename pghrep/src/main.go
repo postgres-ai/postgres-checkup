@@ -38,25 +38,27 @@ func dbg(v ...interface{}) {
 }
 
 func GetFilePath(name string) string {
-    var filePath string
-    if strings.HasPrefix(strings.ToLower(name), "file:///") {
-        filePath = strings.Replace(name, "file://", "", 1)
-        return filePath
+    filePath := name
+    // remove file:// prefix
+    if strings.HasPrefix(strings.ToLower(filePath), "file://") {
+        filePath = strings.Replace(filePath, "file://", "", 1)
     }
-    if strings.HasPrefix(strings.ToLower(name), "file://") {
-        dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if strings.HasPrefix(strings.ToLower(filePath), "/") {
+        // absoulute path will use as is
+        return filePath
+    } else {
+        // for relative path will combine with current path
+        curDir, err := os.Getwd()
         if err != nil {
             dbg("Can't determine current path")
         }
-        givenPath := strings.Replace(name, "file://", "", 1)
-        if strings.HasPrefix(strings.ToLower(givenPath), "/") {
-            filePath = dir + givenPath
+        if strings.HasSuffix(strings.ToLower(curDir), "/") {
+            filePath = curDir + filePath
         } else {
-            filePath = dir + "/" + givenPath
+            filePath = curDir + "/" + filePath
         }
         return filePath
     }
-    return name
 }
 
 // Exists reports whether the named file or directory exists.
@@ -82,7 +84,7 @@ func ParseJson(jsonData string) map[string]interface{} {
 }
 
 func LoadJsonFile(filePath string) map[string]interface{} {
-    if (strings.HasPrefix(strings.ToLower(filePath), "file://") && FileExists(filePath)) {
+    if FileExists(filePath) {
         fileContent, err := ioutil.ReadFile(GetFilePath(filePath)) // just pass the file name
         if err != nil {
             log.Println("Can't read file: ", filePath, err)
@@ -183,7 +185,6 @@ func determineMasterReplica(data map[string]interface{}) {
             replicas[index] = host
         }
     }
-    dbg("Replicas", replicas)
     var keys []int
     for k := range replicas {
         keys = append(keys, k)
@@ -202,17 +203,17 @@ func main() {
     var checkId string
     var checkData string
     var resultData map[string]interface{}
-    checkDataPtr := flag.String("checkdata", "", "an filepath to json report with file:// prefix")
+    checkDataPtr := flag.String("checkdata", "", "an filepath to json report")
     outDirPtr := flag.String("outdir", "", "an directory where report need save")
-    debugPtr := flag.String("debug", "", "enable debug mode (must be defined 1 or 0 (default))")
+    debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
     flag.Parse()
     checkData=*checkDataPtr
 
-    if *debugPtr == "1"  {
+    if *debugPtr == 1  {
         DEBUG = true
     }
 
-    if (strings.HasPrefix(strings.ToLower(checkData), "file://") && FileExists(checkData)) {
+    if FileExists(checkData) {
         resultData = LoadJsonFile(checkData)
         if resultData == nil {
             log.Fatal("ERROR: File given by --checkdata content wrong json data.")
