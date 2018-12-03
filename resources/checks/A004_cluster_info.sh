@@ -1,6 +1,5 @@
 # Collect pg cluster info
-sql=$(curl -s -L https://github.com/NikolayS/postgres_dba/raw/master/sql/0_node.sql | sed -r ':a; s%(.*)/\*.*\*/%\1%; ta; /\/\*/ !b; N; ba' | sed '/^--/d' | sed '/^$/d')
-main_sql=${sql%;} #remove last ;
+main_sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/0_node.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 pgver=$(ssh ${HOST} "${_PSQL} -c \"SHOW server_version\"")
 

@@ -1,6 +1,5 @@
 # Collect pg_settings artifact
-sql=$(curl -s -L https://github.com/NikolayS/postgres_dba/raw/master/sql/e1_extensions.sql | sed -r ':a; s%(.*)/\*.*\*/%\1%; ta; /\/\*/ !b; N; ba' | sed '/^--/d' | sed '/^$/d')
-sql=${sql%;} #remove last ;
+sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/e1_extensions.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with data as (
