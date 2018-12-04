@@ -69,10 +69,15 @@ func (l *loader) get(name string) (string, error) {
     pluginPath := filepath.Join(l.binDir, name + ".so")
     _, err := os.Stat(filepath.Join(l.binDir, name + ".so"))
     if err != nil && os.IsNotExist(err) {
-        log.Printf("WARNING: Binary plugin %s not found. Try compile.\n", pluginPath)
+        _, err := os.Stat(filepath.Join(l.pluginsDir, name + ".go"))
+        if err != nil {
+            dbg("WARNING: Plugin not found.", pluginPath)
+            return pluginPath, err
+        }
+        dbg("WARNING: Binary plugin " + pluginPath + " not found. Try compile.")
         pluginPath, err = l.compile(name)
     } else {
-        log.Printf("Binary plugin %s found.\n", pluginPath)
+        dbg("Binary plugin " + pluginPath + " found.\n")
         err = nil
     }
     return pluginPath, err
@@ -128,6 +133,7 @@ func (l *loader) call(object string, checkData map[string]interface{}) (map[stri
         return nil, fmt.Errorf("Plugin processing failed.")
 	}
 
+    //fmt.Println("",checkData)
 	result := preparer.Prepare(checkData)
     return result, nil
 }
