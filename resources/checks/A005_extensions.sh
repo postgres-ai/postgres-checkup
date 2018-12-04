@@ -1,5 +1,4 @@
 # Collect pg_settings artifact
-dbg "PSQL_CONN_OPTIONS: ${PSQL_CONN_OPTIONS}"
 ssh ${HOST} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with row as (
   select
