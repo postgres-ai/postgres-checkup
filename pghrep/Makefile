@@ -1,7 +1,6 @@
 .DEFAULT_GOAL = all
 
 BINARY = pghrep
-VET_REPORT = vet.report
 GOARCH = amd64
 
 VERSION?=0.1
@@ -24,42 +23,32 @@ LDFLAGS = -ldflags "-s -w \
 PLUGINS_SRC := $(wildcard plugins/*.go)
 
 # Build the project
-all: clean vet buildplugins linux freebsd darwin windows
-
+all: clean vet buildplugins main
 
 buildplugins:
 	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
 		go build ${LDFLAGS} -buildmode=plugin -o bin/$$f.so ./plugins/$$f.go ; \
 	done
 
+main:
+	GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./src/
+
 test:
 	go test ./src/
 	go test ./src/fmtutils/
 
-linux:
-	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./src/
-
-freebsd:
-#	GOOS=freebsd GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY}-freebsd-${GOARCH} ./src/
-
-darwin:
-#	GOOS=darwin GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY}-darwin-${GOARCH} ./src/
-
-windows:
-#	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY}.exe .
-
 vet:
-	go vet ./... > ${VET_REPORT} 2>&1
+	go vet ./... 
 
 fmt:
 	go fmt $$(go list ./... | grep -v /vendor/)
 
 clean:
 	-rm -f ${TEST_REPORT}
-	-rm -f ${VET_REPORT}
-	-rm -f bin/${BINARY}*
+	-rm -f bin/*
 
 run:
 	go run ${LDFLAGS} ./src/*
 
-.PHONY: all linux darwin windows vet fmt clean run
+.PHONY: all buildplugins main test vet fmt clean run
+
