@@ -13,7 +13,7 @@ CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
                  # out commands in macOS
 
 # GLOBALS (autoload, do not change)
-: ${DEBUG:=false}
+: ${DEBUG:=false} # DEBUG=true ./check ...
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
@@ -539,6 +539,25 @@ is_in_recovery() {
 }
 
 #######################################
+# Check rights, set global variables, etc.
+# Globals:
+#   HOST, CHECK_HOST_CMD
+# Arguments:
+#   None
+# Returns:
+#   Integer
+#######################################
+host_pre_start_checks() {
+  # choise host connection command
+  # is ssh supports or not?
+  if ssh $HOST "true"; then
+    export CHECK_HOST_CMD="ssh ${HOST}"
+  else
+    export CHECK_HOST_CMD="bash -c"
+  fi
+}
+
+#######################################
 # Update/create 'nodes.json' in the project dir
 # Fill/update hostname, role, internal alias
 # Start/update 'epoch' of the check
@@ -760,6 +779,7 @@ main() {
   read_possible_args
   process_cli_args "$@"
   validate_args
+  host_pre_start_checks
   run_checks
   exit 0
 }
