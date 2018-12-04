@@ -519,6 +519,9 @@ generate_report_json() {
 
 #######################################
 # Check is host in recovery mode or not
+#
+# Do not use this function before 'host_pre_start_checks()'
+#
 # Globals:
 #   HOST
 # Arguments:
@@ -527,7 +530,7 @@ generate_report_json() {
 #   Integer
 #######################################
 is_in_recovery() {
-  local res="$(ssh "$HOST" "${_PSQL} -c \"select * from pg_is_in_recovery()\"")"
+  local res="$(${CHECK_HOST_CMD} "${_PSQL} -c \"select * from pg_is_in_recovery()\"")"
   if [[ "$res" = "f" ]]; then
     dbg "host $HOST is 'master'"
     return 12
@@ -549,12 +552,13 @@ is_in_recovery() {
 #######################################
 host_pre_start_checks() {
   # choise host connection command
-  # is ssh supports or not?
-  if ssh $HOST "true"; then
+  # while checking ssh support
+  if (ssh $HOST "true" >/dev/null 2>&1); then
     export CHECK_HOST_CMD="ssh ${HOST}"
   else
-    export CHECK_HOST_CMD="bash -c"
+    export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
   fi
+  dbg "CHECK_HOST_CMD: ${CHECK_HOST_CMD}"
 }
 
 #######################################
