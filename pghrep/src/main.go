@@ -27,6 +27,7 @@ import (
 
 var DEBUG bool = false
 
+// Output debug message
 func dbg(v ...interface{}) {
     if DEBUG {
         message := ""
@@ -37,6 +38,9 @@ func dbg(v ...interface{}) {
     }
 }
 
+// Prepropess file paths
+// Allow absulute and relative (of pwd) paths with or wothout file:// prefix
+// Return absoulute path of file
 func GetFilePath(name string) string {
     filePath := name
     // remove file:// prefix
@@ -61,7 +65,9 @@ func GetFilePath(name string) string {
     }
 }
 
-// Exists reports whether the named file or directory exists.
+// Check file exists
+// Allow absulute and relative (of pwd) paths with or wothout file:// prefix
+// Return boolean value
 func FileExists(name string) bool {
     filePath := GetFilePath(name)
     if _, err := os.Stat(filePath); err != nil {
@@ -72,6 +78,8 @@ func FileExists(name string) bool {
     return true
 }
 
+// Parse json data from string to map
+// Return map[string]interface{}
 func ParseJson(jsonData string) map[string]interface{} {
     var data map[string]interface{}
     if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
@@ -82,6 +90,8 @@ func ParseJson(jsonData string) map[string]interface{} {
     }
 }
 
+// Load json data from file by path
+// Return map[string]interface{}
 func LoadJsonFile(filePath string) map[string]interface{} {
     if FileExists(filePath) {
         fileContent, err := ioutil.ReadFile(GetFilePath(filePath)) // just pass the file name
@@ -94,6 +104,7 @@ func LoadJsonFile(filePath string) map[string]interface{} {
     return nil
 }
 
+// Load data dependencies
 func loadDependencies(data map[string]interface{}) {
     dep := data["dependencies"]
     dependencies := dep.(map[string]interface{})
@@ -103,6 +114,7 @@ func loadDependencies(data map[string]interface{}) {
     }
 }
 
+// Load report templates from files
 func loadTemplates() *template.Template {
     dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
     if err != nil {
@@ -131,6 +143,39 @@ func loadTemplates() *template.Template {
     return templates
 }
 
+// Prepare raw json data for every host
+func getRawData(data map[string]interface{}) {
+    // for every host get data
+    var rawData []interface{}
+    hosts := pyraconv.ToInterfaceMap(data["hosts"])
+    dbg("Data hosts: ", hosts)
+    results := pyraconv.ToInterfaceMap(data["results"])
+    masterName := pyraconv.ToString(hosts["master"])
+    masterResults := pyraconv.ToInterfaceMap(results[masterName])
+    masterData := pyraconv.ToInterfaceMap(masterResults["data"])
+    masterJson, err := json.Marshal(masterData)
+	if err == nil {
+        masterItem := make(map[string]interface{})
+        masterItem["host"] = masterName
+        masterItem["data"] = string(masterJson)
+        rawData = append(rawData, masterItem)
+	}
+    replicas := pyraconv.ToStringArray(hosts["replicas"])
+    for _, host := range replicas {
+        hostResults := pyraconv.ToInterfaceMap(results[host])
+        hostData := pyraconv.ToInterfaceMap(hostResults["data"])
+        hostJson, err := json.Marshal(hostData)
+        if err == nil {
+            hostItem := make(map[string]interface{})
+            hostItem["host"] = host
+            hostItem["data"] = string(hostJson)
+            rawData = append(rawData, hostItem)
+        }
+    }
+    data["rawData"] = rawData
+}
+
+// Generate md report (file) on base of reportData and save them to file in outputDir
 func generateMdReport(checkId string, reportData map[string]interface{}, outputDir string) bool{
     var outputFileName string
     if strings.HasSuffix(strings.ToLower(outputDir), "/") {
@@ -151,24 +196,27 @@ func generateMdReport(checkId string, reportData map[string]interface{}, outputD
     if templates == nil {
         log.Fatal("Can't load template")
     }
-    dbg("Find", checkId + ".tpl")
-    reporTpl := templates.Lookup(checkId + ".tpl")
-    if reporTpl != nil {
-        err = reporTpl.ExecuteTemplate(f, checkId + ".tpl", reportData)
-        if err != nil {
-            dbg("Template execute error is", err)
-            defer os.Remove(outputFileName)
-            return false
-        } else {
-            return true
-        }
-    } else {
+    reportFileName := checkId + ".tpl"
+    reporTpl := templates.Lookup(reportFileName)
+    data := reportData
+    if reporTpl == nil {
         dbg("Template " + checkId + ".tpl not found.")
+        getRawData(data)
+        reportFileName = "raw.tpl"
+        reporTpl = templates.Lookup(reportFileName)
+    }
+    err = reporTpl.ExecuteTemplate(f, reportFileName, data)
+    if err != nil {
+        dbg("Template execute error is", err)
         defer os.Remove(outputFileName)
         return false
+    } else {
+        return true
     }
 }
 
+// Sort hosts on master and replicas by role and index.
+// Return map {"master":name string, "replicas":[replica1 string, replica2 string]}
 func determineMasterReplica(data map[string]interface{}) {
     hostRoles := make(map[string]interface{})
     var sortedReplicas []string
