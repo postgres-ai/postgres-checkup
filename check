@@ -552,9 +552,10 @@ is_in_recovery() {
 #######################################
 build_pghrep() {
   dbg "building pghrep..."
+  local save_pwd="${PWD}"
   cd "${SCRIPT_DIR}/pghrep"
   make buildplugins main >/dev/null
-  cd ..
+  cd "${save_pwd}"
   dbg "done building pghrep"
 }
 
@@ -747,8 +748,6 @@ update_nodes_json() {
     ALIAS_NAME="${new_alias_name}"
   fi
 
-  #TODO(vyagofarov): insert last_check_epoch into each hostname of nodes.json
-
   export ALIAS_NAME ALIAS_INDEX ROLE EPOCH
   dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
   dbg "ALIAS_NAME: '$ALIAS_NAME'"
@@ -810,7 +809,7 @@ run_checks() {
   msg "########## Perform checks for host '${NATIVE_HOSTNAME}':"
   local output
   for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
-    [[ -e "$CURRENT_CHECK" ]] || continue
+    [[ -e "${CURRENT_CHECK}" ]] || continue
     msg
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK"
@@ -850,6 +849,7 @@ run_checks() {
 
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
+    # generate .md report with help of pghrep (go utility)
   done
 
   msg
