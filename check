@@ -542,16 +542,20 @@ is_in_recovery() {
 }
 
 #######################################
-# Try to build pghrep or use an existing binary
+# Build pghrep - a .md report generator
 # Globals:
-#   KERNEL_NAME, OS_NAME
+#   None
 # Arguments:
 #   None
 # Returns:
 #   (text) stdtout/stderror
 #######################################
-try_build_pghrep() {
-  true
+build_pghrep() {
+  dbg "building pghrep..."
+  cd "${SCRIPT_DIR}/pghrep"
+  make buildplugins main >/dev/null
+  cd ..
+  dbg "done building pghrep"
 }
 
 #######################################
@@ -878,8 +882,8 @@ main() {
   read_possible_args
   process_cli_args "$@"
   check_bin_deps
-  try_build_pghrep
   validate_args
+  build_pghrep
   host_pre_start_checks
   run_checks
   exit 0
