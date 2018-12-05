@@ -542,9 +542,22 @@ is_in_recovery() {
 }
 
 #######################################
-# Check binary dependencies
+# Try to build pghrep or use an existing binary
 # Globals:
 #   KERNEL_NAME, OS_NAME
+# Arguments:
+#   None
+# Returns:
+#   (text) stdtout/stderror
+#######################################
+try_build_pghrep() {
+  true
+}
+
+#######################################
+# Check binary dependencies
+# Globals:
+#   KERNEL_NAME, OS_NAME, timeout()
 # Arguments:
 #   None
 # Returns:
@@ -568,7 +581,7 @@ check_bin_deps() {
 
   # timeout
   if ! $(which gtimeout >/dev/null 2>&1) && ! $(which timeout >/dev/null 2>&1); then
-    err "Can't find the 'timeout' program. Please install it:"
+    err "Can't find the 'timeout' executable. Please install it:"
     if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
       err "${OS_NAME}: 'brew install coreutils'"
     elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
@@ -586,7 +599,7 @@ check_bin_deps() {
 
   # awk
   if ! $(which awk >/dev/null 2>&1); then
-    err "Can't find the 'awk' program. Please install it:"
+    err "Can't find the 'awk' executable. Please install it:"
     if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
       err "${OS_NAME}: 'brew install gawk'"
     elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
@@ -595,6 +608,32 @@ check_bin_deps() {
     return 2
   fi
 
+  # golang
+  if ! $(which go >/dev/null 2>&1); then
+    err "Can't find the 'go' executable. Please install it:"
+    if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
+      err "${OS_NAME}: 'brew install golang'"
+    elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
+      err "Ubuntu or Debian GNU/${OS_NAME}: 'apt-get install golang'"
+    fi
+    return 2
+  fi
+  # go version check (>= 1.8)
+  re="go([0-9]+.[0-9]+).+"
+  local go_version_full=$(go version)
+  local version # short form (e.g. '1.11')
+  local go_version_num # get only first two numbers devided by '.'
+  if [[ "${go_version_full}" =~ $re ]]; then
+    version="${BASH_REMATCH[1]}"
+    local major=${version%.*}
+    local minor=${version#*.}
+    go_version_num="${major}${minor}"
+    if [[ $(( go_version_num % 1000 )) -lt "18" ]]; then
+      err "Unsupported golang version '${go_version_full}'"
+      err "Please install golang version >= '1.8'"
+      return 3
+    fi
+  fi
 }
 
 #######################################
@@ -839,6 +878,7 @@ main() {
   read_possible_args
   process_cli_args "$@"
   check_bin_deps
+  try_build_pghrep
   validate_args
   host_pre_start_checks
   run_checks
