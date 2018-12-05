@@ -451,9 +451,9 @@ usage() {
 #######################################
 # Generate json report
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR, PROJECT,
-#   HOST, JSON_REPORT_DIR, TIMESTAMP_DIR,
-#   TIMESTAMPTZ
+#   CURRENT_CHECK_FNAME, SCRIPT_DIR, PROJECT,
+#   HOST, JSON_REPORTS_DIR, TIMESTAMP_DIR,
+#   TIMESTAMPTZ, MD_REPORTS_DIR
 # Arguments:
 #   input, check_id
 # Returns:
@@ -476,7 +476,7 @@ generate_report_json() {
   echo "$input_json" > "$tmp_input_json_fname"
 
   # final report file name
-  local json_output_fname="${JSON_REPORT_DIR}/${check_id}_${check_name}.json"
+  local json_output_fname="${JSON_REPORTS_DIR}/${check_id}_${check_name}.json"
 
   # use template or existing file
   if [[ -f "$json_output_fname" ]]; then
@@ -485,7 +485,7 @@ generate_report_json() {
     local json_input_fname="${template_fname}"
   fi
 
-  local tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_XXXXXX)
+  local tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_XXXXXX)
   jq --argfile Results "${tmp_input_json_fname}" \
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
@@ -499,7 +499,7 @@ generate_report_json() {
   rm "$tmp_input_json_fname"
 
   # extend check for current host with actual 'nodes.json' inside a json report
-  tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
+  tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
   jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
      '.results.'\"${NATIVE_HOSTNAME}\"'."nodes.json" = $nodes_json' \
      "${json_output_fname}" \
@@ -507,7 +507,7 @@ generate_report_json() {
   mv "$tmp_output_json_fname" "${json_output_fname}"
 
   # update json report by attaching 'nodes.json' into top of the report
-  tmp_output_json_fname=$(mktemp "${JSON_REPORT_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
+  tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
   jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
      '.last_nodes_json = $nodes_json' \
      "${json_output_fname}" \
@@ -544,7 +544,7 @@ is_in_recovery() {
 #######################################
 # Build pghrep - a .md report generator
 # Globals:
-#   None
+#   PGHREP_BIN
 # Arguments:
 #   None
 # Returns:
@@ -556,6 +556,7 @@ build_pghrep() {
   cd "${SCRIPT_DIR}/pghrep"
   make buildplugins main >/dev/null
   cd "${save_pwd}"
+  export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
   dbg "done building pghrep"
 }
 
@@ -667,8 +668,9 @@ host_pre_start_checks() {
 # Start/update 'epoch' of the check
 # Globals:
 #   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
-#   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORT_DIR
-#   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR
+#   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORTS_DIR
+#   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR,
+#   MD_REPORTS_DIR
 # Arguments:
 #   None
 # Returns:
@@ -697,7 +699,8 @@ update_nodes_json() {
     ALIAS_INDEX="1"
     EPOCH="1"
     prev_role="${ROLE}"
-    JSON_REPORT_DIR="${PROJECT_DIR}/${EPOCH}_${TIMESTAMP_DIR}"
+    JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${EPOCH}_${TIMESTAMP_DIR}"
+    MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
     SHORT_DIR="${EPOCH}_${TIMESTAMP_DIR}"
 
     local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
@@ -715,13 +718,14 @@ update_nodes_json() {
     prev_role=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.role' "${PROJECT_DIR}/nodes.json")
     prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
     prev_dir=$(jq -r '.last_check.dir' "${PROJECT_DIR}/nodes.json")
-    JSON_REPORT_DIR="${PROJECT_DIR}/${prev_dir}"
+    JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${prev_dir}"
+    MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${prev_dir}"
     SHORT_DIR="${prev_dir}"
 
     # exit with error if epoch is not given and this is not first run
     if [[ "${EPOCH}" = "None" ]]; then
       err "epoch not given but epoch '${prev_epoch}' already exist"
-      err "due to avoid overwriting, please choise health-check epoch"
+      err "to avoid overwriting, please choise health-check epoch"
       err "example: ' ./${SCRIPT_NAME} ${ALL_ARGS} -e %NUMBER% '"
       exit 1
     fi
@@ -729,7 +733,7 @@ update_nodes_json() {
     local input_json_fname="${PROJECT_DIR}/nodes.json"
   fi
 
-  export JSON_REPORT_DIR SHORT_DIR
+  export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR
 
   local role_changed_at="never"
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
@@ -754,14 +758,14 @@ update_nodes_json() {
   dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
   dbg "ROLE: '$ROLE'"
 
-  mkdir -p "${JSON_REPORT_DIR}"
+  mkdir -p "${JSON_REPORTS_DIR}"
 
   # error if two dir names like '${EPOCH}_*' exist
   local cur_epochs_count="0"
-  cur_epochs_count=$(find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" | wc -l)
+  cur_epochs_count=$(find "${JSON_REPORTS_DIR}" -type d -name "${EPOCH}_*" | wc -l)
   if [[ "$cur_epochs_count" -ge "2" ]]; then
     err "more then one directories witn name '${EPOCH}_*' exist:"
-    find "${PROJECT_DIR}" -type d -name "${EPOCH}_*" || true
+    find "${JSON_REPORTS_DIR}" -type d -name "${EPOCH}_*" >&2 || true
     exit 1
   fi
 
@@ -786,8 +790,8 @@ update_nodes_json() {
 # Perform checks
 # All checks must return valid json into stdout
 # Globals:
-#   CURRENT_CHECK, SCRIPT_DIR, HOST, PROJECT_DIR,
-#   NATIVE_HOSTNAME
+#   CURRENT_CHECK_FNAME, SCRIPT_DIR, HOST, PROJECT_DIR,
+#   NATIVE_HOSTNAME, PGHREP_BIN
 #   and all exported internal globals
 # Arguments:
 #   None
@@ -804,15 +808,17 @@ run_checks() {
   fi
   export NATIVE_HOSTNAME
 
+  local pghrep_failed_jsons_stack=""
+
   # perform all checks from './resources/checks/' directory
   msg
   msg "########## Perform checks for host '${NATIVE_HOSTNAME}':"
   local output
-  for CURRENT_CHECK in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
-    [[ -e "${CURRENT_CHECK}" ]] || continue
+  for CURRENT_CHECK_FNAME in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
+    [[ -e "${CURRENT_CHECK_FNAME}" ]] || continue
     msg
     msg "========== Perform check: =========="
-    msg "$CURRENT_CHECK"
+    msg "$CURRENT_CHECK_FNAME"
 
     local check_is_failed=false
 
@@ -821,12 +827,12 @@ run_checks() {
     export TIMESTAMPTZ=$(date +'%Y-%m-%d %H:%M:%S.0%z')
 
     # perform a check from file
-    output=$(set -euo pipefail ; source "$CURRENT_CHECK") || check_is_failed="true"
+    output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME") || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
     msg "========== End of check ==========="
     # extract checkId from check script path
-    local check_path_name="$CURRENT_CHECK"
+    local check_path_name="$CURRENT_CHECK_FNAME"
     local check_id_tmp_a=${check_path_name%%_*.sh}
     local check_id="${check_id_tmp_a##*/}"
 
@@ -850,10 +856,32 @@ run_checks() {
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
     # generate .md report with help of pghrep (go utility)
+    # ${JSON_REPORTS_DIR}/${check_id}_${check_name}.json
+    mkdir -p "${MD_REPORTS_DIR}"
+    local pghrep_output
+    if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${JSON_REPORTS_DIR}/${check_id}_${check_name}.json" \
+      --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
+      msg "WARNING: ${pghrep_output}"
+      pghrep_failed_jsons_stack="${pghrep_failed_jsons_stack} ${check_id}_${check_name}.json"
+    fi
   done
 
   msg
   msg "All checks has been finished for host '$HOST'!"
+  
+  if ! [[ -z "${pghrep_failed_jsons_stack}" ]]; then
+    msg
+    msg "WARNING: Can't generate md reports for this json's:"
+    local i
+    for i in ${pghrep_failed_jsons_stack}; do
+      echo "        '${i}'"
+    done
+  fi
+
+  msg "All md reports has been saved at directory:"
+  echo "        '${MD_REPORTS_DIR}'"
+
+  msg "DONE!"
 }
 
 ######### COMMANDS WRAPPERS ###########
