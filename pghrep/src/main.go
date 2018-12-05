@@ -122,7 +122,10 @@ func loadTemplates() *template.Template {
         }
     }
 
-    templates, err = template.ParseFiles(allFiles...)
+    tplFuncMap :=  make(template.FuncMap)
+    tplFuncMap["Split"] = Split
+    tplFuncMap["Trim"] = Trim
+    templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         dbg("Can't load templates", err)
         return nil
