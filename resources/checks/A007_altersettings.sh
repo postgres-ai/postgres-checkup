@@ -1,5 +1,5 @@
 # Collect settings whish is altered
-ssh ${HOST} "${_PSQL} -f - " <<SQL
+${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 with settings_count as (
   select json_object_agg(coalesce(s.sourcefile, 'default'), s.count)
   from (select sourcefile, count(ps.*) as count from pg_settings ps group by 1) s

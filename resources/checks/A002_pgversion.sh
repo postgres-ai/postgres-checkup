@@ -1,5 +1,5 @@
 # Collect postgres version info
-ssh ${HOST} "${_PSQL} -f - " <<SQL
+${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 select
     json_build_object('version', version(),
         'server_version_num', current_setting('server_version_num'),
