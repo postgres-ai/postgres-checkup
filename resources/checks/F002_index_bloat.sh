@@ -4,8 +4,4 @@ ${CHECK_HOST_CMD} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with data as (
 $sql
 )
-select json_agg(jsondata.json) from (select row_to_json(data) as json from data) jsondata;
-SQL
-
-#For get objects change row 9 to `select json_object_agg(data."Index (Table)", data) as json from data;`
-#but in this case we have indexes like `i_user_visits_postgrest_auth\n  (user_visits)`
+select json_object_agg(data."Index (Table)", data) as json from data;
