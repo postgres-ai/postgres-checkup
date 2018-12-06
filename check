@@ -266,7 +266,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [[ $type = "text" ]]; then
-    re='^[a-zA-Z\;\s\\\/]+.*'
+    re='^[a-zA-Z0-9\;\.\s\\\/]+.*'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
