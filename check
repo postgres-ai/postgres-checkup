@@ -248,7 +248,7 @@ validate_arg_type() {
        exit 1
     fi
   elif [ $type = "word" ]; then
-    re='^[a-zA-Z_-]+$'
+    re='^[a-zA-Z0-9_-]+$'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
