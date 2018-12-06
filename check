@@ -676,7 +676,7 @@ check_bin_deps() {
 #######################################
 # Check rights, set global variables, etc.
 # Globals:
-#   HOST, CHECK_HOST_CMD
+#   HOST, CHECK_HOST_CMD, NATIVE_HOSTNAME
 # Arguments:
 #   None
 # Returns:
@@ -685,12 +685,18 @@ check_bin_deps() {
 host_pre_start_checks() {
   # choise host connection command
   # while checking ssh support
-  if (ssh $HOST "true" >/dev/null 2>&1); then
+  # and determine NATIVE_HOSTNAME (a host key in JSON reports)
+  if NATIVE_HOSTNAME=$(ssh $HOST "hostname" 2>/dev/null); then
     export CHECK_HOST_CMD="ssh ${HOST}"
   else
+    NATIVE_HOSTNAME="${HOST}"
+    # swap ssh with bash
     export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
+    export _PSQL="${_PSQL} -h ${HOST}"
   fi
-  dbg "CHECK_HOST_CMD: ${CHECK_HOST_CMD}"
+  export NATIVE_HOSTNAME
+  dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
+  dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
 }
 
 #######################################
@@ -784,7 +790,6 @@ update_nodes_json() {
   fi
 
   export ALIAS_NAME ALIAS_INDEX ROLE EPOCH
-  dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
   dbg "ALIAS_NAME: '$ALIAS_NAME'"
   dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
   dbg "ROLE: '$ROLE'"
@@ -831,13 +836,6 @@ update_nodes_json() {
 #######################################
 run_checks() {
   # perform pre-checks here
-
-  # get native hostname from remote host due to accurate
-  # mapping in the future
-  if ! NATIVE_HOSTNAME="$(${CHECK_HOST_CMD} "hostname")"; then
-    NATIVE_HOSTNAME="$HOST" 
-  fi
-  export NATIVE_HOSTNAME
 
   local pghrep_failed_jsons_stack=""
 
