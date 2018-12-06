@@ -1,10 +1,10 @@
 About
 ===
-PgHealth is the ultimate PostgreSQL healthcheck utility.
+PgHealth is the ultimate PostgreSQL database healthcheck utility.
 
-It checks PostgreSQL settings, configs and Linux  
-postgres-related environment, collecting data  
-into convinient formats (json, md, ...) with  
+It checks PostgreSQL settings, configs and Linux
+postgres-related environment, collecting data
+into convinient formats (json, md, ...) with
 a series of checks.
 
 Example
@@ -18,7 +18,7 @@ Example
 ./check -h db2 -p 5432 --username postgres --dbname postgres --project my-site_org -e 1
 ```
 
-Which literaly means: "connect to server with given credentials, save data into `my-site_org`  
+Which literaly means: "connect to server with given credentials, save data into `my-site_org`
 project directory as epoch of check `1`.
 
 As a result of health-check we have got a two directories with .json files and .md files:
@@ -30,10 +30,11 @@ As a result of health-check we have got a two directories with .json files and .
 
 `1` corresponds to an `epoch` given by argument `-e`.
 
-
 Requirements
 ===
 
+* bash
+* coreutils
 * jq >= 1.5,
 * golang >= 1.8
 * awk
