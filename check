@@ -591,9 +591,10 @@ check_bin_deps() {
     if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
       err "${OS_NAME}: 'brew install coreutils'"
     elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
-      err "Ubuntu or Debian GNU/${OS_NAME}: 'apt-get install coreutils'"
+      err "Debian/Ubuntu GNU/${OS_NAME}: 'sudo apt-get install coreutils'"
+      err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install coreutils'"
     fi
-    return 2
+    return 1
   else
     # redefine command (alias won't work inside the script)
     if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
@@ -609,9 +610,10 @@ check_bin_deps() {
     if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
       err "${OS_NAME}: 'brew install gawk'"
     elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
-      err "Ubuntu or Debian GNU/${OS_NAME}: 'apt-get install gawk'"
+      err "Debian/Ubuntu GNU/${OS_NAME}: 'sudo apt-get install gawk'"
+      err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install gawk'"
     fi
-    return 2
+    return 1
   fi
 
   # golang
@@ -620,9 +622,10 @@ check_bin_deps() {
     if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
       err "${OS_NAME}: 'brew install golang'"
     elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
-      err "Ubuntu or Debian GNU/${OS_NAME}: 'apt-get install golang'"
+      err "Debian/Ubuntu GNU/${OS_NAME}: 'sudo apt-get install golang'"
+      err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install golang'"
     fi
-    return 2
+    return 1
   fi
   # go version check (>= 1.8)
   re="go([0-9]+.[0-9]+).+"
@@ -637,7 +640,7 @@ check_bin_deps() {
     if [[ $(( go_version_num % 1000 )) -lt "18" ]]; then
       err "Unsupported golang version '${go_version_full}'"
       err "Please install golang version >= '1.8'"
-      return 3
+      return 1
     fi
   fi
 }
@@ -695,7 +698,7 @@ update_nodes_json() {
 
   # if file does not exist generate alias for a first host
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
-    ALIAS_NAME="db1"
+    ALIAS_NAME="node1"
     ALIAS_INDEX="1"
     EPOCH="1"
     prev_role="${ROLE}"
@@ -747,7 +750,7 @@ update_nodes_json() {
     # get maximum index
     local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)"] | max' "${PROJECT_DIR}/nodes.json")
     local new_alias_index=$(( prev_index + 1 ))
-    local new_alias_name="db${new_alias_index}"
+    local new_alias_name="node${new_alias_index}"
     ALIAS_INDEX="${new_alias_index}"
     ALIAS_NAME="${new_alias_name}"
   fi
