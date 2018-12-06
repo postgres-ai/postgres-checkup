@@ -8,7 +8,7 @@ with series of checks.
 The observed data is saved in the form of JSON reports, ready to be consumed by machines.  
 The final reports are .md files, in Markdown format, to be read by humans.
 
-The main goal is detecting bottlenecks and preventing performance degradation.  
+The main goal is to detect bottlenecks and prevent performance degradation.  
 Also helps to detect alot of issues with postgres instances.
 
 Example
