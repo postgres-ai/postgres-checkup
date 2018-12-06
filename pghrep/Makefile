@@ -44,7 +44,6 @@ fmt:
 	go fmt $$(go list ./... | grep -v /vendor/)
 
 clean:
-	-rm -f ${TEST_REPORT}
 	-rm -f bin/*
 
 run:
