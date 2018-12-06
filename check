@@ -630,8 +630,8 @@ check_bin_deps() {
   # go version check (>= 1.8)
   re="go([0-9]+.[0-9]+).+"
   local go_version_full=$(go version)
-  local version # short form (e.g. '1.11')
-  local go_version_num # get only first two numbers devided by '.'
+  local version="" # short form (e.g. '1.11')
+  local go_version_num="" # get only first two numbers devided by '.'
   if [[ "${go_version_full}" =~ $re ]]; then
     version="${BASH_REMATCH[1]}"
     local major=${version%.*}
@@ -640,6 +640,34 @@ check_bin_deps() {
     if [[ $(( go_version_num % 1000 )) -lt "18" ]]; then
       err "Unsupported golang version '${go_version_full}'"
       err "Please install golang version >= '1.8'"
+      return 1
+    fi
+  fi
+
+  # jq
+  if ! $(which jq >/dev/null 2>&1); then
+    err "Can't find the 'jq' executable. Please install it:"
+    if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
+      err "${OS_NAME}: 'brew install jq'"
+    elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
+      err "Debian/Ubuntu GNU/${OS_NAME}: 'sudo apt-get install jq'"
+      err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install jq'"
+    fi
+    return 1
+  fi
+  # jq version
+  re="jq([0-9]+.[0-9]+).+"
+  local jq_version_full=$(jq --version)
+  local version="" # short form (e.g. '1.11')
+  local jq_version_num="" # get only first two numbers devided by '.'
+  if [[ "${jq_version_full}" =~ $re ]]; then
+    version="${BASH_REMATCH[1]}"
+    local major=${version%.*}
+    local minor=${version#*.}
+    jq_version_num="${major}${minor}"
+    if [[ $(( go_version_num % 1000 )) -lt "15" ]]; then
+      err "Unsupported jq version '${jq_version_full}'"
+      err "Please install jq version >= '1.5'"
       return 1
     fi
   fi
@@ -881,10 +909,12 @@ run_checks() {
     done
   fi
 
-  msg "All md reports has been saved at directory:"
+  msg
+  msg "All .md reports has been saved at directory:"
   echo "        '${MD_REPORTS_DIR}'"
 
-  msg "DONE!"
+  msg
+  msg "ALL DONE!"
 }
 
 ######### COMMANDS WRAPPERS ###########
