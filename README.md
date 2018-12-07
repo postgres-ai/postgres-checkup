@@ -9,7 +9,7 @@ The observed data is saved in the form of JSON reports, ready to be consumed by 
 The final reports are .md files, in Markdown format, to be read by humans.
 
 The main goal is to detect bottlenecks and prevent performance degradation.  
-It also helps to detect alot of issues with postgres instances.
+It also helps to detect a lot of issues with postgres instances.
 
 Example
 ===
@@ -26,7 +26,7 @@ Which literaly means: "connect to server with given credentials, save data into 
 project directory as epoch of check `1`. Epoch is a numerical sign of current iteration.
 For example: in half a year we can switch to "epoch number `2`".
 
-As a result of health-check we have got a two directories with .json files and .md files:
+As a result of health-check we have got two directories with .json files and .md files:
 
 ```bash
 ./artifacts/my-site_org-slony/json_reports/1_2018_12_06T14_12_36_+0300/
