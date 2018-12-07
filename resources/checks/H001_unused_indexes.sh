@@ -1,7 +1,6 @@
 unusedSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/i1_rare_indexes.sql | awk '{gsub("; *$", "", $0); print $0}')
 redundantSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/i2_redundant_indexes.sql | awk '{gsub("; *$", "", $0); print $0}')
 
-#psql -U postila_ru -t -0 -f - <<SQL
 ${CHECK_HOST_CMD} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with indexes as (
   $unusedSql
