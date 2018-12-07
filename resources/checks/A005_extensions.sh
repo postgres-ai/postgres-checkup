@@ -4,8 +4,9 @@ sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql
 ${CHECK_HOST_CMD} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
 with data as (
 $sql
+), withsettins as (
+    select data.*, (select json_object_agg(pg_settings.name, pg_settings) from pg_settings where name ~ data.name) as settings from data
 )
-select json_object_agg(data.name, data) as json from data;
-
+select json_object_agg(withsettins.name, withsettins) as json from withsettins;
 SQL
 
