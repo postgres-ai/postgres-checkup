@@ -1,6 +1,3 @@
-Current values
-===
-
 Some collected
 data with help of checker
 

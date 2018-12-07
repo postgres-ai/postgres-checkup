@@ -17,6 +17,7 @@ import (
     "strings"
     "encoding/json"
     "io/ioutil"
+    "path"
     "path/filepath"
     "./pyraconv"
     "log"
@@ -180,12 +181,17 @@ func getRawData(data map[string]interface{}) {
 }
 
 // Generate md report (file) on base of reportData and save them to file in outputDir
-func generateMdReport(checkId string, reportData map[string]interface{}, outputDir string) bool{
+func generateMdReport(checkId string, reportFilename string, reportData map[string]interface{}, outputDir string) bool{
     var outputFileName string
-    if strings.HasSuffix(strings.ToLower(outputDir), "/") {
-        outputFileName = outputDir + checkId + ".md"
+    if len(reportFilename) > 0 {
+        outputFileName = reportFilename
     } else {
-        outputFileName = outputDir + "/" + checkId + ".md"
+        outputFileName = checkId + ".md"
+    }
+    if strings.HasSuffix(strings.ToLower(outputDir), "/") {
+        outputFileName = outputDir + outputFileName
+    } else {
+        outputFileName = outputDir + "/" + outputFileName
     }
     _, err := filepath.Abs(filepath.Dir(os.Args[0]))
     f, err := os.OpenFile(outputFileName, os.O_CREATE | os.O_RDWR, 0777)
@@ -264,7 +270,12 @@ func main() {
         DEBUG = true
     }
 
+    reportFilename := ""
     if FileExists(checkData) {
+        _, file := path.Split(checkData)
+        fmt.Println(file)
+        reportFilename = strings.Replace(file, ".json", ".md", -1)
+
         resultData = LoadJsonFile(checkData)
         if resultData == nil {
             log.Fatal("ERROR: File given by --checkdata content wrong json data.")
@@ -312,7 +323,7 @@ func main() {
         outputDir = *outDirPtr
     }
 
-    reportDone := generateMdReport(checkId, reportData, outputDir)
+    reportDone := generateMdReport(checkId, reportFilename, reportData, outputDir)
     if ! reportDone  {
         log.Fatal("Cannot generate report. Data file or template is wrong.")
     }
