@@ -486,7 +486,8 @@ generate_report_json() {
   fi
 
   local tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_XXXXXX)
-  jq --argfile Results "${tmp_input_json_fname}" \
+  jq -r \
+     --argfile Results "${tmp_input_json_fname}" \
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
