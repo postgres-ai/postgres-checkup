@@ -19,7 +19,7 @@ SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 FIRST_ARG="$1"
 ALL_ARGS="$@"
-OPTIONS_ERROR_EXIT=false
+OPTIONS_ERROR_EXIT="false"
 
 #######################################
 # Print an message to STDOUT
@@ -336,7 +336,7 @@ validate_args() {
   if [[ ! -z ${PGPASSWORD+x} ]]; then
     local pgpas_subst="PGPASSWORD=\"${PGPASSWORD}\" " # whitespace in the end of the string
   else
-    local pgpas_subst
+    local pgpas_subst=""
   fi
 
   # for usage inside the check scripts
@@ -701,9 +701,18 @@ host_pre_start_checks() {
     NATIVE_HOSTNAME="${HOST}"
     # swap ssh with bash
     export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
+
     # use local psql and connect to remote postgres without ssh
-    export _PSQL="${_PSQL} -h ${HOST}"
+    local re="127\.0"
+    if [[ "${HOST}" =~ $re || "${HOST}" = "localhost" ]]; then
+      # keep _PSQL as is, use UNIX domain socket for psql
+      true
+    else
+      # use TCP for psql
+      export _PSQL="${_PSQL} -h ${HOST}"
+    fi
   fi
+
   export NATIVE_HOSTNAME
   dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
   dbg "NATIVE_HOSTNAME: '${NATIVE_HOSTNAME}'"
