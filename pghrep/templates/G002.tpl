@@ -1,22 +1,20 @@
-Current values
-===
+# Connections and current activity #
 
-Connections and current activity
+## Current values ##
 
-Master DB server '{{.hosts.master}}':
+### Master DB server is `{{.hosts.master}}` ###
 
-```
-{{ (index (index .results .hosts.master) "data").raw }}
-```
+{{ Code (index (index .results .hosts.master) "data").raw false }}
+
 {{/* newline */}}
 {{/* newline */}}
 
 {{- if gt (len .hosts.replicas) 0 -}}
-Slave DB servers
+### Slave DB servers: ###
 {{/* newline */}}
 {{/* newline */}}
   {{- range $skey, $host := .hosts.replicas -}}
-  DB slave server: '{{ $host }}':
+#### DB slave server: `{{ $host }}` ####
     {{- if (index $.results $host) -}}
 {{/* newline */}}
 {{/* newline */}}
@@ -33,10 +31,10 @@ No data
 
 {{/* newline */}}
 {{/* newline */}}
-Conclusions
-===
+## Conclusions ##
+
 {{.Conclusion}}
 
-Recommendations
-===
+## Recommendations ##
+
 {{.Recommended}}
