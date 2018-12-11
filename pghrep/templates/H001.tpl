@@ -1,8 +1,8 @@
-# Unused/Rarely Used Indexes #
+# {{ .checkId }} Unused/Rarely Used Indexes #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
+### Master (`{{.hosts.master}}`) ###
 
 #### Indexes ####
 
@@ -27,9 +27,9 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
     {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica server: `{{ $host }}` ####
         {{ if (index $.results $host) }}
 #### Indexes ####
 
@@ -50,15 +50,10 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 ```
 {{ $revert_code }}
 ```
-{{ end }}
-        {{ end }}
-    {{ end }}
-{{ end }}
+{{ end }}{{ end }}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

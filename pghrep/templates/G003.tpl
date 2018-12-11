@@ -1,8 +1,8 @@
-# Timeouts, locks, deadlocks #
+# {{ .checkId }} Timeouts, locks, deadlocks #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
+### Master (`{{.hosts.master}}`) ###
 
 #### Timeouts ####
 Setting name | Value | Unit
@@ -20,9 +20,9 @@ Database | Conflicts | Deadlocks | Stats reset at | Stat reset
 {{ range $key, $value := (index (index (index .results .hosts.master) "data") "databases_stat") }}{{$key}}|{{ $value.conflicts}}|{{ $value.deadlocks }}|{{ $value.stats_reset }}|{{ $value.stats_reset_age }}
 {{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
 {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
 #### Timeouts ####
 Setting name | Value | Unit
@@ -44,8 +44,6 @@ No data
 {{ end}}{{ end }}{{ end }}
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

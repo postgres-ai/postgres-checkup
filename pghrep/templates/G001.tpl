@@ -1,29 +1,27 @@
-# Memory-related settings #
+# {{ .checkId }} Memory-related settings #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
+### Master (`{{.hosts.master}}`) ###
 
 Setting name | Value | Unit
 -------------|-------|------
 {{ range $key, $value := (index (index .results .hosts.master) "data") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica (`{{ $host }}`) ####
     {{ if (index $.results $host) }}
 Setting name | Value | Unit
 -------------|-------|------
 {{ range $key, $value := (index (index $.results $host) "data") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}{{ else }}
-      No data
+No data
 {{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

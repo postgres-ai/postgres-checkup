@@ -1,30 +1,28 @@
-# Postgres settings #
+# {{ .checkId }} Postgres settings #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
-{{ range $key, $value := (index (index .results .hosts.master) "data") }}
-`{{ $key }}` = {{ $value.setting}} {{ if $value.unit }}{{ $value.unit }} {{ end }}
+### Master (`{{.hosts.master}}`) ###
+Setting | Value | Unit
+--------|-------|------
+{{ range $key, $value := (index (index .results .hosts.master) "data") }}{{ $key }} | {{ $value.setting}} | {{ if $value.unit }}{{ $value.unit }} {{ end }}
 {{ end }}
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica (`{{ $host }}`) ####
     {{ if (index $.results $host) }}
-      {{ range $key, $value := (index (index $.results $host) "data") }}
-`{{ $key }}` = {{ $value.setting}} {{ if $value.unit }}{{ $value.unit }} {{ end }}
-      {{ end }}
+Setting | Value | Unit
+--------|-------|------
+{{ range $key, $value := (index (index $.results $host) "data") }}{{ $key }} | {{ $value.setting}} | {{ if $value.unit }}{{ $value.unit }} {{ end }}
+{{ end }}
     {{ else }}
 No data
-    {{ end}}
-  {{ end }}
-{{ end }}
+{{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

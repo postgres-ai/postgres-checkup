@@ -2,6 +2,7 @@ package main
 
 import (
     "strings"
+    "./pyraconv"
 )
 
 func Split(s string, d string) []string {
@@ -11,6 +12,11 @@ func Split(s string, d string) []string {
 
 func Trim(s string, d string) string {
     return strings.Trim(s, d)
+}
+
+func Nobr(s interface{}) string {
+    str := pyraconv.ToString(s)
+    return strings.Join(strings.Split(str, "\n"), "")
 }
 
 /* Add \t before every row in text to preview block as code block

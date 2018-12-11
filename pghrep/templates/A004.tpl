@@ -1,30 +1,28 @@
-# Cluster information #
+# {{ .checkId }} Cluster information #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
-{{ range $key, $value := (index (index .results .hosts.master) "data") }}
-  {{ $key }}: `{{ (index $value "value") }}`
+### Master (`{{.hosts.master}}`) ###
+ Indicator | Value
+-----------|-------
+{{ range $key, $value := (index (index .results .hosts.master) "data") }}{{ $key }} | {{ Nobr (index $value "value") }}
 {{ end }}
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica (`{{ $host }}`) ####
     {{ if (index $.results $host) }}
-      {{ range $key, $value := (index (index $.results $host) "data") }}
-{{ $key }}: `{{ (index $value "value") }}`
-      {{ end }}
+ Indicator | Value
+-----------|-------
+{{ range $key, $value := (index (index $.results $host) "data") }}{{ $key }} | {{ Nobr (index $value "value") }}
+{{ end }}
     {{ else }}
       No data
-    {{ end}}
-  {{ end }}
-{{ end }}
+{{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}
