@@ -13,13 +13,13 @@ CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
                  # out commands in macOS
 
 # GLOBALS (autoload, do not change)
-: ${DEBUG:=false} # DEBUG=true ./check ...
+: ${DEBUG:=false} # print debug output
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 FIRST_ARG="$1"
 ALL_ARGS="$@"
-OPTIONS_ERROR_EXIT=false
+OPTIONS_ERROR_EXIT="false"
 
 #######################################
 # Print an message to STDOUT
@@ -332,13 +332,20 @@ validate_args() {
     psql_bin="${PSQLBINARY}"
   fi
 
+  # generate or not PGPASSWORD string (for substitution)
+  if [[ ! -z ${PGPASSWORD+x} ]]; then
+    local pgpas_subst="PGPASSWORD=\"${PGPASSWORD}\" " # whitespace in the end of the string
+  else
+    local pgpas_subst=""
+  fi
+
+  # for usage inside the check scripts
   export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_unix_socket_option}"
-  export _PSQL="${psql_bin} -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS} \"$@\""
+  export _PSQL="${pgpas_subst}${psql_bin} -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
   dbg ""
-
 
   # error if mandatory options are not set (print as a stack)
   local buf=""
@@ -694,12 +701,22 @@ host_pre_start_checks() {
     NATIVE_HOSTNAME="${HOST}"
     # swap ssh with bash
     export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
+
     # use local psql and connect to remote postgres without ssh
-    export _PSQL="${_PSQL} -h ${HOST}"
+    local re="127\.0"
+    if [[ "${HOST}" =~ $re || "${HOST}" = "localhost" ]]; then
+      # keep _PSQL as is, use UNIX domain socket for psql
+      true
+    else
+      # use TCP for psql
+      export _PSQL="${_PSQL} -h ${HOST}"
+    fi
   fi
+
   export NATIVE_HOSTNAME
   dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
-  dbg "NATIVE_HOSTNAME: '$NATIVE_HOSTNAME'"
+  dbg "NATIVE_HOSTNAME: '${NATIVE_HOSTNAME}'"
+  dbg "_PSQL: '${_PSQL}'"
 }
 
 #######################################
