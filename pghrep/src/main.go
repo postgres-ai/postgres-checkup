@@ -139,6 +139,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Split"] = Split
     tplFuncMap["Trim"] = Trim
     tplFuncMap["Code"] = Code
+    tplFuncMap["Nobr"] = Nobr
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         dbg("Can't load templates", err)

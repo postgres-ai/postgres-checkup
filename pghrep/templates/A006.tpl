@@ -1,12 +1,12 @@
-# Differences settings #
+# {{ .checkId }} Postgres setting deviations #
 
-## Current values ##
+## Observations ##
 
 ### Settings (pg_settings) that differ ###
 {{ if (index .diffData "pg_settings") }}
-
-{{ range $key, $value := (index .diffData "pg_settings") }}
-Setting {{ $key }}: {{ range $key, $value := $value }} On {{ $key }}: `{{ index $value "value" }}` {{ if (index $value "unit") }}{{ index $value "unit" }}{{ end  }}  {{ end }}
+Setting | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}
+--------|-------{{ range $skey, $host := .hosts.replicas }}|-------- {{ end }}
+{{ range $key, $value := (index .diffData "pg_settings") }}{{ $key }} {{ range $key, $value := $value }} |{{ index $value "value" }} {{ if (index $value "unit") }}({{ index $value "unit" }}){{ end  }}{{ end }}
 {{ end }}{{end}}
 {{ if (index .diffData "pg_configs") }}
 Configs(pg_config) that differ
@@ -17,8 +17,6 @@ Config {{ $key }}: {{ range $key, $value := $value }} On {{ $key }}: `{{ index $
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

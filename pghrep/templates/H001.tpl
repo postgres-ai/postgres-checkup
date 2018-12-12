@@ -1,8 +1,8 @@
-# Unused/Rarely Used Indexes #
+# {{ .checkId }} Unused/Rarely Used Indexes #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
+### Master (`{{.hosts.master}}`) ###
 
 #### Indexes ####
 
@@ -12,24 +12,21 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 {{ end }}
 
 #### Drop code ####
-{{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "drop_code") }}
 ```
-{{ $drop_code }}
-```
+{{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "drop_code") }}{{ $drop_code }}
 {{ end }}
+```
 
 #### Revert code ####
-{{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "revert_code") }}
 ```
-{{ $revert_code }}
-```
+{{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "revert_code") }}{{ $revert_code }}
 {{ end }}
-
+```
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
     {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica server: `{{ $host }}` ####
         {{ if (index $.results $host) }}
 #### Indexes ####
 
@@ -39,26 +36,20 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 {{ end }}
 
 #### Drop code ####
-{{ range $i, $drop_code := (index (index (index $.results $host) "data") "drop_code") }}
 ```
-{{ $drop_code }}
-```
+{{ range $i, $drop_code := (index (index (index $.results $host) "data") "drop_code") }}{{ $drop_code }}
 {{ end }}
+```
 
 #### Revert code ####
-{{ range $i, $revert_code := (index (index (index $.results $host) "data") "revert_code") }}
 ```
-{{ $revert_code }}
+{{ range $i, $revert_code := (index (index (index $.results $host) "data") "revert_code") }}{{ $revert_code }}
+{{ end }}
 ```
-{{ end }}
-        {{ end }}
-    {{ end }}
-{{ end }}
+{{ end }}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

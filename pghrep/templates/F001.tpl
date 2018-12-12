@@ -1,30 +1,28 @@
-# Heap bloat #
+# {{ .checkId }} Heap bloat #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
-{{ range $key, $value := (index (index .results .hosts.master) "data") }}
-Table: {{ $key }}  Size: {{ ( index $value "Size") }}  Extra: {{ ( index $value "Extra") }}  Bloat: {{ ( index $value "Bloat") }}  Live: {{ ( index $value "Live") }} {{ if (index $value "Last Vaccuum") }} Last vaсcuum: {{ ( index $value "Last Vaccuum") }} {{ end }}
+### Master (`{{.hosts.master}}`) ###
+ Table | Size | Extra | Bloat | Live | Last vacuum
+-------|------|-------|-------|------|-------------
+{{ range $key, $value := (index (index .results .hosts.master) "data") }}{{ $key }} | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ if (index $value "Last Vaccuum") }} {{ ( index $value "Last Vaccuum") }} {{ end }}
 {{ end }}
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica (`{{ $host }}`) ####
     {{ if (index $.results $host) }}
-      {{ range $key, $value := (index (index $.results $host) "data") }}
-Table: {{ $key }}  Size: {{ ( index $value "Size") }}  Extra: {{ ( index $value "Extra") }}  Bloat: {{ ( index $value "Bloat") }}  Live: {{ ( index $value "Live") }} {{ if (index $value "Last Vaccuum") }} Last vaсcuum: {{ ( index $value "Last Vaccuum") }} {{ end }}
-      {{ end }}
-    {{ else }}
-No data
-    {{ end}}
-  {{ end }}
+ Table | Size | Extra | Bloat | Live | Last vacuum
+-------|------|-------|-------|------|-------------
+{{ range $key, $value := (index (index $.results $host) "data") }}{{ $key }} | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ if (index $value "Last Vaccuum") }} {{ ( index $value "Last Vaccuum") }} {{ end }}
 {{ end }}
+{{ else }}
+No data
+{{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

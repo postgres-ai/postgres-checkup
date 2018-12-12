@@ -1,62 +1,70 @@
-# System information #
+# {{ .checkId }} System information #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
-
-**System information**
-
-{{ Code ((index (index .results .hosts.master) "data").system.raw) false }}
-
-**Cpu information**
-
-{{ Code ((index (index .results .hosts.master) "data").cpu.raw) false }}
-
-**Memory information**
-
-{{ Code (index (index .results .hosts.master) "data").ram.raw false}}
-
-**Disk information**
-
-{{ Code (index (index .results .hosts.master) "data").disk.raw false }}
-
-**Virtualization information**
-
-{{ Code (index (index .results .hosts.master) "data").virtualization.raw false }}
+### Master (`{{.hosts.master}}`) ###
+{{ if (index (index .results .hosts.master) "data").system.raw}}
+**System**
+```
+{{ (index (index .results .hosts.master) "data").system.raw}}
+```{{ end }}
+{{ if (index (index .results .hosts.master) "data").cpu.raw}}
+**CPU**
+```
+{{ (index (index .results .hosts.master) "data").cpu.raw }}
+```{{ end }}
+{{ if (index (index .results .hosts.master) "data").ram.raw}}
+**Memory**
+```
+{{ (index (index .results .hosts.master) "data").ram.raw }}
+```{{ end }}
+{{ if (index (index .results .hosts.master) "data").disk.raw }}
+**Disk**
+```
+{{ (index (index .results .hosts.master) "data").disk.raw}}
+```{{ end }}
+{{ if (index (index .results .hosts.master) "data").virtualization.raw }}
+**Virtualization**
+```
+{{ (index (index .results .hosts.master) "data").virtualization.raw }}
+```{{ end }}
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
     {{ range $key, $value := .hosts.replicas }}
-#### DB slave server: `{{ $value }}` ####
-
+#### Replica (`{{ $value }}`) ####
         {{ if (index $.results $value) }}
-**System information**
-
-{{ Code ((index (index $.results $value) "data").system.raw) false }}
-
-**Cpu information**
-
-{{ Code ((index (index $.results $value) "data").cpu.raw) false }}
-
-**Memory information**
-
-{{ Code (index (index $.results $value) "data").ram.raw false}}
-
-**Disk information**
-
-{{ Code (index (index $.results $value) "data").disk.raw false }}
-
-**Virtualization information**
-
-{{ Code (index (index $.results $value) "data").virtualization.raw false }}
+{{ if (index (index $.results $value) "data").system.raw}}
+**System**
+```
+{{ (index (index $.results $value) "data").system.raw}}
+```{{ end }}
+{{ if (index (index $.results $value) "data").cpu.raw}}
+**CPU**
+```
+{{ (index (index $.results $value) "data").cpu.raw }}
+```{{ end }}
+{{ if (index (index $.results $value) "data").ram.raw}}
+**Memory**
+```
+{{ (index (index $.results $value) "data").ram.raw }}
+```{{ end }}
+{{ if (index (index $.results $value) "data").disk.raw }}
+**Disk**
+```
+{{ (index (index $.results $value) "data").disk.raw }}
+```{{ end }}
+{{ if (index (index $.results $value) "data").virtualization.raw }}
+**Virtualization**
+```
+{{ (index (index $.results $value) "data").virtualization.raw }}
+```{{ end }}
         {{ else }}
 `No data`
 {{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}

@@ -1,11 +1,11 @@
-# Autovacuum info #
+# {{ .checkId }} Autovacuum info #
 
-## Current values ##
+## Observations ##
 
-### Master DB server is `{{.hosts.master}}` ###
+### Master (`{{.hosts.master}}`) ###
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index .results .hosts.master) "data") "settings") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index .results .hosts.master) "data") "settings") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 {{ if (index (index .results .hosts.master) "data").iotop }}
 #### iotop information ####
@@ -18,14 +18,14 @@ Result:
 {{ end }}
 
 {{ if gt (len .hosts.replicas) 0 }}
-### Slave DB servers: ###
+### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}
-#### DB slave server: `{{ $host }}` ####
+#### Replica (`{{ $host }}`) ####
     {{ if (index $.results $host) }}
 
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index $.results $host) "data") "settings") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index $.results $host) "data") "settings") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 {{ if (index (index $.results $host) "data").iotop }}
 #### iotop information ####
@@ -38,15 +38,10 @@ Result:
 {{ end }}
     {{ else}}
       No data
-    {{ end }}
-  {{ end }}
-{{ end }}
+{{ end }}{{ end }}{{ end }}
 
-{{/* ## Conclusions ##
+## Conclusions ##
 
-{{.Conclusion}}
 
 ## Recommendations ##
 
-{{.Recommended}}
-*/}}
