@@ -91,7 +91,7 @@ cleanup_and_exit() {
   local exit_code="$?" # we can detect exit code here 
   if [[ ! -z ${HOST+x} ]]; then
     dbg "closing ssh conenction to host '$HOST' (if exists)"
-    ssh -O exit ${HOST} 2>/dev/null || true
+    (ssh -O exit ${HOST} 2>/dev/null) || true
   fi
   dbg "exit code is: '${exit_code}'"
   exit "${exit_code}"
