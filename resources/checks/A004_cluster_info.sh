@@ -28,7 +28,8 @@ $prepare_sql
 with data as (
 $main_sql
 )
-select json_object_agg(data.metric, data) as json from data where data.metric not like '------%';
+select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
+  and data.metric not in ('Database Name', 'Database Size')
 
 SQL
 

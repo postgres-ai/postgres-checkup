@@ -88,10 +88,13 @@ error_handler() {
 #   (lines with text) STDOUT/STDERR
 #######################################
 cleanup_and_exit() {
+  local exit_code="$?" # we can detect exit code here 
   if [[ ! -z ${HOST+x} ]]; then
     dbg "closing ssh conenction to host '$HOST' (if exists)"
-    ssh -O exit ${HOST} 2>/dev/null || true
+    (ssh -O exit ${HOST} 2>/dev/null) || true
   fi
+  dbg "exit code is: '${exit_code}'"
+  exit "${exit_code}"
 }
 
 #######################################
@@ -261,6 +264,12 @@ validate_arg_type() {
     fi
   elif [[ $type = "uri" ]]; then
     re='^[a-zA-Z\;\:\\\/]+.*'
+    if ! [[ $value =~ $re ]]; then
+       err "'$name' = '$value' => is not a '$type' (${re})"
+       exit 1
+    fi
+  elif [[ $type = "filepath" ]]; then
+    re='.*'
     if ! [[ $value =~ $re ]]; then
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
@@ -866,6 +875,14 @@ run_checks() {
   for CURRENT_CHECK_FNAME in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "${CURRENT_CHECK_FNAME}" ]] || continue
     msg
+
+    # overwrite all checks to a single check from a file (CLI)
+    if [[ "${FILE}" != "None" ]]; then
+      CURRENT_CHECK_FNAME="${FILE}"
+      if ! [[ -e "${CURRENT_CHECK_FNAME}" ]]; then
+        err "Can't open file: '{CURRENT_CHECK_FNAME}'"
+      fi
+    fi
     msg "========== Perform check: =========="
     msg "$CURRENT_CHECK_FNAME"
 
@@ -912,6 +929,11 @@ run_checks() {
       --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
       msg "WARNING: ${pghrep_output}"
       pghrep_failed_jsons_stack="${pghrep_failed_jsons_stack} ${check_id}_${check_name}.json"
+    fi
+
+    # parse only one file if check is given by CLI
+    if [[ "${FILE}" != "None" ]]; then
+      break
     fi
   done
 
