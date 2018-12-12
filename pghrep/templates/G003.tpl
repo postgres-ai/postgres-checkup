@@ -7,12 +7,12 @@
 #### Timeouts ####
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index .results .hosts.master) "data") "timeouts") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index .results .hosts.master) "data") "timeouts") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 #### Locks ####
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index .results .hosts.master) "data") "locks") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index .results .hosts.master) "data") "locks") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 #### Databases data ####
 Database | Conflicts | Deadlocks | Stats reset at | Stat reset
@@ -27,12 +27,12 @@ Database | Conflicts | Deadlocks | Stats reset at | Stat reset
 #### Timeouts ####
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index $.results $host) "data") "timeouts") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index $.results $host) "data") "timeouts") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 #### Locks ####
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index $.results $host) "data") "locks") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index $.results $host) "data") "locks") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 #### Databases data ####
 Database | Conflicts | Deadlocks | Stats reset at | Stat reset

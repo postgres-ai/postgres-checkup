@@ -12,19 +12,18 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 {{ end }}
 
 #### Drop code ####
+```
 {{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "drop_code") }}
-```
-{{ $drop_code }}
-```
+{{ $drop_code }}  
 {{ end }}
+```
 
 #### Revert code ####
+```
 {{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "revert_code") }}
-```
-{{ $revert_code }}
-```
+{{ $revert_code }}  
 {{ end }}
-
+```
 
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
@@ -39,18 +38,19 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 {{ end }}
 
 #### Drop code ####
+```
 {{ range $i, $drop_code := (index (index (index $.results $host) "data") "drop_code") }}
-```
-{{ $drop_code }}
-```
+{{ $drop_code }}  
 {{ end }}
+```
 
 #### Revert code ####
+```
 {{ range $i, $revert_code := (index (index (index $.results $host) "data") "revert_code") }}
+{{ $revert_code }}  
+{{ end }}
 ```
-{{ $revert_code }}
-```
-{{ end }}{{ end }}{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}
 
 ## Conclusions ##
 

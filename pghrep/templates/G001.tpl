@@ -6,7 +6,7 @@
 
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index .results .hosts.master) "data") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index .results .hosts.master) "data") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
@@ -15,7 +15,7 @@ Setting name | Value | Unit
     {{ if (index $.results $host) }}
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index $.results $host) "data") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index $.results $host) "data") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}{{ else }}
 No data
 {{ end}}{{ end }}{{ end }}

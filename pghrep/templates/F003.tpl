@@ -5,7 +5,7 @@
 ### Master (`{{.hosts.master}}`) ###
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index .results .hosts.master) "data") "settings") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index .results .hosts.master) "data") "settings") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 {{ if (index (index .results .hosts.master) "data").iotop }}
 #### iotop information ####
@@ -25,7 +25,7 @@ Result:
 
 Setting name | Value | Unit
 -------------|-------|------
-{{ range $key, $value := (index (index (index $.results $host) "data") "settings") }}{{$key}}|{{ $value.setting}}|{{ $value.unit }}
+{{ range $key, $value := (index (index (index $.results $host) "data") "settings") }}[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting}}|{{ $value.unit }}
 {{ end }}
 {{ if (index (index $.results $host) "data").iotop }}
 #### iotop information ####
