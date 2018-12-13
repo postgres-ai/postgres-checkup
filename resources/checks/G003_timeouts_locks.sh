@@ -1,5 +1,5 @@
 # Collect pg_settings artifact
-${CHECK_HOST_CMD} "${_PSQL} ${PSQL_CONN_OPTIONS} -f -" <<SQL
+${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with timeouts as (
   select json_object_agg(s.name,s ) from pg_settings s where name in ('statement_timeout', 'idle_in_transaction_session_timeout', 'authentication_timeout')
 ), locks as (
