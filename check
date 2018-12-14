@@ -188,7 +188,7 @@ process_cli_args() {
   local cli_arg_cur_value i
   local re='^-+'
   local while_loops_cnt=0
-  local second
+  local argvalue
   dbg "Valid CLI args possible count: ${CLI_ARGS_POSSIBLE}+1"
   CLI_ARGS_CNT=0
   while [[ ! -z "${1+x}" ]]; do
@@ -201,20 +201,20 @@ process_cli_args() {
         case $1 in
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
             if [[ ! -z "${2+x}" ]]; then
-              second="$2"
+              argvalue="$2"
             else
-              second=None
+              argvalue="None"
               err "empty value for variable '--${FULL_NAME[$i]}'"
               exit 1
             fi
-            [[ -z "$second" ]] && exit 1
-            dbg "argname: '$1', argvalue '${second}' "
-            if [[ "$second" =~ $re ]]; then
+            [[ -z "$argvalue" ]] && exit 1
+            dbg "argname: '$1', argvalue '${argvalue}' "
+            if [[ "$argvalue" =~ $re ]]; then
               err "empty value in '--${FULL_NAME[$i]}'"
               exit 1
             fi
             # save argument value as an indexed array
-            ARG_VALUE[$i]="$second"
+            ARG_VALUE[$i]="$argvalue"
             ARG_IS_GIVEN[$i]="true"
             CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
             shift 2
@@ -315,9 +315,9 @@ validate_args() {
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ ! -z "${ARG_IS_GIVEN[$i]+x}" ]]; then
-      # generate dynamic variables like "$HOST" and export them
-      # to make visible from healthcheck scripts
-      eval "export ${INTERNAL_NAME[$i]}"="${ARG_VALUE[$i]}"
+      # generate dynamic variables like "$HOST" or "$PSQLBINARY"
+      # from './resources/cli.conf' (INTERNAL_NAME)
+      eval "export ${INTERNAL_NAME[$i]}=\"${ARG_VALUE[$i]}\""
       validate_arg_type "${FULL_NAME[$i]}" "${ARG_TYPE[$i]}" "${ARG_VALUE[$i]}"
     else
       export "${INTERNAL_NAME[$i]}=None"
