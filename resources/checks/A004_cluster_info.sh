@@ -1,4 +1,4 @@
-# Collect pg cluster info
+# Collect general cluster info
 main_sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/0_node.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 pgver=$(${CHECK_HOST_CMD} "${_PSQL} -c \"SHOW server_version\"")
@@ -6,7 +6,9 @@ pgver=$(${CHECK_HOST_CMD} "${_PSQL} -c \"SHOW server_version\"")
 vers=(${pgver//./ })
 majorVer=${vers[0]}
 
-prepare_sql=""
+dbs=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
+select datname from pg_database where datname not in ('template0', 'template1', 'postgres')
+SQL)
 
 if [[ $majorVer -lt 10 ]]; then
   #  echo "Version less 10"
@@ -23,13 +25,21 @@ else
 
 fi
 
-${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
-$prepare_sql
-with data as (
-$main_sql
-)
-select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
-  and data.metric not in ('Database Name', 'Database Size')
+result="{ }"
 
-SQL
+for cur_db in ${dbs}; do
+  object=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
+  $prepare_sql
+  with data as (
+    $main_sql
+  )
+  select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
+    and data.metric not in ('Database Name', 'Database Size')
+
+SQL)
+  result=$(jq --arg db "${cur_db}" --argjson obj "$object" -r '. += { ($db): $obj }' <<<"${result}")
+done
+
+jq -r . <<<"$result"
+
 
