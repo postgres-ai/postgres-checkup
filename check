@@ -350,7 +350,7 @@ validate_args() {
 
   # for usage inside the check scripts
   export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_unix_socket_option}"
-  export _PSQL="${pgpas_subst}${psql_bin} -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
+  export _PSQL="${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
