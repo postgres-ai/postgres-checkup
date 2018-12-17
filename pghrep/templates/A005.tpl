@@ -3,16 +3,12 @@
 ## Observations ##
 
 ### Master (`{{.hosts.master}}`) ###
-
-Database | Extension name | Installed version | Default version | Is old 
----------|----------------|-------------------|-----------------|--------
-{{ range $key, $value := (index (index .results .hosts.master) "data") -}}
-{{ range $dkey, $dvalue := $value -}}
-{{ $key }} | {{ $dkey }} | {{ $dvalue.installed_version }} | {{ $dvalue.default_version }} | {{ $dvalue.is_old }}
-{{ end -}}
-{{ end -}}
-
-{{/* force empty line */}}
+Extension name | Installed version | Default version | Is old
+---------------|-------------------|-----------------|--------
+{{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
+{{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
+{{ $key }} | {{ $value.installed_version }} | {{ $value.default_version }} | {{ $value.is_old }}
+{{ end }}
 
 ## Conclusions ##
 

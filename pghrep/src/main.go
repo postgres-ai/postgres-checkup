@@ -24,6 +24,7 @@ import (
     "text/template"
     "sort"
     "strconv"
+    "./orderedmap"
 )
 
 var DEBUG bool = false
@@ -82,12 +83,13 @@ func FileExists(name string) bool {
 // Parse json data from string to map
 // Return map[string]interface{}
 func ParseJson(jsonData string) map[string]interface{} {
-    var data map[string]interface{}
-    if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
+    orderedData := orderedmap.New()
+    if err := json.Unmarshal([]byte(jsonData), &orderedData); err != nil {
         dbg("Can't parse json data:", err)
         return nil
     } else {
-        return data
+        dt := orderedData.ToInterfaceArray()
+        return dt
     }
 }
 
@@ -239,8 +241,10 @@ func determineMasterReplica(data map[string]interface{}) {
         if hostData["role"] == "master" {
             hostRoles["master"] = host
         } else {
-            index, _ := strconv.Atoi(pyraconv.ToString(hostData["index"]))
-            replicas[index] = host
+            if host != "_keys" {
+                index, _ := strconv.Atoi(pyraconv.ToString(hostData["index"]))
+                replicas[index] = host
+            }
         }
     }
     var keys []int
@@ -292,7 +296,7 @@ func main() {
     } else {
         log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
     }
-    
+
     checkId = strings.ToUpper(checkId)
     loadDependencies(resultData)
     determineMasterReplica(resultData)

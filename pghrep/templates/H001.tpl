@@ -8,7 +8,9 @@
 
 Index name | Reason | Scheme name | Table name | Index size | Table size
 -----------|--------|-------------|------------|------------|------------
-{{ range $index_name, $index_data := (index (index (index .results .hosts.master) "data") "indexes") }}{{ $index_name }} | {{ $index_data.reason }} | {{ $index_data.schemaname }} | {{ $index_data.tablename }} | {{ $index_data.index_size }} | {{ $index_data.table_size }}
+{{ range $i, $index_name := (index (index (index (index .results .hosts.master) "data") "indexes") "_keys") }}
+{{- $index_data := (index (index (index (index $.results $.hosts.master) "data") "indexes") $index_name) -}}
+{{ $index_name }} | {{ $index_data.reason }} | {{ $index_data.schemaname }} | {{ $index_data.tablename }} | {{ $index_data.index_size }} | {{ $index_data.table_size }}
 {{ end }}
 
 #### Drop code ####
@@ -32,7 +34,9 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 
 Index name | Reason | Scheme name | Table name | Index size | Table size
 -----------|--------|-------------|------------|------------|------------
-{{ range $index_name, $index_data := (index (index (index $.results $host) "data") "indexes") }}{{ $index_name }} | {{ $index_data.reason }} | {{ $index_data.schemaname }} | {{ $index_data.tablename }} | {{ $index_data.index_size }} | {{ $index_data.table_size }}
+{{ range $i, $index_name := (index (index (index (index $.results $host) "data") "indexes") "_keys") }}
+{{- $index_data := (index (index (index (index $.results $host) "data") "indexes") $index_name) -}}
+{{ $index_name }} | {{ $index_data.reason }} | {{ $index_data.schemaname }} | {{ $index_data.tablename }} | {{ $index_data.index_size }} | {{ $index_data.table_size }}
 {{ end }}
 
 #### Drop code ####
