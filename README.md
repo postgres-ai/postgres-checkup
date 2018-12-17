@@ -42,8 +42,9 @@ Requirements
 * bash
 * psql
 * coreutils
-* jq >= 1.5,
+* jq >= 1.5
 * golang >= 1.8
 * awk
+* sed
 
 

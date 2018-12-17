@@ -11,6 +11,7 @@
 CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
                  # TODO(vyagofarov): think about timing 
                  # out commands in macOS
+FULL_REPORT_FNAME="full_report.md"
 
 # GLOBALS (autoload, do not change)
 : ${DEBUG:=false} # print debug output
@@ -691,9 +692,30 @@ check_bin_deps() {
 }
 
 #######################################
+# Add the newly generated report to a fileф
+# (makes final report)
+# Globals:
+#   PROJECT_DIR, FULL_REPORT_FNAME
+# Arguments:
+#   md_reports_dir, report_fname
+# Returns:
+#   Integer
+#######################################
+append_to_final_report() {
+  local md_reports_dir="$1"
+  local report_fname="$2"
+
+  local out_fname="${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+
+  # glue
+  cat "${md_reports_dir}/${report_fname}" >> "${out_fname}"
+}
+
+#######################################
 # Check rights, set global variables, etc.
 # Globals:
 #   HOST, CHECK_HOST_CMD, NATIVE_HOSTNAME
+#   SSH_SUPPORT
 # Arguments:
 #   None
 # Returns:
@@ -706,6 +728,7 @@ host_pre_start_checks() {
   if NATIVE_HOSTNAME=$(ssh $HOST "hostname" 2>/dev/null); then
     # ssh to remote host and use local psql (default)
     export CHECK_HOST_CMD="ssh ${HOST}"
+    export SSH_SUPPORT="true"
   else
     NATIVE_HOSTNAME="${HOST}"
     # swap ssh with bash
@@ -720,6 +743,8 @@ host_pre_start_checks() {
       # use TCP for psql
       export _PSQL="${_PSQL} -h ${HOST}"
     fi
+
+    export SSH_SUPPORT="false"
   fi
 
   export NATIVE_HOSTNAME
@@ -868,6 +893,15 @@ run_checks() {
 
   local pghrep_failed_jsons_stack=""
 
+  export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+  test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
+
+  # make a header for a FULL_REPORT_FNAME
+  echo "# '${PROJECT}' PostgreSQL health-check" > "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+  echo >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+  echo $(date +'%Y-%m-%d %H:%M:%S %z') >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+  echo >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+
   # perform all checks from './resources/checks/' directory
   msg
   msg "########## Perform checks for host '${NATIVE_HOSTNAME}':"
@@ -913,9 +947,6 @@ run_checks() {
       msg "check '$check_id' is finished"
     fi
 
-    export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
-    test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
-
     # alot of magic is here
     update_nodes_json
 
@@ -929,6 +960,8 @@ run_checks() {
       --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
       msg "WARNING: ${pghrep_output}"
       pghrep_failed_jsons_stack="${pghrep_failed_jsons_stack} ${check_id}_${check_name}.json"
+    else
+      append_to_final_report "${MD_REPORTS_DIR}" "${check_id}_${check_name}.md"
     fi
 
     # parse only one file if check is given by CLI
@@ -950,8 +983,8 @@ run_checks() {
   fi
 
   msg
-  msg "All .md reports has been saved at directory:"
-  echo "        '${MD_REPORTS_DIR}'"
+  msg "Final .md report is ready:"
+  echo "        '${PROJECT_DIR}/${FULL_REPORT_FNAME}'"
 
   msg
   msg "ALL DONE!"
