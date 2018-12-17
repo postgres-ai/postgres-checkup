@@ -6,6 +6,11 @@ OS_INFO=""
 DISK_INFO=""
 CTL_INFO=""
 
+if [[ "${SSH_SUPPORT}" = "false" ]]; then
+  echo "SSH is not supported, skipping..." >&2
+  exit 1
+fi
+
 function get_cpu_info() {
   local res=""
   local cpu_info="$(${CHECK_HOST_CMD} "lscpu")"
