@@ -2,7 +2,6 @@
 main_sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/0_node.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 pgver=$(${CHECK_HOST_CMD} "${_PSQL} -c \"SHOW server_version\"")
-#pgver=$(psql -U postila_ru -c "SHOW server_version")
 
 vers=(${pgver//./ })
 majorVer=${vers[0]}
@@ -25,7 +24,6 @@ else
 fi
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
-#psql -U postila_ru -t -0 -f - <<SQL
 $prepare_sql
 with data as (
 $main_sql
