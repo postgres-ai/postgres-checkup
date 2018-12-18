@@ -207,6 +207,9 @@ process_cli_args() {
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
             if [[ ! -z "${2+x}" ]]; then
               argvalue="$2"
+            # set true for arguments without value (e.g., '--force')
+            elif [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+              argvalue="true"
             else
               argvalue="None"
               err "empty value for variable '--${FULL_NAME[$i]}'"
@@ -222,7 +225,11 @@ process_cli_args() {
             ARG_VALUE[$i]="$argvalue"
             ARG_IS_GIVEN[$i]="true"
             CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
-            shift 2
+            if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+              shift 1
+            else
+              shift 2
+            fi
         esac
       fi
     done
@@ -285,6 +292,8 @@ validate_arg_type() {
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
     fi
+  elif [[ $type = "None" ]]; then
+    true
   else
     err "'$name' = '$value' => unknown argument type, validation error"
     exit 1
@@ -826,11 +835,14 @@ update_nodes_json() {
     SHORT_DIR="${prev_dir}"
 
     # exit with error if epoch is not given and this is not first run
-    if [[ "${EPOCH}" = "None" ]]; then
+    if [[ "${EPOCH}" = "None" ]] && [[ "$FORCE" != "true" ]]; then
       echo "${BOLD}ERROR: epoch not given but directory already exist:${RESET}" >&2
-      echo "    ${JSON_REPORTS_DIR}" >&2
-      echo "to avoid overwriting results of epoch '${BOLD}${prev_epoch}${RESET}', please choice health check epoch with help of option '-e'" >&2
-      echo "example:" >&2
+      echo "  ${JSON_REPORTS_DIR}" >&2
+      echo >&2
+      echo "To avoid overwriting results of epoch '${BOLD}${prev_epoch}${RESET}', please choice health check epoch with help of option '-e'" >&2
+      echo "or just use ${BOLD}--force${RESET} flag" >&2
+      echo >&2
+      echo "Example:" >&2
       echo "./${SCRIPT_NAME} ${ALL_ARGS} ${BOLD}-e %NUMBER%${RESET}" >&2
       exit 1
     fi
