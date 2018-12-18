@@ -22,6 +22,10 @@ FIRST_ARG="$1"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 
+# Output styles (only BOLD is supported by default GNU screen)
+BOLD=`tput md 2>/dev/null` || :
+RESET=`tput me 2>/dev/null` || :
+
 #######################################
 # Print an message to STDOUT
 # Globals:
@@ -203,6 +207,9 @@ process_cli_args() {
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
             if [[ ! -z "${2+x}" ]]; then
               argvalue="$2"
+            # set true for arguments without value (e.g., '--force')
+            elif [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+              argvalue="true"
             else
               argvalue="None"
               err "empty value for variable '--${FULL_NAME[$i]}'"
@@ -218,7 +225,11 @@ process_cli_args() {
             ARG_VALUE[$i]="$argvalue"
             ARG_IS_GIVEN[$i]="true"
             CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
-            shift 2
+            if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+              shift 1
+            else
+              shift 2
+            fi
         esac
       fi
     done
@@ -281,6 +292,8 @@ validate_arg_type() {
        err "'$name' = '$value' => is not a '$type' (${re})"
        exit 1
     fi
+  elif [[ $type = "None" ]]; then
+    true
   else
     err "'$name' = '$value' => unknown argument type, validation error"
     exit 1
@@ -453,7 +466,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
+      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy [${BOLD}-e %EPOCH_NUMBER%${RESET}]" >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
@@ -695,7 +708,8 @@ check_bin_deps() {
 # Add the newly generated report to a fileф
 # (makes final report)
 # Globals:
-#   PROJECT_DIR, FULL_REPORT_FNAME
+#   PROJECT_DIR, FULL_REPORT_FNAME, EPOCH,
+#   DBNAME, HOST
 # Arguments:
 #   md_reports_dir, report_fname
 # Returns:
@@ -703,11 +717,21 @@ check_bin_deps() {
 #######################################
 append_to_final_report() {
   local md_reports_dir="$1"
-  local report_fname="$2"
+  local report_fname="$2" # (e.g., 'A001*')
 
-  local out_fname="${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+  local out_fname="${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}"
 
-  # glue
+  # make a header for a FULL_REPORT_FNAME at the first run
+  if [[ ! -f  "${out_fname}" ]]; then
+    echo "# Project '${PROJECT}' PostgreSQL health check" > "${out_fname}"
+    echo "## Epoch: '${EPOCH}'" >> "${out_fname}"
+    echo "NOTICE: some reports may contain information for a whole cluster databases" >> "${out_fname}"
+    echo >> "${out_fname}"
+    echo "Started at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
+    echo >> "${out_fname}"
+  fi
+
+  # glue together
   cat "${md_reports_dir}/${report_fname}" >> "${out_fname}"
 }
 
@@ -788,7 +812,7 @@ update_nodes_json() {
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
     ALIAS_NAME="node1"
     ALIAS_INDEX="1"
-    EPOCH="1"
+    export EPOCH="1"
     prev_role="${ROLE}"
     JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${EPOCH}_${TIMESTAMP_DIR}"
     MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
@@ -814,11 +838,20 @@ update_nodes_json() {
     SHORT_DIR="${prev_dir}"
 
     # exit with error if epoch is not given and this is not first run
-    if [[ "${EPOCH}" = "None" ]]; then
-      err "epoch not given but epoch '${prev_epoch}' already exist"
-      err "to avoid overwriting, please choise health-check epoch"
-      err "example: ' ./${SCRIPT_NAME} ${ALL_ARGS} -e %NUMBER% '"
+    if [[ "${EPOCH}" = "None" ]] && [[ "${FORCE}" != "true" ]]; then
+      echo "${BOLD}ERROR: epoch not given but directory already exist:${RESET}" >&2
+      echo "  ${JSON_REPORTS_DIR}" >&2
+      echo >&2
+      echo "To avoid overwriting results of epoch '${BOLD}${prev_epoch}${RESET}', please choice health check epoch with help of option '-e'" >&2
+      echo "or just use ${BOLD}--force${RESET} flag" >&2
+      echo >&2
+      echo "Example:" >&2
+      echo "./${SCRIPT_NAME} ${ALL_ARGS} ${BOLD}-e %NUMBER%${RESET}" >&2
       exit 1
+    fi
+
+    if [[ "${FORCE}" = "true" ]]; then
+      export EPOCH="1"
     fi
 
     local input_json_fname="${PROJECT_DIR}/nodes.json"
@@ -895,12 +928,6 @@ run_checks() {
 
   export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
   test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
-
-  # make a header for a FULL_REPORT_FNAME
-  echo "# '${PROJECT}' PostgreSQL health-check" > "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
-  echo >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
-  echo $(date +'%Y-%m-%d %H:%M:%S %z') >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
-  echo >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
 
   # perform all checks from './resources/checks/' directory
   msg
@@ -983,8 +1010,8 @@ run_checks() {
   fi
 
   msg
-  msg "Final .md report is ready:"
-  echo "        '${PROJECT_DIR}/${FULL_REPORT_FNAME}'"
+  msg "Final .md report for host '${HOST}' and database '${DBNAME}' is ready at:"
+  echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
 
   msg
   msg "ALL DONE!"
