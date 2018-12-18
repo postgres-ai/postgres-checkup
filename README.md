@@ -47,7 +47,7 @@ all instances of the postgres cluster `my-site_org-slony`.
 Human-readable report can be found at:
 
 ```bash
-./artifacts/my-site_org-slony/full_report.md
+./artifacts/my-site_org-slony/e1_full_report.md
 ```
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
