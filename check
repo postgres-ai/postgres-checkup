@@ -22,6 +22,10 @@ FIRST_ARG="$1"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 
+# Output styles (only BOLD is supported by default GNU screen)
+BOLD=`tput md 2>/dev/null` || :
+RESET=`tput me 2>/dev/null` || :
+
 #######################################
 # Print an message to STDOUT
 # Globals:
@@ -453,7 +457,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy" >&${out_descriptor}
+      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy [${BOLD}-e %EPOCH_NUMBER%${RESET}]" >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
@@ -815,9 +819,10 @@ update_nodes_json() {
 
     # exit with error if epoch is not given and this is not first run
     if [[ "${EPOCH}" = "None" ]]; then
-      err "epoch not given but epoch '${prev_epoch}' already exist"
-      err "to avoid overwriting, please choise health-check epoch"
-      err "example: ' ./${SCRIPT_NAME} ${ALL_ARGS} -e %NUMBER% '"
+      echo "${BOLD}ERROR: epoch not given but epoch '${prev_epoch}' already exist${RESET}" >&2
+      echo "to avoid overwriting, please choise health-check epoch" >&2
+      echo "example:" >&2
+      echo "./${SCRIPT_NAME} ${ALL_ARGS} ${BOLD}-e %NUMBER%${RESET}" >&2
       exit 1
     fi
 
