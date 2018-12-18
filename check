@@ -708,7 +708,8 @@ check_bin_deps() {
 # Add the newly generated report to a fileф
 # (makes final report)
 # Globals:
-#   PROJECT_DIR, FULL_REPORT_FNAME
+#   PROJECT_DIR, FULL_REPORT_FNAME, EPOCH,
+#   DBNAME, HOST
 # Arguments:
 #   md_reports_dir, report_fname
 # Returns:
@@ -716,16 +717,18 @@ check_bin_deps() {
 #######################################
 append_to_final_report() {
   local md_reports_dir="$1"
-  local report_fname="$2"
+  local report_fname="$2" # (e.g., 'A001*')
 
-  local out_fname="${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+  local out_fname="${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}"
 
   # make a header for a FULL_REPORT_FNAME at the first run
-  if [[ ! -f  "${PROJECT_DIR}/${FULL_REPORT_FNAME}" ]]; then
-    echo "# '${PROJECT}' PostgreSQL health check" > "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
-    echo >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
-    echo "Started at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
-    echo >> "${PROJECT_DIR}/${FULL_REPORT_FNAME}"
+  if [[ ! -f  "${out_fname}" ]]; then
+    echo "# Project '${PROJECT}' PostgreSQL health check" > "${out_fname}"
+    echo "## Epoch: '${EPOCH}'" >> "${out_fname}"
+    echo "NOTICE: some reports may contain information for a whole cluster databases" >> "${out_fname}"
+    echo >> "${out_fname}"
+    echo "Started at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
+    echo >> "${out_fname}"
   fi
 
   # glue together
@@ -809,7 +812,7 @@ update_nodes_json() {
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
     ALIAS_NAME="node1"
     ALIAS_INDEX="1"
-    EPOCH="1"
+    export EPOCH="1"
     prev_role="${ROLE}"
     JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${EPOCH}_${TIMESTAMP_DIR}"
     MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
@@ -835,7 +838,7 @@ update_nodes_json() {
     SHORT_DIR="${prev_dir}"
 
     # exit with error if epoch is not given and this is not first run
-    if [[ "${EPOCH}" = "None" ]] && [[ "$FORCE" != "true" ]]; then
+    if [[ "${EPOCH}" = "None" ]] && [[ "${FORCE}" != "true" ]]; then
       echo "${BOLD}ERROR: epoch not given but directory already exist:${RESET}" >&2
       echo "  ${JSON_REPORTS_DIR}" >&2
       echo >&2
@@ -845,6 +848,10 @@ update_nodes_json() {
       echo "Example:" >&2
       echo "./${SCRIPT_NAME} ${ALL_ARGS} ${BOLD}-e %NUMBER%${RESET}" >&2
       exit 1
+    fi
+
+    if [[ "${FORCE}" = "true" ]]; then
+      export EPOCH="1"
     fi
 
     local input_json_fname="${PROJECT_DIR}/nodes.json"
@@ -1003,8 +1010,8 @@ run_checks() {
   fi
 
   msg
-  msg "Final .md report is ready:"
-  echo "        '${PROJECT_DIR}/${FULL_REPORT_FNAME}'"
+  msg "Final .md report for host '${HOST}' and database '${DBNAME}' is ready at:"
+  echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
 
   msg
   msg "ALL DONE!"
