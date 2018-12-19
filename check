@@ -191,7 +191,7 @@ read_possible_args() {
 #######################################
 process_cli_args() {
   local cli_arg_cur_value i
-  local re='^-+'
+  local re='^-'
   local while_loops_cnt=0
   local argvalue
   dbg "Valid CLI args possible count: ${CLI_ARGS_POSSIBLE}+1"
@@ -205,31 +205,26 @@ process_cli_args() {
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
-            if [[ ! -z "${2+x}" ]]; then
-              argvalue="$2"
-            # set true for arguments without value (e.g., '--force')
-            elif [[ "${ARG_TYPE[$i]}" = "None" ]]; then
-              argvalue="true"
-            else
-              argvalue="None"
-              err "empty value for variable '--${FULL_NAME[$i]}'"
-              exit 1
-            fi
-            [[ -z "$argvalue" ]] && exit 1
-            dbg "argname: '$1', argvalue '${argvalue}' "
-            if [[ "$argvalue" =~ $re ]]; then
-              err "empty value in '--${FULL_NAME[$i]}'"
-              exit 1
-            fi
-            # save argument value as an indexed array
-            ARG_VALUE[$i]="$argvalue"
-            ARG_IS_GIVEN[$i]="true"
-            CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
+            # argument without value (like '--force', ARG_TYPE is 'None')
             if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+              ARG_VALUE[$i]="true"
+              ARG_IS_GIVEN[$i]="true"
               shift 1
+            # argument with value
             else
+              if [[ -z "${2+x}" ]]; then
+                err "empty value for variable '--${FULL_NAME[$i]}'"
+                exit 1
+              fi
+              if [[ "${2}" =~ $re ]]; then
+                err "empty value for variable '--${FULL_NAME[$i]}'"
+                exit 1
+              fi
+              ARG_VALUE[$i]="${2}"
+              ARG_IS_GIVEN[$i]="true"
               shift 2
             fi
+            CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
         esac
       fi
     done
@@ -545,7 +540,7 @@ generate_report_json() {
      > "$tmp_output_json_fname"
   mv "$tmp_output_json_fname" "${json_output_fname}"
 
-  msg "Artifacts saved at: '${json_output_fname}'"
+  msg "JSON report saved at: '${json_output_fname}'"
 }
 
 #######################################
@@ -705,34 +700,36 @@ check_bin_deps() {
 }
 
 #######################################
-# Add the newly generated report to a fileф
+# Glue all .md file together
 # (makes final report)
 # Globals:
 #   PROJECT_DIR, FULL_REPORT_FNAME, EPOCH,
-#   DBNAME, HOST
+#   DBNAME, HOST, MD_REPORTS_DIR
 # Arguments:
-#   md_reports_dir, report_fname
+#   None
 # Returns:
 #   Integer
 #######################################
-append_to_final_report() {
-  local md_reports_dir="$1"
-  local report_fname="$2" # (e.g., 'A001*')
-
+glue_md_reports() {
   local out_fname="${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}"
 
-  # make a header for a FULL_REPORT_FNAME at the first run
-  if [[ ! -f  "${out_fname}" ]]; then
-    echo "# Project '${PROJECT}' PostgreSQL health check" > "${out_fname}"
-    echo "## Epoch: '${EPOCH}'" >> "${out_fname}"
-    echo "NOTICE: some reports may contain information for a whole cluster databases" >> "${out_fname}"
-    echo >> "${out_fname}"
-    echo "Started at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
-    echo >> "${out_fname}"
-  fi
+  # do not re-generate full report if '--file' is given
+  [[ "${FILE}" != "None" ]] && return 0
 
-  # glue together
-  cat "${md_reports_dir}/${report_fname}" >> "${out_fname}"
+  # make header
+  echo "# Project '${PROJECT}' PostgreSQL health check" > "${out_fname}"
+  echo "## Epoch: '${EPOCH}'" >> "${out_fname}"
+  echo "NOTICE: some reports may contain information for a whole cluster databases" >> "${out_fname}"
+  echo >> "${out_fname}"
+  echo "Last modified at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
+  echo >> "${out_fname}"
+
+  # glue reports together
+  local cur_report=""
+  for cur_report in "${MD_REPORTS_DIR}"/*.md; do
+    [[ -e "${cur_report}" ]] || continue
+    cat "${cur_report}" >> "${out_fname}"
+  done
 }
 
 #######################################
@@ -924,7 +921,8 @@ update_nodes_json() {
 run_checks() {
   # perform pre-checks here
 
-  local pghrep_failed_jsons_stack=""
+  local pghrep_failed_md_stack=""
+  local check_failed_json_stack=""
 
   export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
   test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
@@ -941,13 +939,13 @@ run_checks() {
     if [[ "${FILE}" != "None" ]]; then
       CURRENT_CHECK_FNAME="${FILE}"
       if ! [[ -e "${CURRENT_CHECK_FNAME}" ]]; then
-        err "Can't open file: '{CURRENT_CHECK_FNAME}'"
+        err "Can't open file: '${CURRENT_CHECK_FNAME}'"
       fi
     fi
     msg "========== Perform check: =========="
-    msg "$CURRENT_CHECK_FNAME"
+    msg "${CURRENT_CHECK_FNAME}"
 
-    local check_is_failed=false
+    local check_is_failed="false"
 
     # fix timestamp before check
     export TIMESTAMP_DIR=$(date +'%Y_%m_%dT%H_%M_%S_%z') # for use in directories names
@@ -969,7 +967,12 @@ run_checks() {
 
     if [[ "$check_is_failed" == "true" ]]; then
       msg "WARNING: check '${check_id}' failed with error ^^^"
-      continue
+      check_failed_json_stack="${check_failed_json_stack} ${check_id}_${check_name}.json"
+      if [[ "${FILE}" != "None" ]]; then
+        break
+      else
+        continue
+      fi
     else
       msg "check '$check_id' is finished"
     fi
@@ -986,9 +989,9 @@ run_checks() {
     if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${JSON_REPORTS_DIR}/${check_id}_${check_name}.json" \
       --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
       msg "WARNING: ${pghrep_output}"
-      pghrep_failed_jsons_stack="${pghrep_failed_jsons_stack} ${check_id}_${check_name}.json"
+      pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}_${check_name}.md"
     else
-      append_to_final_report "${MD_REPORTS_DIR}" "${check_id}_${check_name}.md"
+      msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}_${check_name}.md'"
     fi
 
     # parse only one file if check is given by CLI
@@ -999,22 +1002,35 @@ run_checks() {
 
   msg
   msg "All checks has been finished for host '$HOST'!"
-  
-  if ! [[ -z "${pghrep_failed_jsons_stack}" ]]; then
+
+  # print stacks with failed reports
+  if ! [[ -z "${check_failed_json_stack}" ]]; then
     msg
-    msg "WARNING: Can't generate md reports for this json's:"
-    local i
-    for i in ${pghrep_failed_jsons_stack}; do
+    msg "WARNING: Can't generate JSON reports (see errors above):"
+    local i=""
+    for i in ${check_failed_json_stack}; do
+      echo "        '${i}'"
+    done
+    msg "Markdown reports are also not created for these checks ^^"
+  fi
+  if ! [[ -z "${pghrep_failed_md_stack}" ]]; then
+    msg
+    msg "WARNING: Can't generate Markdown reports (see errors above):"
+    local i=""
+    for i in ${pghrep_failed_md_stack}; do
       echo "        '${i}'"
     done
   fi
 
-  msg
-  msg "Final .md report for host '${HOST}' and database '${DBNAME}' is ready at:"
-  echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
+  # generate final report
+  glue_md_reports
 
   msg
-  msg "ALL DONE!"
+  if [[ "${FILE}" = "None" ]]; then
+    msg "Final .md report is ready at:"
+    echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
+    msg
+  fi
 }
 
 ######### COMMANDS WRAPPERS ###########
@@ -1047,6 +1063,7 @@ main() {
   build_pghrep
   host_pre_start_checks
   run_checks
+  msg "ALL DONE!"
   exit 0
 }
 
