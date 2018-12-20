@@ -26,8 +26,11 @@ fi
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 $prepare_sql
 with data as (
-$main_sql
+  $main_sql
+), general_info as (
+  select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
+), database_sizes as (
+  select json_object_agg(datname, (SELECT pg_database_size(pd.datname))) from pg_database pd
 )
-select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
+select json_build_object('general_info', (select * from general_info), 'database_sizes', (select * from database_sizes));
 SQL
-
