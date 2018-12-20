@@ -19,26 +19,26 @@ func ByteFormat(inputNum float64, precision int) string {
     var unit string
     var returnVal float64
 
-    if inputNum >= 1000000000000000000000000 {
-        returnVal = RoundUp((inputNum / 1208925819614629174706176), precision)
+    if inputNum >= math.Pow(1000, 8) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 8)), precision)
         unit = " YiB" // yottabyte
-    } else if inputNum >= 1000000000000000000000 {
-        returnVal = RoundUp((inputNum / 1180591620717411303424), precision)
+    } else if inputNum >= math.Pow(1000, 7) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 7)), precision)
         unit = " ZiB" // zettabyte
-    } else if inputNum >= 10000000000000000000 {
-        returnVal = RoundUp((inputNum / 1152921504606846976), precision)
+    } else if inputNum >= math.Pow(1000, 6) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 6)), precision)
         unit = " EiB" // exabyte
-    } else if inputNum >= 1000000000000000 {
-        returnVal = RoundUp((inputNum / 1125899906842624), precision)
+    } else if inputNum >= math.Pow(1000, 5) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 5)), precision)
         unit = " PiB" // petabyte
-    } else if inputNum >= 1000000000000 {
-        returnVal = RoundUp((inputNum / 1099511627776), precision)
+    } else if inputNum >= math.Pow(1000, 4) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 4)), precision)
         unit = " TiB" // terrabyte
-    } else if inputNum >= 1000000000 {
-        returnVal = RoundUp((inputNum / 1073741824), precision)
+    } else if inputNum >= math.Pow(1000, 3) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 3)), precision)
         unit = " GiB" // gigabyte
-    } else if inputNum >= 1000000 {
-        returnVal = RoundUp((inputNum / 1048576), precision)
+    } else if inputNum >= math.Pow(1000, 2) {
+        returnVal = RoundUp((inputNum / math.Pow(1024, 2)), precision)
         unit = " MiB" // megabyte
     } else if inputNum >= 1000 {
         returnVal = RoundUp((inputNum / 1024), precision)
@@ -59,31 +59,26 @@ func GetUnit(unit string) int64 {
     } else if (strings.Contains(unit, "kB")) {
         factor = 1024
     } else if (strings.Contains(unit, "MB")) {
-        factor = 1024 * 1024
+        factor = int64(math.Pow(1024, 2))
     } else if (strings.Contains(unit, "GB")) {
-        factor = 1024 * 1024 * 1024
+        factor = int64(math.Pow(1024, 3))
     } else if (strings.Contains(unit, "TB")) {
-        factor = 1024 * 1024 * 1024 * 1024
+        factor = int64(math.Pow(1024, 4))
     } else if (strings.Contains(unit, "PB")) {
-        //factor = 1024 * 1024 * 1024 * 1024 * 1024
-        return -1
+        factor = int64(math.Pow(1024, 5))
     } else if (strings.Contains(unit, "EB")) {
-        //factor = 1024 * 1024 * 1024 * 1024 * 1024 * 1024
-        return -1
+        factor = int64(math.Pow(1024, 6))
     } else if (strings.Contains(unit, "ZB")) {
-        //factor = 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024
-        return -1
+        factor = int64(math.Pow(1024, 7))
     } else if (strings.Contains(unit, "YB")) {
-        //factor = 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024
-        return -1
+        factor = int64(math.Pow(1024, 8))
     }
     //fmt.Println("factor is :", factor)
     r := strings.NewReplacer("bytes", "", "kB", "", "MB", "", "GB", "", "TB", "", "PB", "", "EB", "", "ZB", "", "YB", "")
 	val := r.Replace(unit)
     intval, err := strconv.ParseInt(val, 10, 64)
     if err != nil {
-        //fmt.Println("Can't parse :", val, err)
-        return -1
+        intval = 1
     }
     value = intval * factor
     return value

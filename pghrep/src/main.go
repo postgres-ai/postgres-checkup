@@ -152,6 +152,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Trim"] = Trim
     tplFuncMap["Code"] = Code
     tplFuncMap["Nobr"] = Nobr
+    tplFuncMap["UnitValue"] = UnitValue
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
