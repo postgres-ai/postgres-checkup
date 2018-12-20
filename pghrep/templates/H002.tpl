@@ -1,14 +1,14 @@
 # {{ .checkId }} Non indexed foreign keys (or with bad indexes)
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 ```
 {{(index (index .results .hosts.master) "data").raw}}
 ```
 {{/* newline */}}
 {{/* newline */}}
-
+{{ end }}
 {{- if gt (len .hosts.replicas) 0 -}}
 ### Replica servers: ###
 {{/* newline */}}

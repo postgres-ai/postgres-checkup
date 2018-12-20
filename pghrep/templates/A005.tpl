@@ -2,8 +2,8 @@
 
 ## Observations ##
 
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-
 Database | Extension name | Installed version | Default version | Is old
 ---------|----------------|-------------------|-----------------|--------
 {{ range $d, $db := (index (index (index .results .hosts.master) "data") "_keys") -}}
@@ -13,6 +13,9 @@ Database | Extension name | Installed version | Default version | Is old
 {{ $db }} | {{ $dbext }} | {{ $extData.installed_version }} | {{ $extData.default_version }} | {{ $extData.is_old }}
 {{ end -}}
 {{ end -}}
+{{ else }}
+Extensions information not found
+{{ end }}
 
 {{/* force empty line */}}
 

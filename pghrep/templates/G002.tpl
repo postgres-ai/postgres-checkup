@@ -1,13 +1,14 @@
 # {{ .checkId }} Connections and current activity #
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 ```
 {{(index (index .results .hosts.master) "data").raw}}
 ```
 {{/* newline */}}
 {{/* newline */}}
+{{ end }}
 
 {{- if gt (len .hosts.replicas) 0 -}}
 ### Replica servers: ###
