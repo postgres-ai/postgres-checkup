@@ -2,7 +2,9 @@ package main
 
 import (
     "strings"
+    "strconv"
     "./pyraconv"
+    "./fmtutils"
 )
 
 func Split(s string, d string) []string {
@@ -35,4 +37,23 @@ func Code(s string, skipFirst bool) string {
     } else {
         return "\t" + strings.Join(codeLines, "\n")
     }
+}
+
+
+func UnitValue(value interface{}, unit interface{}) string {
+    val := pyraconv.ToString(value)
+    un := pyraconv.ToString(unit)
+    if len(un) <= 0 {
+        return val
+    }
+    intval, err := strconv.ParseInt(val, 10, 64)
+    if err != nil {
+        return val + "(" + un + ")"
+    }
+    if intval < 0 {
+        return val
+    }
+    unitFactor := fmtutils.GetUnit(un)
+    intval = intval * unitFactor
+    return fmtutils.ByteFormat(float64(intval), 0)
 }
