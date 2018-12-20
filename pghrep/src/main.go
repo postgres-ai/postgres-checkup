@@ -25,6 +25,7 @@ import (
     "sort"
     "strconv"
     "./orderedmap"
+    "./fmtutils"
 )
 
 var DEBUG bool = false
@@ -152,6 +153,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Trim"] = Trim
     tplFuncMap["Code"] = Code
     tplFuncMap["Nobr"] = Nobr
+    tplFuncMap["ByteFormat"] = fmtutils.ByteFormat
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
