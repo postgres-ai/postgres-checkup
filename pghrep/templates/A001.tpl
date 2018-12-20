@@ -1,7 +1,7 @@
 # {{ .checkId }} System information #
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data").system.raw}}
 **System**
@@ -28,7 +28,7 @@
 ```
 {{ (index (index .results .hosts.master) "data").virtualization.raw }}
 ```{{ end }}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
     {{ range $key, $value := .hosts.replicas }}

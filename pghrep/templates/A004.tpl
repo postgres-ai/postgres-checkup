@@ -1,7 +1,7 @@
 # {{ .checkId }} Cluster information #
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
  Indicator | Value
 -----------|-------
@@ -9,7 +9,7 @@
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
 {{ $key }} | {{ Nobr (index $value "value") }}
 {{ end }}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}

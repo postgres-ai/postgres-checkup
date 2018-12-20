@@ -1,7 +1,7 @@
 # {{ .checkId }} Memory-related settings #
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 
 Setting name | Value
@@ -10,7 +10,7 @@ Setting name | Value
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
     [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ UnitValue $value.setting $value.unit}}
 {{ end -}}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
     {{ range $skey, $host := .hosts.replicas }}

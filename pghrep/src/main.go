@@ -30,7 +30,7 @@ import (
 var DEBUG bool = false
 
 // Output debug message
-func dbg(v ...interface{}) {
+func Dbg(v ...interface{}) {
     if DEBUG {
         message := ""
         for _, value := range v {
@@ -39,6 +39,16 @@ func dbg(v ...interface{}) {
         log.Println(">>> DEBUG:", message)
     }
 }
+
+// Output debug message
+func Err(v ...interface{}) {
+    message := ""
+    for _, value := range v {
+        message = message + " " + pyraconv.ToString(value)
+    }
+    log.Println(">>> ERROR:", message)
+}
+
 
 // Prepropess file paths
 // Allow absulute and relative (of pwd) paths with or wothout file:// prefix
@@ -56,7 +66,7 @@ func GetFilePath(name string) string {
         // for relative path will combine with current path
         curDir, err := os.Getwd()
         if err != nil {
-            dbg("Can't determine current path")
+            Dbg("Can't determine current path")
         }
         if strings.HasSuffix(strings.ToLower(curDir), "/") {
             filePath = curDir + filePath
@@ -85,7 +95,7 @@ func FileExists(name string) bool {
 func ParseJson(jsonData string) map[string]interface{} {
     orderedData := orderedmap.New()
     if err := json.Unmarshal([]byte(jsonData), &orderedData); err != nil {
-        dbg("Can't parse json data:", err)
+        Err("Can't parse json data:", err)
         return nil
     } else {
         dt := orderedData.ToInterfaceArray()
@@ -99,7 +109,7 @@ func LoadJsonFile(filePath string) map[string]interface{} {
     if FileExists(filePath) {
         fileContent, err := ioutil.ReadFile(GetFilePath(filePath)) // just pass the file name
         if err != nil {
-            log.Println("Can't read file: ", filePath, err)
+            Err("Can't read file: ", filePath, err)
             return nil
         }
         return ParseJson(string(fileContent))
@@ -121,7 +131,7 @@ func loadDependencies(data map[string]interface{}) {
 func loadTemplates() *template.Template {
     dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
     if err != nil {
-        dbg("Can't determine current path")
+        Dbg("Can't determine current path")
     }
 
     var templates *template.Template
@@ -145,7 +155,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["UnitValue"] = UnitValue
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
-        dbg("Can't load templates", err)
+        log.Fatal("Can't load templates", err)
         return nil
     }
 
@@ -157,7 +167,7 @@ func getRawData(data map[string]interface{}) {
     // for every host get data
     var rawData []interface{}
     hosts := pyraconv.ToInterfaceMap(data["hosts"])
-    dbg("Data hosts: ", hosts)
+    Dbg("Data hosts: ", hosts)
     results := pyraconv.ToInterfaceMap(data["results"])
     masterName := pyraconv.ToString(hosts["master"])
     masterResults := pyraconv.ToInterfaceMap(results[masterName])
@@ -200,7 +210,7 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
     _, err := filepath.Abs(filepath.Dir(os.Args[0]))
     f, err := os.OpenFile(outputFileName, os.O_CREATE | os.O_RDWR, 0777)
     if err != nil {
-        dbg("Can't create report file", err)
+        Err("Can't create report file", err)
         return false
     }
     defer f.Close()
@@ -214,14 +224,14 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
     reporTpl := templates.Lookup(reportFileName)
     data := reportData
     if reporTpl == nil {
-        dbg("Template " + checkId + ".tpl not found.")
+        Err("Template " + checkId + ".tpl not found.")
         getRawData(data)
         reportFileName = "raw.tpl"
         reporTpl = templates.Lookup(reportFileName)
     }
     err = reporTpl.ExecuteTemplate(f, reportFileName, data)
     if err != nil {
-        dbg("Template execute error is", err)
+        Err("Template execute error is", err)
         defer os.Remove(outputFileName)
         return false
     } else {
@@ -311,7 +321,7 @@ func main() {
     var reportData map[string]interface{}
     objectPath, err := l.get(checkId);
     if err != nil {
-        dbg("Cannot find and load plugin.", err)
+        Dbg("Cannot find and load plugin.", err)
         reportData = resultData
     } else {
         result, err := l.call(objectPath, resultData)
