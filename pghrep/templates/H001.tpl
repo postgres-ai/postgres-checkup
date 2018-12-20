@@ -1,12 +1,11 @@
 # {{ .checkId }} Unused/Rarely Used Indexes #
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 
 {{ if (index (index (index .results .hosts.master) "data") "indexes") -}}
 #### Indexes ####
-
 Index name | Reason | Scheme name | Table name | Index size | Table size
 -----------|--------|-------------|------------|------------|------------
 {{ range $i, $index_name := (index (index (index (index .results .hosts.master) "data") "indexes") "_keys") }}
@@ -16,7 +15,7 @@ Index name | Reason | Scheme name | Table name | Index size | Table size
 {{- else -}}
 No data
 {{- end }}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
 {{ range $skey, $host := .hosts.replicas }}

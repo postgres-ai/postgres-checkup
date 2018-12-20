@@ -1,9 +1,8 @@
 # {{ .checkId }} Autovacuum info #
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-
 Setting name | Value | Unit
 -------------|-------|------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "global_settings") "_keys") }}
@@ -28,7 +27,7 @@ Result:
 {{- (index (index (index .results .hosts.master) "data") "iotop").data -}}
 ```
 {{- end -}}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}

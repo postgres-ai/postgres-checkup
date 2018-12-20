@@ -1,7 +1,8 @@
 # {{ .checkId }} Heap bloat #
+:warning: This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and even more). Use it only as an indicator of potential issues.
 
 ## Observations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data") }}
  Table | Size | Extra | Bloat | Live | Last vacuum
@@ -13,7 +14,7 @@
 {{- else -}}
 `No data`
 {{- end -}}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}
