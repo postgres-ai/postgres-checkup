@@ -41,7 +41,7 @@ No data
 
 
 ## Recommendations ##
-
+{{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if or (index (index (index .results .hosts.master) "data") "drop_code") (index (index (index .results .hosts.master) "data") "revert_code") -}}
 {{ if (index (index (index .results .hosts.master) "data") "drop_code") }}
@@ -62,7 +62,7 @@ No data
 {{ else }}
 No recommendations
 {{- end }}
-
+{{ end }}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
 {{ range $skey, $host := .hosts.replicas }}
