@@ -21,6 +21,11 @@ func Nobr(s interface{}) string {
     return strings.Join(strings.Split(str, "\n"), "")
 }
 
+func Br(s interface{}) string {
+    str := pyraconv.ToString(s)
+    return strings.Join(strings.Split(str, ","), ", ")
+}
+
 /* Add \t before every row in text to preview block as code block
 * s String - string for preprocces
 * skipFirst bool - flag to skip first row
@@ -39,21 +44,23 @@ func Code(s string, skipFirst bool) string {
     }
 }
 
-
 func UnitValue(value interface{}, unit interface{}) string {
     val := pyraconv.ToString(value)
     un := pyraconv.ToString(unit)
     if len(un) <= 0 {
-        return val
+        return ""
     }
     intval, err := strconv.ParseInt(val, 10, 64)
     if err != nil {
-        return val + "(" + un + ")"
+        return "" // val + "(" + un + ")"
     }
     if intval < 0 {
-        return val
+        return "" // val
     }
     unitFactor := fmtutils.GetUnit(un)
-    intval = intval * unitFactor
-    return fmtutils.ByteFormat(float64(intval), 0)
+    if unitFactor != -1 {
+        intval = intval * unitFactor
+        return fmtutils.ByteFormat(float64(intval))
+    }
+    return "" //val + "(" + un + ")"
 }

@@ -17,7 +17,7 @@ Database | Size
 ---------|------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "database_sizes") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "database_sizes") $key) -}}
-{{ $key }} | {{ ByteFormat $value 0 }}
+{{ $key }} | {{ ByteFormat $value }}
 {{ end }}
 {{- end -}}
 {{- end -}}

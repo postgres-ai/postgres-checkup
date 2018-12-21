@@ -15,9 +15,11 @@ func RoundUp(input float64, places int) (newVal float64) {
      return
 }
 
-func ByteFormat(inputNum float64, precision int) string {
+func ByteFormat(inputNum float64) string {
     var unit string
     var returnVal float64
+    var precision int
+    precision = 0
 
     if inputNum >= math.Pow(1000, 8) {
         returnVal = RoundUp((inputNum / math.Pow(1024, 8)), precision)
@@ -72,6 +74,8 @@ func GetUnit(unit string) int64 {
         factor = int64(math.Pow(1024, 7))
     } else if (strings.Contains(unit, "YB")) {
         factor = int64(math.Pow(1024, 8))
+    } else {
+        return -1
     }
     //fmt.Println("factor is :", factor)
     r := strings.NewReplacer("bytes", "", "kB", "", "MB", "", "GB", "", "TB", "", "PB", "", "EB", "", "ZB", "", "YB", "")

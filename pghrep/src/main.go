@@ -153,6 +153,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Trim"] = Trim
     tplFuncMap["Code"] = Code
     tplFuncMap["Nobr"] = Nobr
+    tplFuncMap["Br"] = Br
     tplFuncMap["ByteFormat"] = fmtutils.ByteFormat
     tplFuncMap["UnitValue"] = UnitValue
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
