@@ -50,6 +50,7 @@ No data
 {{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "drop_code") }}{{ $drop_code }}
 {{ end }}
 ```
+
 {{ end }}
 
 {{- if (index (index (index .results .hosts.master) "data") "revert_code") -}}
@@ -58,7 +59,8 @@ No data
 {{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "revert_code") }}{{ $revert_code }}
 {{ end }}
 ```
-    {{- end }}
+
+{{- end }}
 {{ else }}
 No recommendations
 {{- end }}
@@ -76,6 +78,7 @@ No recommendations
 {{ range $i, $drop_code := (index (index (index $.results $host) "data") "drop_code") }}{{ $drop_code }}
 {{ end }}
 ```
+
 {{- end }}
 
 {{- if (index (index (index $.results $host) "data") "revert_code") -}}
@@ -86,6 +89,7 @@ No recommendations
 {{ range $i, $revert_code := (index (index (index $.results $host) "data") "revert_code") }}{{ $revert_code }}
 {{ end }}
 ```
+
 {{- end -}}
 {{ end }}
 {{- else }}
@@ -93,3 +97,4 @@ No recommendations
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
