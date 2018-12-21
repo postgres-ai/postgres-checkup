@@ -60,7 +60,7 @@ func UnitValue(value interface{}, unit interface{}) string {
     unitFactor := fmtutils.GetUnit(un)
     if unitFactor != -1 {
         intval = intval * unitFactor
-        return fmtutils.ByteFormat(float64(intval))
+        return fmtutils.ByteFormat(float64(intval), 2)
     }
     return "" //val + "(" + un + ")"
 }

@@ -15,11 +15,9 @@ func RoundUp(input float64, places int) (newVal float64) {
      return
 }
 
-func ByteFormat(inputNum float64) string {
+func ByteFormat(inputNum float64, precision int) string {
     var unit string
     var returnVal float64
-    var precision int
-    precision = 0
 
     if inputNum >= math.Pow(1000, 8) {
         returnVal = RoundUp((inputNum / math.Pow(1024, 8)), precision)
