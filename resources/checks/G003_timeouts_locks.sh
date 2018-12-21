@@ -25,6 +25,6 @@ select
         'timeouts', (select * from timeouts), 'locks', (select * from locks),
         'databases_stat', (select * from dbs_data),
         'db_specified_settings', (select * from db_specified_settings),
-        'c', (select * from user_specified_settings)
+        'user_specified_settings', (select * from user_specified_settings)
     );
 SQL
