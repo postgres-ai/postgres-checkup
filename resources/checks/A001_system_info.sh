@@ -64,7 +64,7 @@ function get_ctl_info() {
 }
 
 function get_disk_info() {
-  local disk_info="$(${CHECK_HOST_CMD} "df -T")"
+  local disk_info="$(${CHECK_HOST_CMD} "df -hT")"
   #local disk_info="$(df -T | sed 's/"/\\"/g')"
   res_obj="{\"cmd2check\": \"df -T\", \"raw\": \"$disk_info\"}"
   DISK_INFO=$res_obj #$(jq -n "$res_obj")
