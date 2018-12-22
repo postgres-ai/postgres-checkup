@@ -1,7 +1,6 @@
 # {{ .checkId }} Extensions #
 
 ## Observations ##
-
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 Database | Extension name | Installed version | Default version | Is old
@@ -16,8 +15,6 @@ Database | Extension name | Installed version | Default version | Is old
 {{ else }}
 Extensions information not found
 {{ end }}
-
-{{/* force empty line */}}
 
 ## Conclusions ##
 

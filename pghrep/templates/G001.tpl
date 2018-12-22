@@ -4,11 +4,11 @@
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 
-Setting name | Value
--------------|-------
+Setting name | Value | Unit | Pretty value
+-------------|-------|------|--------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-    [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ UnitValue $value.setting $value.unit}}
+    [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }}) | {{ $value.setting }}| {{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
 {{ end -}}
 {{ end }}
 {{ if gt (len .hosts.replicas) 0 }}

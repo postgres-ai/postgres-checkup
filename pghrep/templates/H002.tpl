@@ -3,6 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
+
 ```
 {{(index (index .results .hosts.master) "data").raw}}
 ```
@@ -21,12 +22,15 @@
 ```
 {{ (index (index $.results $host) "data").raw }}
 ```
-    {{- else -}}
+
+{{- else -}}
+
 ```
 No non-indexed foreign keys
 ```
-    {{- end -}}
-  {{- end -}}
+
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{/* newline */}}

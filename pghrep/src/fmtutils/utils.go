@@ -72,6 +72,8 @@ func GetUnit(unit string) int64 {
         factor = int64(math.Pow(1024, 7))
     } else if (strings.Contains(unit, "YB")) {
         factor = int64(math.Pow(1024, 8))
+    } else {
+        return -1
     }
     //fmt.Println("factor is :", factor)
     r := strings.NewReplacer("bytes", "", "kB", "", "MB", "", "GB", "", "TB", "", "PB", "", "EB", "", "ZB", "", "YB", "")

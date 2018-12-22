@@ -8,6 +8,23 @@ with timeouts as (
   select *, ((now() - sd.stats_reset)::interval(0)::text) as stats_reset_age from pg_stat_database sd where datname in (SELECT datname FROM pg_database WHERE datistemplate = false)
 ), dbs_data as (
   select json_object_agg(sd.datname, sd) from databases_stat sd
+), db_specified_settings as (
+    select json_object_agg(dbs.database, dbs) from
+        (select
+            (select datname from pg_database where oid = pd.setdatabase) as database,
+            *
+        from pg_db_role_setting pd
+        where
+            setconfig::text ~ '(lock_timeout|deadlock_timeout)'
+            and setdatabase is not null and setdatabase <> 0) dbs
+), user_specified_settings as (
+    select json_object_agg(pr.rolname, pr) from pg_roles pr where rolconfig::text ~ '(lock_timeout|deadlock_timeout)'
 )
-select json_build_object('timeouts', (select * from timeouts), 'locks', (select * from locks), 'databases_stat', (select * from dbs_data));
+select
+    json_build_object(
+        'timeouts', (select * from timeouts), 'locks', (select * from locks),
+        'databases_stat', (select * from dbs_data),
+        'db_specified_settings', (select * from db_specified_settings),
+        'user_specified_settings', (select * from user_specified_settings)
+    );
 SQL

@@ -3,6 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
+
 ```
 {{(index (index .results .hosts.master) "data").raw}}
 ```
@@ -19,15 +20,18 @@
     {{- if (index $.results $host) -}}
 {{/* newline */}}
 {{/* newline */}}
+
 ```
 {{ (index (index $.results $host) "data").raw }}
 ```
-    {{- else -}}
+
+{{- else -}}
+
 ```
 No data
 ```
-    {{- end -}}
-  {{- end -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{/* newline */}}
