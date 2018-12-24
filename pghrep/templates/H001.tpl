@@ -1,100 +1,58 @@
 # {{ .checkId }} Unused/Rarely Used Indexes #
 
 ## Observations ##
-{{ if .hosts.master }}
-### Master (`{{.hosts.master}}`) ###
+{{ if .resultData }}
 
-{{ if (index (index (index .results .hosts.master) "data") "indexes") -}}
-#### Indexes ####
-Index name | Reason | Scheme name | Table name | Index size | Table size
------------|--------|-------------|------------|------------|------------
-{{ range $i, $index_name := (index (index (index (index .results .hosts.master) "data") "indexes") "_keys") }}
-{{- $index_data := (index (index (index (index $.results $.hosts.master) "data") "indexes") $index_name) -}}
-{{ $index_name }} | {{ $index_data.reason }} | {{ $index_data.schemaname }} | {{ $index_data.tablename }} | {{ $index_data.index_size }} | {{ $index_data.table_size }}
-{{ end }}
+    {{- if .resultData.indexes -}}
+### Never Used Indexes ###
+Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Usage
+--------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----
+{{ range $key, $value := (index .resultData "indexes") }}
+{{- if ne $key "_keys" -}}
+{{- if eq $value.master.reason "Never Used Indexes" -}}
+{{- if $value.usage -}}
 {{- else -}}
-No data
+{{ $key }} | {{ $value.master.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ (index $value $host).idx_scan }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }}
+{{/* new line */}}
+{{- end -}}
+{{- end -}}
 {{- end }}
-{{ end }}
-{{ if gt (len .hosts.replicas) 0 }}
-### Replica servers: ###
-{{ range $skey, $host := .hosts.replicas }}
-#### Replica server: `{{ $host }}` ####
-{{ if (index (index (index $.results $host) "data") "indexes") -}}
-{{ if (index $.results $host) }}
-#### Indexes ####
+{{- end }}
 
-Index name | Reason | Scheme name | Table name | Index size | Table size
------------|--------|-------------|------------|------------|------------
-{{ range $i, $index_name := (index (index (index (index $.results $host) "data") "indexes") "_keys") }}
-{{- $index_data := (index (index (index (index $.results $host) "data") "indexes") $index_name) -}}
-{{ $index_name }} | {{ $index_data.reason }} | {{ $index_data.schemaname }} | {{ $index_data.tablename }} | {{ $index_data.index_size }} | {{ $index_data.table_size }}
-{{ end }}
-{{ end }}
-{{- else }}
-No data
+### Other unused indexes ###
+Index | Reason |{{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Usage
+------|--------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----
+{{ range $key, $value := (index .resultData "indexes") }}
+{{- if ne $key "_keys" -}}
+{{- if ne $value.master.reason "Never Used Indexes" -}}
+{{ $key }} | {{ $value.master.reason }} | Index&nbsp;size:{{ Nobr $value.master.index_size }} Table&nbsp;size:{{ Nobr $value.master.table_size }} {{ range $skey, $host := $.hosts.replicas }} |Index&nbsp;size:{{ Nobr (index $value $host).index_size }} Table&nbsp;size:{{ Nobr (index $value $host).table_size }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }}
+{{/* new line */}}
 {{- end -}}
-{{- end -}}
+{{- end }}
+{{- end }}
 {{ end }}
 
 ## Conclusions ##
 
 
 ## Recommendations ##
-{{ if .hosts.master }}
-### Master (`{{.hosts.master}}`) ###
-{{ if or (index (index (index .results .hosts.master) "data") "drop_code") (index (index (index .results .hosts.master) "data") "revert_code") -}}
-{{ if (index (index (index .results .hosts.master) "data") "drop_code") }}
+{{ if .resultData.dropCode }}
 #### Drop code ####
 ```
-{{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "drop_code") }}{{ $drop_code }}
+{{ range $i, $drop_code := (index .resultData  "dropCode") }}{{ $drop_code }}
 {{ end }}
 ```
-
 {{ end }}
 
-{{- if (index (index (index .results .hosts.master) "data") "revert_code") -}}
+{{ if .resultData.revertCode }}
 #### Revert code ####
 ```
-{{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "revert_code") }}{{ $revert_code }}
+{{ range $i, $revert_code := (index .resultData  "revertCode") }}{{ $revert_code }}
 {{ end }}
 ```
+{{ end }}
 
+
+{{- else -}}
+No data
 {{- end }}
-{{ else }}
-No recommendations
-{{- end }}
-{{ end }}
-{{ if gt (len .hosts.replicas) 0 }}
-### Replica servers: ###
-{{ range $skey, $host := .hosts.replicas }}
-#### Replica server: `{{ $host }}` ####
-{{ if or (index (index (index $.results $host) "data") "drop_code") (index (index (index $.results $host) "data") "revert_code") -}}
-{{ if (index $.results $host) }}
-{{ if (index (index (index $.results $host) "data") "drop_code") -}}
-#### Drop code ####
-
-```
-{{ range $i, $drop_code := (index (index (index $.results $host) "data") "drop_code") }}{{ $drop_code }}
-{{ end }}
-```
-
-{{- end }}
-
-{{- if (index (index (index $.results $host) "data") "revert_code") -}}
-{{/* blank  row */}}
-#### Revert code ####
-
-```
-{{ range $i, $revert_code := (index (index (index $.results $host) "data") "revert_code") }}{{ $revert_code }}
-{{ end }}
-```
-
-{{- end -}}
-{{ end }}
-{{- else }}
-No recommendations
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
