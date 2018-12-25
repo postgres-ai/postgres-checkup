@@ -3,6 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
+{{ if (index (index .results .hosts.master) "data")}}
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
@@ -21,6 +22,9 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.cols_list }} |
     {{- $value.indexdef }}
 {{ end }}{{/* range */}}
+{{ else }}
+No data
+{{- end -}}{{/* if data */}}
 {{ end }}{{/* if .host.master */}}
 
 {{- if gt (len .hosts.replicas) 0 -}}
@@ -28,7 +32,7 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
 {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 {{- if (index $.results $host) }}
-
+{{ if (index (index $.results $host) "data")}}
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
@@ -47,7 +51,7 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.cols_list }} |
     {{- $value.indexdef }}
 {{ end }}{{/* range */}}
-
+{{ end }}{{/* if data */}}
 {{- else -}}{{/* if $.results $host */}}
 No data
 {{- end -}}{{/* if $.results $host */}}
