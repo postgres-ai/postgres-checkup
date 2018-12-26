@@ -5,6 +5,7 @@ import (
     "strconv"
     "./pyraconv"
     "./fmtutils"
+    "fmt"
 )
 
 func Split(s string, d string) []string {
@@ -63,4 +64,21 @@ func UnitValue(value interface{}, unit interface{}) string {
         return fmtutils.ByteFormat(float64(intval), 2)
     }
     return "" //val + "(" + un + ")"
+}
+
+func LimitStr(value interface{}, limit int) string {
+    val := pyraconv.ToString(value)
+    if len(val) > limit {
+        return val[0:limit-1] + "..."
+    }
+    return val
+}
+
+func Round(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    if value != nil && places != nil {
+        return fmt.Sprintf("%v", fmtutils.RoundUp(val, int(pl)))
+    }
+    return fmt.Sprintf("%v", val)
 }
