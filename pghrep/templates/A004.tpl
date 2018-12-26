@@ -28,8 +28,8 @@ Database | Size
     {{ if (index $.results $host) }}
  Indicator | Value
 -----------|-------
-{{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
-{{- $value := (index (index (index $.results $host) "data") $key) -}}
+{{ range $i, $key := (index (index (index (index $.results $host) "data") "general_info") "_keys") }}
+{{- $value := (index (index (index (index $.results $host) "data") "general_info") $key) -}}
 {{ $key }} | {{ Nobr (index $value "value") }}
 {{ end }}
 {{- else -}}
