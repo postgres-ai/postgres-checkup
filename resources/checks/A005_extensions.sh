@@ -17,7 +17,8 @@ for cur_db in ${dbs}; do
         select data.*, (select json_object_agg(name, setting) from pg_settings where name ~ data.name) as settings from data
     )
     select json_object_agg(withsettins.name, withsettins) as json from withsettins;
-SQL)
+SQL
+)
 
   result=$(jq --arg db "${cur_db}" --argjson obj "$object" -r '. += { ($db): $obj }' <<<"${result}")
 done
