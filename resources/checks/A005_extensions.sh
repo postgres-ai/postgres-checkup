@@ -4,7 +4,8 @@ sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql
 
 dbs=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 select datname from pg_database where datname not in ('template0', 'template1', 'postgres')
-SQL)
+SQL
+)
 
 result="{ }"
 
@@ -17,7 +18,8 @@ for cur_db in ${dbs}; do
         select data.*, (select json_object_agg(name, setting) from pg_settings where name ~ data.name) as settings from data
     )
     select json_object_agg(withsettins.name, withsettins) as json from withsettins;
-SQL)
+SQL
+)
 
   result=$(jq --arg db "${cur_db}" --argjson obj "$object" -r '. += { ($db): $obj }' <<<"${result}")
 done

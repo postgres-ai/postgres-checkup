@@ -45,7 +45,8 @@ fi
 err_code="0"
 res=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<'SQL' >/dev/null 2>&1
 select from pg_stat_kcache limit 1 -- the fastest way
-SQL) || err_code="$?"
+SQL
+) || err_code="$?"
 
 # main query to save statistics
 if [[ "${err_code}" -ne "0" ]]; then
@@ -142,6 +143,7 @@ json_object=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
     'queries', json_object_agg(data.md5, data.*)
   )
   from data
+SQL
              )
 
 # save to file
@@ -247,4 +249,5 @@ sql="
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL | jq -r .
   ${sql}
 SQL
+
 
