@@ -4,7 +4,8 @@ sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql
 
 dbs=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 select datname from pg_database where datname not in ('template0', 'template1', 'postgres')
-SQL)
+SQL
+)
 
 result="{ }"
 
