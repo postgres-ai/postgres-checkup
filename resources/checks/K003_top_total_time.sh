@@ -142,6 +142,7 @@ json_object=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
     'queries', json_object_agg(data.md5, data.*)
   )
   from data
+SQL
              )
 
 # save to file
