@@ -156,6 +156,8 @@ func loadTemplates() *template.Template {
     tplFuncMap["Br"] = Br
     tplFuncMap["ByteFormat"] = fmtutils.ByteFormat
     tplFuncMap["UnitValue"] = UnitValue
+    tplFuncMap["RoundUp"] = Round
+    tplFuncMap["LimitStr"] = LimitStr
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
