@@ -4,11 +4,11 @@ stages:
   - test
 
 before_script:
-  sudo add-apt-repository ppa:gophers/archive && \
-  sudo apt update && \
-  sudo apt-get install golang-1.9-go && \
-  echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile && \
-  source ~/.profile
+  - sudo add-apt-repository ppa:gophers/archive && \
+    sudo apt update && \
+    sudo apt-get install golang-1.9-go && \
+    echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile && \
+    source ~/.profile
 test:
   stage: test
   script: cd pghrep && make test
