@@ -1,0 +1,6 @@
+stages:
+  - test
+
+test:
+  stage: test
+  script: cd pghrep && make test
