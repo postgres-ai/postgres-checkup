@@ -5,7 +5,7 @@ stages:
 
 before_script:
   - apt-get update && apt-get install -y sudo wget jq gawk && \
-    add-apt-repository ppa:gophers/archive && \
+    apt-get -y upgrade && \
     apt-get install golang-1.9-go && \
     echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile && \
     source ~/.profile
