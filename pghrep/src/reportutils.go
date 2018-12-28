@@ -82,3 +82,7 @@ func Round(value interface{}, places interface{}) string {
     }
     return fmt.Sprintf("%v", val)
 }
+
+func Add(a int, b int) int {
+    return a + b
+}
