@@ -7,7 +7,7 @@ import (
 
 func TestByteFormat(t *testing.T) {
     var value string
-    value = ByteFormat(982, 0)
+    value = ByteFormat(981, 0)
     if strings.Compare(value, "981 bytes") != 0 {
         t.Fatal("TestGetFilePathSuccess failed")
     }

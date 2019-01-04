@@ -6,6 +6,7 @@ import (
     "./pyraconv"
     "./fmtutils"
     "fmt"
+    "time"
 )
 
 func Split(s string, d string) []string {
@@ -81,4 +82,16 @@ func Round(value interface{}, places interface{}) string {
         return fmt.Sprintf("%v", fmtutils.RoundUp(val, int(pl)))
     }
     return fmt.Sprintf("%v", val)
+}
+
+func MsFormat(value interface{}) string {
+    val := pyraconv.ToInt64(value)
+    tm, _ := time.ParseDuration(strconv.FormatInt(val, 10) + "ms")
+    return tm.String()
+}
+
+func NumFormat(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    return fmtutils.NumFormat(val, int(pl))
 }
