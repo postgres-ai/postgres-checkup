@@ -1,12 +1,17 @@
-# {{ .checkId }} Top 50 queries #
+# {{ .checkId }} Top 50 queries #<a name="K003"/>
 
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 Start: {{ (index (index (index .results .hosts.master) "data") "start_timestamptz") }}  
 End: {{ (index (index (index .results .hosts.master) "data") "end_timestamptz") }}  
+<<<<<<< pghrep/templates/K003.tpl
+Period, seconds: {{ (index (index (index .results .hosts.master) "data") "period_seconds") }}  
+Period, age: {{ (index (index (index .results .hosts.master) "data") "period_age") }}  
+=======
 Period seconds: {{ (index (index (index .results .hosts.master) "data") "period_seconds") }}  
 Period age: {{ (index (index (index .results .hosts.master) "data") "period_age") }}  
+>>>>>>> pghrep/templates/K003.tpl
 
 \# | Calls | Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time | Query
 ----|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|------- 
@@ -43,7 +48,7 @@ Period seconds: {{ (index (index (index $.results $host) "data") "period_seconds
 Period age: {{ (index (index (index $.results $host) "data") "period_age") }}  
 
 
-Num | Calls | Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time | Query
+\# | Calls | Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time | Query
 ----|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|------- 
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "queries") "_keys") }}
 {{- $value := (index (index (index (index $.results $host) "data") "queries") $key) -}}

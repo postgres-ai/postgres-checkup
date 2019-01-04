@@ -84,6 +84,10 @@ func Round(value interface{}, places interface{}) string {
     return fmt.Sprintf("%v", val)
 }
 
+func Add(a int, b int) int {
+    return a + b
+}
+
 func MsFormat(value interface{}) string {
     val := pyraconv.ToInt64(value)
     tm, _ := time.ParseDuration(strconv.FormatInt(val, 10) + "ms")

@@ -89,7 +89,6 @@ No recommendations
 {{ range $i, $revert_code := (index (index (index $.results $host) "data") "revert_code") }}{{ $revert_code }}
 {{ end }}
 ```
-
 {{- end -}}
 {{ end }}
 {{- else }}
@@ -97,4 +96,5 @@ No recommendations
 {{- end -}}
 {{- end -}}
 {{- end -}}
-
+{{/* new line */}}
+{{/* new line */}}
