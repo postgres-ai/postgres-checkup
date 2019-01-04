@@ -50,7 +50,41 @@ func ByteFormat(inputNum float64, precision int) string {
 
     return strconv.FormatFloat(returnVal, 'f', precision, 64) + unit
 }
- 
+
+func NumFormat(inputNum float64, precision int) string {
+    var returnVal float64
+    var unit string
+    if inputNum >= math.Pow(1000, 8) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 8)), precision)
+        unit = "Y" // yottabyte
+    } else if inputNum >= math.Pow(1000, 7) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 7)), precision)
+        unit = "Z" // zettabyte
+    } else if inputNum >= math.Pow(1000, 6) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 6)), precision)
+        unit = "E" // exabyte
+    } else if inputNum >= math.Pow(1000, 5) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 5)), precision)
+        unit = "P" // petabyte
+    } else if inputNum >= math.Pow(1000, 4) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 4)), precision)
+        unit = "T" // terrabyte
+    } else if inputNum >= math.Pow(1000, 3) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 3)), precision)
+        unit = "G" // gigabyte
+    } else if inputNum >= math.Pow(1000, 2) {
+        returnVal = RoundUp((inputNum / math.Pow(1000, 2)), precision)
+        unit = "M" // megabyte
+    } else if inputNum >= 1000 {
+        returnVal = RoundUp((inputNum / 1000), precision)
+        unit = "K" // kilobyte
+    } else {
+        returnVal = inputNum
+        unit = ""
+    }
+    return strconv.FormatFloat(returnVal, 'f', precision, 64) + unit
+}
+
 func GetUnit(unit string) int64 {
     var factor int64 = 1
     var value int64 = 0
