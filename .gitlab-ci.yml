@@ -27,7 +27,7 @@ before_script:
     - psql -h postgres -d dbname -U username -f .ci/h002_step2.sql
     - rm -Rf ./artifacts/
     - ./check -h postgres --username username --project test --dbname dbname -e 1
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && [ "$result" != "null" ] && exit 1
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && ([ "$result" != "[]" ] && [ "$result" != "null" ]) && exit 1
 
 test-pghrep:
   stage: test
