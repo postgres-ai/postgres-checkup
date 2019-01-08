@@ -16,10 +16,10 @@ before_script:
   - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
   - source ~/.profile
   - apt-get -y install postgresql postgresql-contrib
+  - psql --version
 
 .test-check:
   script:
-    - psql --version
     - psql -h postgres -d dbname -U username -c "SELECT version();"
     - psql -h postgres -d dbname -U username -f .ci/h002.sql
     - ./check -h postgres --username username --project test --dbname dbname -e 1
