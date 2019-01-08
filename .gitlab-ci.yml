@@ -18,7 +18,7 @@ before_script:
   - apt-get -y install golang-1.9-go
   - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
   - source ~/.profile
-  - apt-get install postgresql postgresql-contrib
+  - apt-get -y install postgresql postgresql-contrib
 
 test:
   stage: test
