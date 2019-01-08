@@ -1,6 +1,15 @@
+image: ubuntu:16.04
 
 stages:
   - test
+
+services:
+  - postgres:9.6
+
+variables:
+  POSTGRES_DB: dbname # set database
+  POSTGRES_USER: username # set username
+  POSTGRES_PASSWORD: ""  
 
 before_script:
   - apt-get update
@@ -12,5 +21,6 @@ before_script:
 
 test:
   stage: test
-  image: ubuntu:16.04
-  script: cd pghrep && make test
+  script:
+    - psql -d dbname -U username -c "SELECT version();"
+    - cd pghrep && make test
