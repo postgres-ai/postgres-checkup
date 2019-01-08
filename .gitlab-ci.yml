@@ -42,3 +42,9 @@ test-check-10:
   stage: "test-check"
   services:
     - postgres:10
+
+test-check-11:
+  extends: ".test-check"
+  stage: "test-check"
+  services:
+    - postgres:11
