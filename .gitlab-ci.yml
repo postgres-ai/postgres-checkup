@@ -2,9 +2,10 @@ image: ubuntu:16.04
 
 stages:
   - test
+  - test-check
 
-services:
-  - postgres:9.6
+#services:
+#  - postgres:9.6
 
 variables:
   POSTGRES_DB: dbname # set database
@@ -20,9 +21,24 @@ before_script:
   - source ~/.profile
   - apt-get -y install postgresql postgresql-contrib
 
-test:
-  stage: test
+.test-check
   script:
     - psql --version
     - psql -h postgres -d dbname -U username -c "SELECT version();"
+
+test:
+  stage: test
+  script:
     - cd pghrep && make test
+
+test-check-9.6:
+  extends: ".test-check"
+  stage: "test-check"
+  services:
+    - postgres:9.6
+
+test-check-10:
+  extends: ".test-check"
+  stage: "test-check"
+  services:
+    - postgres:10
