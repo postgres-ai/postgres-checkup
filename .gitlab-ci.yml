@@ -21,7 +21,7 @@ before_script:
   - source ~/.profile
   - apt-get -y install postgresql postgresql-contrib
 
-.test-check
+.test-check:
   script:
     - psql --version
     - psql -h postgres -d dbname -U username -c "SELECT version();"
