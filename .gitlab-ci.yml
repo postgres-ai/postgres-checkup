@@ -23,8 +23,7 @@ before_script:
     - psql -h postgres -d dbname -U username -c "SELECT version();"
     - psql -h postgres -d dbname -U username -f .ci/h002.sql
     - ./check -h postgres --username username --project test --dbname dbname -e 1
-    - data_dir=$(cat nodes.json | jq '.last_check | .dir')
-    - ls -al ./artifacts/test/json_reports/$data_dir
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && ls -al ./artifacts/test/json_reports/$data_dir && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json
 
 test-pghrep:
   stage: test
