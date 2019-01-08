@@ -2,7 +2,6 @@ image: ubuntu:16.04
 
 stages:
   - test
-  - test-check
 
 #services:
 #  - postgres:9.6
@@ -33,18 +32,18 @@ test:
 
 test-check-9.6:
   extends: ".test-check"
-  stage: "test-check"
+  stage: "test"
   services:
     - postgres:9.6
 
 test-check-10:
   extends: ".test-check"
-  stage: "test-check"
+  stage: "test"
   services:
     - postgres:10
 
 test-check-11:
   extends: ".test-check"
-  stage: "test-check"
+  stage: "test"
   services:
     - postgres:11
