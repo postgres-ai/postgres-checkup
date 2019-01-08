@@ -3,9 +3,6 @@ image: ubuntu:16.04
 stages:
   - test
 
-#services:
-#  - postgres:9.6
-
 variables:
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: username # set username
@@ -25,7 +22,7 @@ before_script:
     - psql --version
     - psql -h postgres -d dbname -U username -c "SELECT version();"
 
-test:
+test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
