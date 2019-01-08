@@ -24,5 +24,5 @@ test:
   stage: test
   script:
     - psql --version
-    - psql -d dbname -U username -c "SELECT version();"
+    - psql -h postgres -d dbname -U username -c "SELECT version();"
     - cd pghrep && make test
