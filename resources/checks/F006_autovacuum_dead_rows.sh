@@ -1,8 +1,8 @@
-# Collect autovacuum dead rows
+# Collect autovacuum dead tuples
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
-  with data as (
-    select
+with data as (
+  select
     coalesce(nullif(schemaname || '.', 'public.'), '') || c.relname as "relation",
     now() - last_autovacuum as since_last_autovacuum,
     now() - last_vacuum as since_last_vacuum,
@@ -19,6 +19,11 @@ ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
   join pg_class c on c.oid = relid
   where reltuples > 10000
   order by 12 desc limit 50
+), dead_tuples as (
+  select json_object_agg(data."relation", data) as json from data
 )
-select json_object_agg(data."relation", data) as json from data
+, database_stat as (
+  select row_to_json(dbstat) from (select sd.*, TO_CHAR(sd.stats_reset, 'YYYY-MM-DD HH:MI:SS') as display_stats_reset from pg_stat_database sd where datname=(select * from current_database())) dbstat
+)
+select json_build_object('dead_tuples', (select * from dead_tuples), 'database_stat', (select * from database_stat));
 SQL
