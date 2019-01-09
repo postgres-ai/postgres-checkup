@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: dead rows #
+# {{ .checkId }} Autovacuum: Dead tuples #
 
 ## Observations ##
 {{ if .hosts.master }}
