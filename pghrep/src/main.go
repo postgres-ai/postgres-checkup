@@ -26,7 +26,6 @@ import (
     "strconv"
     "./orderedmap"
     "./fmtutils"
-    "time"
 )
 
 var DEBUG bool = false
@@ -162,6 +161,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Add"] = Add
     tplFuncMap["NumFormat"] = NumFormat
     tplFuncMap["MsFormat"] = MsFormat
+    tplFuncMap["DtFormat"] = DtFormat
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
@@ -349,8 +349,6 @@ func main() {
     } else {
         outputDir = *outDirPtr
     }
-    t := time.Now()
-    reportData["report_created"] = t.Format("2006-01-02 15:04:05")
     reportDone := generateMdReport(checkId, reportFilename, reportData, outputDir)
     if ! reportDone  {
         log.Fatal("Cannot generate report. Data file or template is wrong.")

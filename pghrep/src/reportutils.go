@@ -6,6 +6,7 @@ import (
     "./pyraconv"
     "./fmtutils"
     "fmt"
+    "./dateparse"
     "time"
 )
 
@@ -102,4 +103,14 @@ func NumFormat(value interface{}, places interface{}) string {
     } else {
         return fmtutils.NumFormat(val, int(pl))
     }
+}
+
+func DtFormat(value interface{}) string {
+    val := pyraconv.ToString(value)
+	t, err := dateparse.ParseAny(val)
+	if err != nil {
+	} else {
+		return t.String()
+    }
+	return val
 }

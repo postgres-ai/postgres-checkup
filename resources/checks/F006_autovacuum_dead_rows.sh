@@ -26,15 +26,16 @@ with data as (
     row_to_json(dbstat)
   from (
     select
-      sd.stats_reset,
-      to_char(sd.stats_reset, 'YYYY-MM-DD HH:MI:SS') as display_stats_reset
+      sd.stats_reset::timestamptz(0)
     from pg_stat_database sd
-    where datname=current_database()
+    where datname = current_database()
   ) dbstat
 )
 select
   json_build_object(
-    'dead_tuples', (select * from dead_tuples),
-    'database_stat', (select * from database_stat)
+    'dead_tuples',
+    (select * from dead_tuples),
+    'database_stat',
+    (select * from database_stat)
   );
 SQL
