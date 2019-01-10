@@ -842,7 +842,7 @@ update_nodes_json() {
 
     # create a new epoch dirs or use existing
     if test -d "${PROJECT_DIR}/json_reports/${EPOCH}"_*/../; then
-      SHORT_DIR_NAME=$(find "${PROJECT_DIR}/json_reports/" -type d -d 1 -name ${EPOCH}_*)
+      SHORT_DIR_NAME=$(find "${PROJECT_DIR}/json_reports/" -type d -name ${EPOCH}_*)
       SHORT_DIR_NAME=$(basename "${SHORT_DIR_NAME}")
       JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
       MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
