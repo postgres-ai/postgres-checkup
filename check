@@ -781,7 +781,7 @@ host_pre_start_checks() {
 # Globals:
 #   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
 #   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORTS_DIR
-#   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR,
+#   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR_NAME,
 #   MD_REPORTS_DIR
 # Arguments:
 #   None
@@ -805,18 +805,28 @@ update_nodes_json() {
     ROLE="master"
   fi
 
-  # if file does not exist generate alias for a first host
+  # if file 'nodes.json' does not exist generate alias for a first host
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
     ALIAS_NAME="node1"
     ALIAS_INDEX="1"
-    export EPOCH="1"
     prev_role="${ROLE}"
     JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${EPOCH}_${TIMESTAMP_DIR}"
     MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
-    SHORT_DIR="${EPOCH}_${TIMESTAMP_DIR}"
+    SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
 
     local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
+
+  # create dirs, etc.
   else
+    # error if two dir names like '${EPOCH}_*' exist
+    local cur_epochs_count="0"
+    cur_epochs_count=$(find "${PROJECT_DIR}/json_reports/" -type d -name "${EPOCH}_*" | wc -l)
+    if [[ "$cur_epochs_count" -ge "2" ]]; then
+      err "more then one directories witn name '${EPOCH}_*' exist:"
+      find "${PROJECT_DIR}/json_reports/" -type d -name "${EPOCH}_*" >&2 || true
+      exit 1
+    fi
+
     # read current nodes.json
     ALIAS_NAME=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.internal_alias' "${PROJECT_DIR}/nodes.json")
 
@@ -829,32 +839,23 @@ update_nodes_json() {
     ALIAS_INDEX=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.index' "${PROJECT_DIR}/nodes.json")
     prev_role=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.role' "${PROJECT_DIR}/nodes.json")
     prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
-    prev_dir=$(jq -r '.last_check.dir' "${PROJECT_DIR}/nodes.json")
-    JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${prev_dir}"
-    MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${prev_dir}"
-    SHORT_DIR="${prev_dir}"
 
-    # exit with error if epoch is not given and this is not first run
-    if [[ "${EPOCH}" = "None" ]] && [[ "${FORCE}" != "true" ]]; then
-      echo "${BOLD}ERROR: epoch not given but directory already exist:${RESET}" >&2
-      echo "  ${JSON_REPORTS_DIR}" >&2
-      echo >&2
-      echo "To avoid overwriting results of epoch '${BOLD}${prev_epoch}${RESET}', please choice health check epoch with help of option '-e'" >&2
-      echo "or just use ${BOLD}--force${RESET} flag" >&2
-      echo >&2
-      echo "Example:" >&2
-      echo "./${SCRIPT_NAME} ${ALL_ARGS} ${BOLD}-e %NUMBER%${RESET}" >&2
-      exit 1
-    fi
-
-    if [[ "${FORCE}" = "true" ]]; then
-      export EPOCH="1"
-    fi
+    # create a new epoch dirs or use existing
+    if test -d "${PROJECT_DIR}/json_reports/${EPOCH}"_*/../; then
+      SHORT_DIR_NAME=$(find "${PROJECT_DIR}/json_reports/" -type d -d 1 -name ${EPOCH}_*)
+      SHORT_DIR_NAME=$(basename "${SHORT_DIR_NAME}")
+      JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+      MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
+    else
+      SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
+      JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+      MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
+    fi 
 
     local input_json_fname="${PROJECT_DIR}/nodes.json"
   fi
 
-  export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR
+  export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR_NAME
 
   local role_changed_at="never"
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
@@ -873,21 +874,13 @@ update_nodes_json() {
     ALIAS_NAME="${new_alias_name}"
   fi
 
-  export ALIAS_NAME ALIAS_INDEX ROLE EPOCH
+  export ALIAS_NAME ALIAS_INDEX ROLE
   dbg "ALIAS_NAME: '$ALIAS_NAME'"
   dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
   dbg "ROLE: '$ROLE'"
 
   mkdir -p "${JSON_REPORTS_DIR}"
 
-  # error if two dir names like '${EPOCH}_*' exist
-  local cur_epochs_count="0"
-  cur_epochs_count=$(find "${JSON_REPORTS_DIR}" -type d -name "${EPOCH}_*" | wc -l)
-  if [[ "$cur_epochs_count" -ge "2" ]]; then
-    err "more then one directories witn name '${EPOCH}_*' exist:"
-    find "${JSON_REPORTS_DIR}" -type d -name "${EPOCH}_*" >&2 || true
-    exit 1
-  fi
 
   # finally, fill nodes.json file
   local result_fname="${PROJECT_DIR}/nodes.json"
@@ -897,7 +890,7 @@ update_nodes_json() {
      --arg index ${ALIAS_INDEX} \
      --arg role "${ROLE}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
-     --arg dir "${SHORT_DIR}" \
+     --arg dir "${SHORT_DIR_NAME}" \
      --arg epoch "${EPOCH}" \
      --arg role_change_detected_at "${role_changed_at}" \
      '.hosts += { ($NativeHostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
