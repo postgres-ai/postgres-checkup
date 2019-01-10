@@ -27,7 +27,7 @@ PgHealth automatically detects which one is a master:
 ```
 
 Which literally means: "connect to the server with given credentials, save data into `my-site_org-slony`
-project directory as epoch of check `1`. Epoch is a numerical sign of current iteration.
+project directory as epoch of check `1`. Epoch is a numerical (**integer**) sign of current iteration.
 For example: in half a year we can switch to "epoch number `2`".
 
 At the first run we can skip `-e 1` because default epoch is `1`, but at the second argument `-e`  
