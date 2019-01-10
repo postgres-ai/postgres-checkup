@@ -26,6 +26,7 @@ import (
     "strconv"
     "./orderedmap"
     "./fmtutils"
+    "time"
 )
 
 var DEBUG bool = false
@@ -348,7 +349,8 @@ func main() {
     } else {
         outputDir = *outDirPtr
     }
-
+    t := time.Now()
+    reportData["report_created"] = t.Format("2006-01-02 15:04:05")
     reportDone := generateMdReport(checkId, reportFilename, reportData, outputDir)
     if ! reportDone  {
         log.Fatal("Cannot generate report. Data file or template is wrong.")

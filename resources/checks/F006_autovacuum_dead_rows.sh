@@ -21,9 +21,17 @@ with data as (
   order by 12 desc limit 50
 ), dead_tuples as (
   select json_object_agg(data."relation", data) as json from data
+), database_stat as (
+  select
+    row_to_json(dbstat) from (
+        select sd.*,
+            to_char(sd.stats_reset, 'YYYY-MM-DD HH:MI:SS') as display_stats_reset
+        from pg_stat_database sd
+        where datname=current_database()
+        ) dbstat
 )
-, database_stat as (
-  select row_to_json(dbstat) from (select sd.*, TO_CHAR(sd.stats_reset, 'YYYY-MM-DD HH:MI:SS') as display_stats_reset from pg_stat_database sd where datname=(select * from current_database())) dbstat
-)
-select json_build_object('dead_tuples', (select * from dead_tuples), 'database_stat', (select * from database_stat));
+select json_build_object(
+    'dead_tuples', (select * from dead_tuples),
+    'database_stat', (select * from database_stat)
+);
 SQL

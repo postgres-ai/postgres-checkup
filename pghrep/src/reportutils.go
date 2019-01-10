@@ -97,5 +97,9 @@ func MsFormat(value interface{}) string {
 func NumFormat(value interface{}, places interface{}) string {
     val := pyraconv.ToFloat64(value)
     pl := pyraconv.ToInt64(places)
-    return fmtutils.NumFormat(val, int(pl))
+    if pl == -1 {
+        return strconv.FormatFloat(val, 'f', int(pl), 64)
+    } else {
+        return fmtutils.NumFormat(val, int(pl))
+    }
 }
