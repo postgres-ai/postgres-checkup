@@ -26,7 +26,7 @@ type loader struct {
 
 func newLoader() (*loader, error) {
     // The directory that will be watched for new plugins.
-    wd, err := os.Getwd()
+    wd, err := filepath.Abs(filepath.Dir(filepath.Dir(os.Args[0])))
     if err != nil {
         return nil, fmt.Errorf("Cannot find plugins: %v", err)
     }
