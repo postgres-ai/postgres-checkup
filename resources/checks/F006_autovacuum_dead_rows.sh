@@ -23,15 +23,18 @@ with data as (
   select json_object_agg(data."relation", data) as json from data
 ), database_stat as (
   select
-    row_to_json(dbstat) from (
-        select sd.*,
-            to_char(sd.stats_reset, 'YYYY-MM-DD HH:MI:SS') as display_stats_reset
-        from pg_stat_database sd
-        where datname=current_database()
-        ) dbstat
+    row_to_json(dbstat)
+  from (
+    select
+      sd.stats_reset,
+      to_char(sd.stats_reset, 'YYYY-MM-DD HH:MI:SS') as display_stats_reset
+    from pg_stat_database sd
+    where datname=current_database()
+  ) dbstat
 )
-select json_build_object(
+select
+  json_build_object(
     'dead_tuples', (select * from dead_tuples),
     'database_stat', (select * from database_stat)
-);
+  );
 SQL
