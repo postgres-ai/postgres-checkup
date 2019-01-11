@@ -161,6 +161,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Add"] = Add
     tplFuncMap["NumFormat"] = NumFormat
     tplFuncMap["MsFormat"] = MsFormat
+    tplFuncMap["DtFormat"] = DtFormat
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
@@ -348,7 +349,6 @@ func main() {
     } else {
         outputDir = *outDirPtr
     }
-
     reportDone := generateMdReport(checkId, reportFilename, reportData, outputDir)
     if ! reportDone  {
         log.Fatal("Cannot generate report. Data file or template is wrong.")
