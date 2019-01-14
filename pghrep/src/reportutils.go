@@ -21,7 +21,9 @@ func Trim(s string, d string) string {
 
 func Nobr(s interface{}) string {
     str := pyraconv.ToString(s)
-    return strings.Join(strings.Split(str, "\n"), "")
+    str = strings.Join(strings.Split(str, "\n"), "")
+    str = strings.Join(strings.Split(str, " "), "&nbsp;")
+    return str
 }
 
 func Br(s interface{}) string {
