@@ -16,6 +16,14 @@ if [[ -z ${JSON_REPORTS_DIR+x} ]]; then
   exit 1
 fi
 
+if [[ "${SSDBNAME}" != "None" ]]; then
+  change_db_cmd="\connect ${SSDBNAME}
+                "
+else
+  change_db_cmd=""
+fi
+
+
 tmp_dir="${JSON_REPORTS_DIR}/tmp_K003"
 mkdir -p "${tmp_dir}"
 
@@ -44,6 +52,7 @@ fi
 # check pg_stat_kcache availability
 err_code="0"
 res=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<'SQL' >/dev/null 2>&1
+${change_db_cmd}
 select from pg_stat_kcache limit 1 -- the fastest way
 SQL
 ) || err_code="$?"
@@ -133,7 +142,9 @@ else
   "
 fi
 
+# take snapshot and save as a json object
 json_object=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
+  ${change_db_cmd}
   with data as (
     ${QUERY}
   )
@@ -247,6 +258,7 @@ sql="
 "
 # sql result to stdout
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL | jq -r .
+  ${change_db_cmd}
   ${sql}
 SQL
 
