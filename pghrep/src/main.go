@@ -156,6 +156,12 @@ func loadTemplates() *template.Template {
     tplFuncMap["Br"] = Br
     tplFuncMap["ByteFormat"] = fmtutils.ByteFormat
     tplFuncMap["UnitValue"] = UnitValue
+    tplFuncMap["RoundUp"] = Round
+    tplFuncMap["LimitStr"] = LimitStr
+    tplFuncMap["Add"] = Add
+    tplFuncMap["NumFormat"] = NumFormat
+    tplFuncMap["MsFormat"] = MsFormat
+    tplFuncMap["DtFormat"] = DtFormat
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
@@ -292,7 +298,7 @@ func main() {
     reportFilename := ""
     if FileExists(checkData) {
         _, file := path.Split(checkData)
-        fmt.Println(file)
+        //fmt.Println(file)
         reportFilename = strings.Replace(file, ".json", ".md", -1)
 
         resultData = LoadJsonFile(checkData)
@@ -300,6 +306,8 @@ func main() {
             log.Fatal("ERROR: File given by --checkdata content wrong json data.")
             return
         }
+        resultData["source_path_full"] = checkData
+        resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
     } else {
         log.Println("ERROR: File given by --checkdata not found")
         return
@@ -341,7 +349,6 @@ func main() {
     } else {
         outputDir = *outDirPtr
     }
-
     reportDone := generateMdReport(checkId, reportFilename, reportData, outputDir)
     if ! reportDone  {
         log.Fatal("Cannot generate report. Data file or template is wrong.")

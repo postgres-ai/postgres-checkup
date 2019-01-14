@@ -5,6 +5,9 @@ import (
     "strconv"
     "./pyraconv"
     "./fmtutils"
+    "fmt"
+    "./dateparse"
+    "time"
 )
 
 func Split(s string, d string) []string {
@@ -65,4 +68,51 @@ func UnitValue(value interface{}, unit interface{}) string {
         return fmtutils.ByteFormat(float64(intval), 2)
     }
     return "" //val + "(" + un + ")"
+}
+
+func LimitStr(value interface{}, limit int) string {
+    val := pyraconv.ToString(value)
+    if len(val) > limit {
+        return val[0:limit-1] + "..."
+    }
+    return val
+}
+
+func Round(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    if value != nil && places != nil {
+        return fmt.Sprintf("%v", fmtutils.RoundUp(val, int(pl)))
+    }
+    return fmt.Sprintf("%v", val)
+}
+
+func Add(a int, b int) int {
+    return a + b
+}
+
+func MsFormat(value interface{}) string {
+    val := pyraconv.ToInt64(value)
+    tm, _ := time.ParseDuration(strconv.FormatInt(val, 10) + "ms")
+    return tm.String()
+}
+
+func NumFormat(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    if pl == -1 {
+        return strconv.FormatFloat(val, 'f', int(pl), 64)
+    } else {
+        return fmtutils.NumFormat(val, int(pl))
+    }
+}
+
+func DtFormat(value interface{}) string {
+    val := pyraconv.ToString(value)
+	t, err := dateparse.ParseAny(val)
+	if err != nil {
+	} else {
+		return t.String()
+    }
+	return val
 }
