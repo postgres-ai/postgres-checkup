@@ -1,4 +1,4 @@
-#F007 Transaction wraparound check
+# how close to wraparound
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 with per_instance as (
