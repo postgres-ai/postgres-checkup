@@ -68,9 +68,9 @@ if [[ "${err_code}" -ne "0" ]]; then
       left(query, 50000) as query, /*  obsolete left ? check pg_stat_statements for cutting */
       calls,
       total_time,
+      /*
       min_time,
       max_time,
-      /*
       mean_time
       stddev_time
       */
@@ -106,9 +106,9 @@ else
       left(query, 50000) as query, /*  obsolete left ? check pg_stat_statements for cutting */
       calls,
       total_time,
+      /*
       min_time,
       max_time,
-      /*
       mean_time
       stddev_time
       */
