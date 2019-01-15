@@ -156,9 +156,13 @@ func loadTemplates() *template.Template {
     tplFuncMap["Br"] = Br
     tplFuncMap["ByteFormat"] = fmtutils.ByteFormat
     tplFuncMap["UnitValue"] = UnitValue
+    tplFuncMap["RawIntUnitValue"] = RawIntUnitValue
     tplFuncMap["RoundUp"] = Round
     tplFuncMap["LimitStr"] = LimitStr
     tplFuncMap["Add"] = Add
+    tplFuncMap["Sub"] = Sub
+    tplFuncMap["Mul"] = Mul
+    tplFuncMap["Div"] = Div
     tplFuncMap["NumFormat"] = NumFormat
     tplFuncMap["MsFormat"] = MsFormat
     tplFuncMap["DtFormat"] = DtFormat
