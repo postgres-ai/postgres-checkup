@@ -12,8 +12,7 @@ error_handler() {
 trap error_handler ERR
 
 if [[ -z ${JSON_REPORTS_DIR+x} ]]; then
-  echo "ERROR: this check can't be run as a single check or as a first check" >&2
-  exit 1
+  echo "FATAL: variable 'JSON_REPORTS_DIR' is empty" >&2 exit 1
 fi
 
 if [[ "${SSDBNAME}" != "None" ]]; then

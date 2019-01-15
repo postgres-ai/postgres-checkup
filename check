@@ -814,6 +814,8 @@ update_nodes_json() {
     MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
     SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
 
+    mkdir -p "${JSON_REPORTS_DIR}"
+
     local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
 
   # create dirs, etc.
@@ -845,10 +847,16 @@ update_nodes_json() {
       SHORT_DIR_NAME=$(find "${PROJECT_DIR}/json_reports/" -type d -name ${EPOCH}_*)
       SHORT_DIR_NAME=$(basename "${SHORT_DIR_NAME}")
       JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+
+      mkdir -p "${JSON_REPORTS_DIR}"
+
       MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
     else
       SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
       JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+
+      mkdir -p "${JSON_REPORTS_DIR}"
+
       MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
     fi 
 
@@ -856,6 +864,8 @@ update_nodes_json() {
   fi
 
   export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR_NAME
+
+  mkdir -p "${JSON_REPORTS_DIR}"
 
   local role_changed_at="never"
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
@@ -880,7 +890,6 @@ update_nodes_json() {
   dbg "ROLE: '$ROLE'"
 
   mkdir -p "${JSON_REPORTS_DIR}"
-
 
   # finally, fill nodes.json file
   local result_fname="${PROJECT_DIR}/nodes.json"
@@ -944,6 +953,9 @@ run_checks() {
     export TIMESTAMP_DIR=$(date +'%Y_%m_%dT%H_%M_%S_%z') # for use in directories names
     export TIMESTAMPTZ=$(date +'%Y-%m-%d %H:%M:%S.0%z')
 
+    # alot of magic is here
+    update_nodes_json
+
     # perform a check from file
     output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME") || check_is_failed="true"
 
@@ -970,9 +982,6 @@ run_checks() {
       msg "check '$check_id' is finished"
     fi
 
-    # alot of magic is here
-    update_nodes_json
-
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
     # generate .md report with help of pghrep (go utility)
@@ -987,7 +996,7 @@ run_checks() {
       msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}_${check_name}.md'"
     fi
 
-    # parse only one file if check is given by CLI
+    # if check name file given by CLI run only single check
     if [[ "${FILE}" != "None" ]]; then
       break
     fi
