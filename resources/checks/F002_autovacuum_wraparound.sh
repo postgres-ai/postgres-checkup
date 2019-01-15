@@ -30,7 +30,8 @@ with per_instance as (
   from pg_class c
   join pg_namespace n on c.relnamespace = n.oid
   left join pg_class t ON c.reltoastrelid = t.oid
-  where c.relkind IN ('r', 'm')
+  where c.relkind IN ('r', 'm') and not (n.nspname = 'pg_catalog' and c.relname <> 'pg_class')
+    and n.nspname <> 'information_schema'
   order by 3 desc
   limit 50
 )
