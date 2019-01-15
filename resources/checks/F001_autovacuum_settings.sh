@@ -1,6 +1,6 @@
 settings=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 with global_settings as (
-  select json_object_agg(s.name, s) from pg_settings s where name like 'autovacuum%'
+  select json_object_agg(s.name, s) from pg_settings s where name like '%autovacuum%'
 ), table_settings as (
   select json_object_agg(s.namespace || '.' || s.relname, s) from
     (select

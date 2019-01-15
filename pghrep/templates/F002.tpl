@@ -1,19 +1,40 @@
-# {{ .checkId }} Index bloat #
-:warning: This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and even more). Use it only as an indicator of potential issues.
+# {{ .checkId }} Autovacuum: Transaction wraparound check #
 
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
- Index (Table) | Size | Extra | Bloat | Live | Fill factor
----------------|------|-------|-------|------|-------------
-{{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
-{{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-{{- $tableIndex := Split $key "\n" -}}
-{{ $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}) | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ ( index $value "fillfactor") }}
-{{ end }}
-{{- else -}}
+{{ if index (index (index .results .hosts.master) "data") "per_instance" }}
+#### Per instance ####
+ Database | Age | Capacity used, % | Warning | datfrozenxid
+----------|-----|------------------|---------|--------------
+{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_instance") "_keys") }}
+{{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_instance") $key) -}}
+{{ index $value "datname"}} | 
+{{- NumFormat (index $value "age") -1 }} |
+{{- index $value "capacity_used"}} |
+{{- if (index $value "warning") }} &#9888; {{ else }} {{ end }} |
+{{- NumFormat (index $value "datfrozenxid") -1}}
+{{ end }}{{/* range */}}
+{{- end -}}{{/* if per_instance exists */}}
+
+{{/* if index (index (index .results .hosts.master) "data") "per_database" */}}
+#### Per database ####
+ Relation | Age | Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid 
+----------|-----|------------------|---------|-----------------|--------------------
+{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_database") "_keys") }}
+{{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_database") $key) -}}
+{{ index $value "relation"}} | 
+{{- NumFormat (index $value "age") -1 }} |
+{{- index $value "capacity_used"}} |
+{{- if (index $value "warning") }} &#9888; {{ else }} {{ end }} |
+{{- NumFormat (index $value "rel_relfrozenxid") -1}} |
+{{- NumFormat (index $value "toast_relfrozenxid") -1}} |
+{{ end }}{{/* range */}}
+{{/*- end -*/}}{{/* if per_instance exists */}}
+
+{{- else }}
 No data
-{{ end }}
+{{- end }}
 
 ## Conclusions ##
 

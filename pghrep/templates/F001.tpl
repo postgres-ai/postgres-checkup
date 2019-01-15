@@ -1,18 +1,33 @@
-# {{ .checkId }} Heap bloat #
-:warning: This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and even more). Use it only as an indicator of potential issues.
+# {{ .checkId }} Autovacuum: Current settings #
 
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-{{ if (index (index .results .hosts.master) "data") }}
- Table | Size | Extra | Bloat | Live | Last vacuum
--------|------|-------|-------|------|-------------
-{{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
-{{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-{{ $key }} | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ if (index $value "Last Vaccuum") }} {{ ( index $value "Last Vaccuum") }} {{ end }}
+Setting name | Value | Unit | Pretty value
+-------------|-------|------|--------------
+{{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "global_settings") "_keys") }}
+{{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "global_settings" ) $key) -}}
+[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting }}|{{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
 {{ end }}
-{{- else -}}
-No data
+{{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
+#### Tables settings override ####
+Namespace | Relation | Options
+----------|----------|------
+{{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
+{{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "table_settings") $key) -}}
+{{ $value.namespace }} | {{ $value.relname }}|{{ $value.reloptions }}
+{{ end }}
+{{- end -}}
+
+{{- if (index (index .results .hosts.master) "data").iotop -}}
+#### iotop information ####
+Command: `{{ (index (index (index .results .hosts.master) "data") "iotop").cmd }}`
+Result:
+
+```
+{{- (index (index (index .results .hosts.master) "data") "iotop").data -}}
+```
+
 {{- end -}}
 {{- else -}}
 No data

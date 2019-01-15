@@ -1,37 +1,31 @@
-# {{ .checkId }} Autovacuum info #
+# {{ .checkId }} Autovacuum: Dead tuples #
 
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-Setting name | Value | Unit | Pretty value
--------------|-------|------|--------------
-{{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "global_settings") "_keys") }}
-{{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "global_settings" ) $key) -}}
-[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting }}|{{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
+Stats reset: {{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }}  
+Report created: {{ DtFormat .timestamptz }}
+
+ Relation | Since last autovacuum | Since last vacuum | Autovacuum Count | Vacuum Count | n_tup_ins | n_tup_upd | n_tup_del | pg_class.reltuples | n_live_tup | n_dead_tup | &#9660;Dead Tuples Ratio, %
+----------|-----------------------|-------------------|----------|---------|-----------|-----------|-----------|--------------------|------------|------------|-----------
+{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "dead_tuples") "_keys") }}
+{{- $value := (index (index (index (index $.results $.hosts.master) "data") "dead_tuples") $key) -}}
+{{ index $value "relation"}} | 
+{{- index $value "since_last_autovacuum"}} |
+{{- index $value "since_last_vacuum"}} |
+{{- NumFormat (index $value "av_count") -1 }} |
+{{- NumFormat (index $value "v_count") -1 }} |
+{{- NumFormat (index $value "n_tup_ins") -1 }} |
+{{- NumFormat (index $value "n_tup_upd") -1 }} |
+{{- NumFormat (index $value "n_tup_del") -1 }} |
+{{- NumFormat (index $value "pg_class_reltuples") -1 }} |
+{{- NumFormat (index $value "n_live_tup") -1 }} |
+{{- NumFormat (index $value "n_dead_tup") -1 }} |
+{{- index $value "dead_ratio"}}
 {{ end }}
-{{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
-#### Tables settings override ####
-Namespace | Relation | Options
-----------|----------|------
-{{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
-{{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "table_settings") $key) -}}
-{{ $value.namespace }} | {{ $value.relname }}|{{ $value.reloptions }}
-{{ end }}
-{{- end -}}
-
-{{- if (index (index .results .hosts.master) "data").iotop -}}
-#### iotop information ####
-Command: `{{ (index (index (index .results .hosts.master) "data") "iotop").cmd }}`
-Result:
-
-```
-{{- (index (index (index .results .hosts.master) "data") "iotop").data -}}
-```
-
-{{- end -}}
-{{- else -}}
+{{- else }}
 No data
-{{ end }}
+{{- end }}
 
 ## Conclusions ##
 
