@@ -52,12 +52,15 @@ func Code(s string, skipFirst bool) string {
 func UnitValue(value interface{}, unit interface{}) string {
     val := pyraconv.ToString(value)
     un := pyraconv.ToString(unit)
+    if len(un) <= 0 {
+        return ""
+    }
     intval, err := strconv.ParseInt(val, 10, 64)
     if err != nil {
         return "" // val + "(" + un + ")"
     }
-    if (intval < 0) || (len(un) <= 0) {
-        return strconv.FormatInt(intval, 10)
+    if intval < 0 {
+        return "" // val
     }
     unitFactor := fmtutils.GetUnit(un)
     if unitFactor != -1 {
@@ -66,6 +69,7 @@ func UnitValue(value interface{}, unit interface{}) string {
     }
     return "" //val + "(" + un + ")"
 }
+
 
 func RawIntUnitValue(value interface{}, unit interface{}) int {
     val := pyraconv.ToString(value)

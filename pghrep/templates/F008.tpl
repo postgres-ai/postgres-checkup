@@ -4,19 +4,12 @@
 
 ### Settings ###
 
-log_autovacuum_min_duration: {{ (index (index (index .results .hosts.master) "data") "log_autovacuum_min_duration").setting }}
-
-autovacuum_max_workers: {{ (index (index (index .results .hosts.master) "data") "autovacuum_max_workers").setting }}  
-
-max_connections: {{ (index (index (index .results .hosts.master) "data") "max_connections").setting }}
-
-autovacuum_work_mem: {{ UnitValue (index (index (index .results .hosts.master) "data") "autovacuum_work_mem").setting (index (index (index .results .hosts.master) "data") "autovacuum_work_mem").unit }}
-
-maintenance_work_mem: {{ UnitValue (index (index (index .results .hosts.master) "data") "maintenance_work_mem").setting (index (index (index .results .hosts.master) "data") "maintenance_work_mem").unit }}
-
-work_mem: {{ UnitValue (index (index (index .results .hosts.master) "data") "work_mem").setting (index (index (index .results .hosts.master) "data") "work_mem").unit }}
-
-shared_buffers: {{ UnitValue (index (index (index .results .hosts.master) "data") "shared_buffers").setting (index (index (index .results .hosts.master) "data") "shared_buffers").unit }}
+Setting name | Value | Unit | Pretty value
+-------------|-------|------|--------------
+{{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
+{{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
+[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting }}|{{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
+{{ end }}
 
 ### CPU ###
 
