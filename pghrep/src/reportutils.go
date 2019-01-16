@@ -70,6 +70,28 @@ func UnitValue(value interface{}, unit interface{}) string {
     return "" //val + "(" + un + ")"
 }
 
+
+func RawIntUnitValue(value interface{}, unit interface{}) int {
+    val := pyraconv.ToString(value)
+    un := pyraconv.ToString(unit)
+    intval, err := strconv.ParseInt(val, 10, 64)
+    if err != nil {
+        return -1
+    }
+    if intval < 0 {
+        return -1
+    }
+    if len(un) <= 0 {
+        return int(intval)
+    }
+    unitFactor := fmtutils.GetUnit(un)
+    if unitFactor != -1 {
+        intval = intval * unitFactor
+        return int(intval)
+    }
+    return -1
+}
+
 func LimitStr(value interface{}, limit int) string {
     val := pyraconv.ToString(value)
     if len(val) > limit {
@@ -89,6 +111,18 @@ func Round(value interface{}, places interface{}) string {
 
 func Add(a int, b int) int {
     return a + b
+}
+
+func Mul(a int, b int) float64 {
+    return float64(a * b)
+}
+
+func Div(a int, b int) int {
+    return a / b
+}
+
+func Sub(a int, b int) int {
+    return a - b
 }
 
 func MsFormat(value interface{}) string {
