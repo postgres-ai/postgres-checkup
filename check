@@ -719,7 +719,7 @@ glue_md_reports() {
   # make header
   echo "# Project '${PROJECT}' PostgreSQL health check" > "${out_fname}"
   echo "## Epoch: '${EPOCH}'" >> "${out_fname}"
-  echo "NOTICE: some reports may contain information for a whole cluster databases" >> "${out_fname}"
+  echo "NOTICE: while most reports describe the “current database”, some of them may contain cluster-wide information describing all databases in the cluster." >> "${out_fname}"
   echo >> "${out_fname}"
   echo "Last modified at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
   echo >> "${out_fname}"
