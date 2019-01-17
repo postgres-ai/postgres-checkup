@@ -36,7 +36,7 @@ check_list() {
     if $(${CHECK_HOST_CMD} "which $util >/dev/null 2>&1"); then
       json="${json}${comma} \"$util\": \"yes\""
     else
-      json="${json}${comma} \"$util\": \"no\""
+      json="${json}${comma} \"$util\": \"\""
     fi
     cnt=$(( cnt + 1 ))
   done
