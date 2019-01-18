@@ -53,13 +53,14 @@ test-check-11:
   services:
     - postgres:11
 
-run-tests-from-dir:
-  extends: ".test-check"
+test-check-cli:
+  services:
+    - postgres:11
   stage: "test"
   script: |
     errcount=0
     printTail="                                                                      "
-    for f in tests/*.sh; do
+    for f in tests/cli_*.sh; do
       printf "$f${printTail:0:-${#f}}"
       bash "$f" -H
       status=$?

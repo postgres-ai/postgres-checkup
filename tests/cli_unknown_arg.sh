@@ -1,19 +1,15 @@
 #!/bin/bash
-
 # don't allow invalid arguments
-
-# Output styles (only BOLD is supported by default GNU screen)
-BOLD=`tput md 2>/dev/null` || :
-RESET=`tput me 2>/dev/null` || :
 
 export PATH=$PATH:${BASH_SOURCE%/*}/..
 
-output=$(./check --force 2>&1)
+# put invalid '--force' argument
+output=$(./check -h postgres --username ${POSTGRES_USER} --force --project test --dbname ${POSTGRES_DB} 2>&1)
 
 if [[ $output =~ "invalid argument" ]]; then
-  echo -e "OK"
+  echo -e "\e[36mOK\e[39m"
 else
-  >&2 echo -e "${BOLD}FAILED${RESET}"
+  >&2 echo -e "\e[31mFAILED\e[39m"
   >&2 echo -e "Output: $output"
   exit 1
 fi
