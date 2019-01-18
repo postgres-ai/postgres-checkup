@@ -1,0 +1,1 @@
+create index on t2 using btree (t1_id);
