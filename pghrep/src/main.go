@@ -260,6 +260,7 @@ func determineMasterReplica(data map[string]interface{}) {
     replicas := make(map[int]string)
     nodes_json := pyraconv.ToInterfaceMap(data["last_nodes_json"])
     hosts := pyraconv.ToInterfaceMap(nodes_json["hosts"]);
+    hostRoles["master"] = nil
     for host, value := range hosts {
         hostData := pyraconv.ToInterfaceMap(value)
         if hostData["role"] == "master" {

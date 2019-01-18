@@ -1,65 +1,79 @@
-# {{ .checkId }} Non indexed foreign keys (or with bad indexes) #
+# {{ .checkId }} Unused/Rarely Used Indexes #
 
 ## Observations ##
-{{ if .hosts.master }}
-### Master (`{{.hosts.master}}`) ###
-{{ if (index (index .results .hosts.master) "data")}}
-Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
-{{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
-    {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-    {{ $key }} |
-    {{- $value.schema_name }} |
-    {{- $value.table_name }} |
-    {{- $value.fk_name }} |
-    {{- $value.issue }} |
-    {{- $value.table_mb }} |
-    {{- $value.writes }} |
-    {{- $value.table_scans }} |
-    {{- $value.parent_name }} |
-    {{- $value.parent_mb}} |
-    {{- $value.parent_writes}} |
-    {{- $value.cols_list }} |
-    {{- $value.indexdef }}
-{{ end }}{{/* range */}}
-{{ else }}
-No data
-{{- end -}}{{/* if data */}}
-{{ end }}{{/* if .host.master */}}
 
-{{- if gt (len .hosts.replicas) 0 -}}
-### Replica servers: ###
-{{ range $skey, $host := .hosts.replicas }}
-#### Replica (`{{ $host }}`) ####
-{{- if (index $.results $host) }}
-{{ if (index (index $.results $host) "data")}}
-Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
-{{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
-    {{- $value := (index (index (index $.results $host) "data") $key) -}}
-    {{ $key }} |
-    {{- $value.schema_name }} |
-    {{- $value.table_name }} |
-    {{- $value.fk_name }} |
-    {{- $value.issue }} |
-    {{- $value.table_mb }} |
-    {{- $value.writes }} |
-    {{- $value.table_scans }} |
-    {{- $value.parent_name }} |
-    {{- $value.parent_mb}} |
-    {{- $value.parent_writes}} |
-    {{- $value.cols_list }} |
-    {{- $value.indexdef }}
-{{ end }}{{/* range */}}
-{{ end }}{{/* if data */}}
-{{- else -}}{{/* if $.results $host */}}
-No data
-{{- end -}}{{/* if $.results $host */}}
-{{- end -}}{{/* replicas range*/}}
-{{- end -}}{{/* if replica */}}
+{{ if .resultData }}
+
+{{- if .resultData.unused_indexes -}}
+### Never Used Indexes ###
+Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Index size | Usage
+--------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----
+{{ range $key, $value := (index .resultData "unused_indexes") }}
+{{- if ne $key "_keys" -}}
+{{- if eq $value.master.reason "Never Used Indexes" -}}
+{{- if $value.usage -}}
+{{- else -}}
+{{- $key }} |
+{{- $value.master.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|
+{{- (index $value $host).idx_scan }}{{- end -}} |
+{{- "Index&nbsp;size:"}}&nbsp;{{ Nobr $value.master.index_size }}<br/>Table&nbsp;size:&nbsp;{{ Nobr $value.master.table_size }} |
+{{- if $value.usage }} Used{{ else }}Not used {{ end }}
+{{/* new line */}}
+{{- end -}}{{/* value.usage */}}
+{{- end -}}{{/**/}}
+{{- end }}{{/* in ! _keys */}}
+{{- end }}{{/* range unused_indexes */}}
+
+### Other unused indexes ###
+Index | Reason |{{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Usage
+------|--------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----
+{{ range $key, $value := (index .resultData "unused_indexes") }}
+{{- if ne $key "_keys" -}}
+{{- if ne $value.master.reason "Never Used Indexes" -}}
+{{ $key }} | {{ $value.master.reason }} | Index&nbsp;size:{{ Nobr $value.master.index_size }} Table&nbsp;size:{{ Nobr $value.master.table_size }} {{ range $skey, $host := $.hosts.replicas }} |Index&nbsp;size:{{ Nobr (index $value $host).index_size }} Table&nbsp;size:{{ Nobr (index $value $host).table_size }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }}
+{{/* new line */}}
+{{- end -}}
+{{- end }}{{/* ! "_keys" */}}
+{{- end }}{{/* range unused_indexes */}}
+{{ end }}{{/* if unused_indexes */}}
+
+{{- if .resultData.redundant_indexes -}}
+
+### Redundant indexes ###
+
+Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Usage | Index size
+--------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----
+{{ range $key, $value := (index .resultData "redundant_indexes") }}
+{{- if ne $key "_keys" -}}
+{{- if $value.usage -}}
+{{- else -}}
+{{ $key }} | {{ $value.master.index_usage }}{{ range $skey, $host := $.hosts.replicas }}|{{ (index $value $host).index_usage }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }} | {{ $value.master.index_size }}
+{{/* new line */}}
+{{- end -}}{{/* value.usage */}}
+{{- end }}{{/* in ! _keys */}}
+{{- end }}{{/* range redundant_indexes */}}
+{{end}}{{/* if redundant_indexes */}}
 
 ## Conclusions ##
 
 
 ## Recommendations ##
+{{ if .resultData.drop_code }}
+#### Drop code ####
+```
+{{ range $i, $drop_code := (index .resultData  "drop_code") }}{{ $drop_code }}
+{{ end }}
+```
+{{ end }}
 
+{{ if .resultData.revert_code }}
+#### Revert code ####
+```
+{{ range $i, $revert_code := (index .resultData  "revert_code") }}{{ $revert_code }}
+{{ end }}
+```
+{{ end }}
+
+{{- else -}}
+No data
+{{- end }}
