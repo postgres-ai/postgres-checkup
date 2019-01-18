@@ -59,7 +59,7 @@ Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host 
 
 ## Recommendations ##
 {{ if .resultData.drop_code }}
-#### Drop code ####
+#### "DO" database migration code ####
 ```
 {{ range $i, $drop_code := (index .resultData  "drop_code") }}{{ $drop_code }}
 {{ end }}
@@ -67,7 +67,7 @@ Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host 
 {{ end }}
 
 {{ if .resultData.revert_code }}
-#### Revert code ####
+#### "UNDO" database migration code ####
 ```
 {{ range $i, $revert_code := (index .resultData  "revert_code") }}{{ $revert_code }}
 {{ end }}

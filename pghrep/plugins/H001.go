@@ -14,8 +14,8 @@ func prepareDropCode(data map[string]interface{}) {
     replicas := pyraconv.ToStringArray(hosts["replicas"])
     resultData := make(map[string]interface{})
     results := pyraconv.ToInterfaceMap(data["results"])
-    dropCode := make(map[string]string)
-    revertCode := make(map[string]string)
+
+    doUndoCode := make(map[string]interface{})
 
     if results[master] != nil {
         masterData := pyraconv.ToInterfaceMap(results[master])
@@ -24,8 +24,12 @@ func prepareDropCode(data map[string]interface{}) {
         for _, value := range masterIndexes {
             valueData := pyraconv.ToInterfaceMap(value);
             indexName := pyraconv.ToString(valueData["index_name"]);
-            dropCode[indexName] = pyraconv.ToString(valueData["drop_code"]);
-            revertCode[indexName] = pyraconv.ToString(valueData["revert_code"]);
+            doUndo := make(map[string]interface{})
+            doUndo["drop_code"] = pyraconv.ToString(valueData["drop_code"]);
+            doUndo["revert_code"] = pyraconv.ToString(valueData["revert_code"]);
+            if len(pyraconv.ToString(valueData["drop_code"])) > 0 && len(pyraconv.ToString(valueData["revert_code"])) > 0 {
+                doUndoCode[indexName] = doUndo
+            }
         }
     }
 
@@ -35,13 +39,16 @@ func prepareDropCode(data map[string]interface{}) {
         for _, value := range hostIndexes {
             valueData := pyraconv.ToInterfaceMap(value);
             indexName := pyraconv.ToString(valueData["index_name"]);
-            dropCode[indexName] = pyraconv.ToString(valueData["drop_code"]);
-            revertCode[indexName] = pyraconv.ToString(valueData["revert_code"]);
+            doUndo := make(map[string]interface{})
+            doUndo["drop_code"] = pyraconv.ToString(valueData["drop_code"]);
+            doUndo["revert_code"] = pyraconv.ToString(valueData["revert_code"]);
+            if len(pyraconv.ToString(valueData["drop_code"])) > 0 && len(pyraconv.ToString(valueData["revert_code"])) > 0 {
+                doUndoCode[indexName] = doUndo
+            }
         }
     }
 
-    resultData["drop_code"] = dropCode
-    resultData["revert_code"] = revertCode
+    resultData["repair_code"] = doUndoCode
     data["resultData"] = resultData
 }
 
