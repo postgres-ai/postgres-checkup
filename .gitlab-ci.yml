@@ -52,3 +52,25 @@ test-check-11:
   stage: "test"
   services:
     - postgres:11
+
+test-check-cli:
+  services:
+    - postgres:11
+  stage: "test"
+  script: |
+    errcount=0
+    printTail="                                                                      "
+    for f in tests/cli_*.sh; do
+      printf "$f${printTail:0:-${#f}}"
+      bash "$f" -H
+      status=$?
+      if [ "$status" -ne 0 ]; then
+        errcount="$(($errcount+1))"
+      fi
+    done
+    if [ "$errcount" -ne 0 ]; then
+      >&2 echo "Oh no! $errcount tests failed"
+      exit 1
+    fi
+
+

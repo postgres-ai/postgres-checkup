@@ -18,7 +18,6 @@ FULL_REPORT_FNAME="full_report.md"
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
-FIRST_ARG="$1"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 
@@ -197,10 +196,31 @@ process_cli_args() {
   dbg "Valid CLI args possible count: ${CLI_ARGS_POSSIBLE}+1"
   CLI_ARGS_CNT=0
   while [[ ! -z "${1+x}" ]]; do
+    # print help if first argument matches regular expression
+    local help_re="-+(help|usage|\?)"
+    if [[ "${1}" =~ $help_re ]]; then
+       usage "Help" "0"
+       exit 0
+    fi
+
     # avoid infinite loop if argument is unknown
     while_loops_cnt=$(( while_loops_cnt + 1 ))
     [[ $while_loops_cnt -gt $(( CLI_ARGS_POSSIBLE * 2 )) ]] && break
 
+    # first, error if argument is unknown:
+    local arg_is_valid="false"
+    for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
+      if [[ "${1}" = "-${SHORT_NAME[$i]}" ]] || [[ "${1}" = "--${FULL_NAME[$i]}" ]]; then
+        arg_is_valid="true"
+        break
+      fi
+    done
+    if [[ "${arg_is_valid}" == "false" ]]; then
+      err "invalid argument '${1}'"
+      exit 1
+    fi
+
+    # compare given argument with all possible arguments from cli.conf
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
@@ -310,13 +330,7 @@ validate_arg_type() {
 validate_args() {
   local i
   local x=0
-  local re="-+(help|usage|\?)"
   local need_fail_exit="false"
-
-  if [[ "$FIRST_ARG" =~ $re ]]; then
-     usage "Help" "0"
-     exit 0
-  fi
 
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
     usage "given less then 1 mandatory argument" "1"
@@ -411,7 +425,7 @@ usage() {
   else
     out_descriptor="1" # STDOUT
     # help part starts here
-    echo "PgHealth is the PostgreSQL ultimate healthcheck utility." >&${out_descriptor}
+    echo "postgres-checkup is the PostgreSQL ultimate healthcheck utility." >&${out_descriptor}
     echo >&${out_descriptor}
   fi
 
@@ -461,11 +475,11 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy [${BOLD}-e %EPOCH_NUMBER%${RESET}]" >&${out_descriptor}
+      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
       echo >&${out_descriptor}
       echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "Report bugs to https://github.com/postgres-ai/postgres-health-check/ ." >&${out_descriptor}
+      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-health-check ." >&${out_descriptor}
     fi
     prev_section=${SECTION[$i]}
   done
