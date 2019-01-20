@@ -1,15 +1,13 @@
 About
 ===
-PgHealth is the ultimate open-source PostgreSQL database health check utility.
+[postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup) is an ultimate open-source PostgreSQL database health check utility.
 
-It checks PostgreSQL settings, configs and Linux postgres-related environment
-with series of checks.
+See its short description with the full list of checks implemented and planned here: https://gitlab.com/postgres-ai-team/postgres-checkup/wikis/HEALTH-CHECK-v3
 
 The observed data is saved in the form of JSON reports, ready to be consumed by machines.  
 The final reports are .md files, in Markdown format, to be read by humans.
 
-The main goal is to detect bottlenecks and prevent performance degradation.  
-It also helps to detect a lot of issues with postgres instances.
+The main goal is to detect bottlenecks and help to prevent performance and scalability issues.
 
 Example
 ===
