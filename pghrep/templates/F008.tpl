@@ -4,6 +4,7 @@
 
 ### Settings ###
 
+{{if .hosts.master }}
 Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
@@ -29,9 +30,13 @@ Max workers memory: {{ ByteFormat ( Mul $maintenance_work_mem $max_connections )
 Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $max_connections ) 0 }}
 {{- end }}
 
+
 ### DISK ###
 
 :warning: Warning: collection of current impact on disks is not yet implemented. Please refer to Postgres logs and see current read and write IO bandwidth caused by autovacuum.  
+{{ else }}{{/* if master */}}
+No data
+{{ end }}{{/* if master */}}
 
 ## Conclusions ##
 

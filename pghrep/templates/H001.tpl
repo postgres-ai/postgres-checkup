@@ -6,14 +6,15 @@
 ### Master (`{{.hosts.master}}`) ###
 
 {{ if (index (index .results .hosts.master) "data") }}
-Num | Schema name | Table name | Index name 
-----|-------------|------------|------------
+Num | Schema name | Table name | Index name | Index size
+----|-------------|------------|------------|------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
     {{ $key }} |
     {{- $value.schema_name }} |
     {{- $value.table_name }} |
     {{- $value.index_name }} |
+    {{- $value.index_size }}
 {{ end }}{{/* range */}}
 {{- else -}}
 Invalid indexes not found
@@ -26,14 +27,15 @@ Invalid indexes not found
 #### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
 {{- if (index (index $.results $host) "data") -}}
-Num | Schema name | Table name | Index name 
-----|-------------|------------|------------
+Num | Schema name | Table name | Index name | Index size
+----|-------------|------------|------------|------------
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
     {{- $value := (index (index (index $.results $host) "data") $key) -}}
     {{ $key }} |
     {{- $value.schema_name }} |
     {{- $value.table_name }} |
     {{- $value.index_name }} |
+    {{- $value.index_size }}
 {{ end }}{{/* range */}}
 {{ else }}
 Invalid indexes not found

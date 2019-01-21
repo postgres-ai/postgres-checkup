@@ -19,7 +19,7 @@ with data as (
   from pg_stat_all_tables
   join pg_class c on c.oid = relid
   where reltuples > 10000
-  order by 12 desc limit 50
+  order by 13 desc limit 50
 ), dead_tuples as (
   select json_object_agg(data."relation", data) as json from data
 ), database_stat as (
