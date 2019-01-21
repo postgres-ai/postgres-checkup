@@ -210,6 +210,7 @@ for key in \
     (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
+    55.55 as ratio_${key},
   "
 done
 
