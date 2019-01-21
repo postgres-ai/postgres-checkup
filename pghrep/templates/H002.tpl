@@ -3,10 +3,12 @@
 ## Observations ##
 
 {{ if .resultData }}
+Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
+Report created: {{ DtFormat .timestamptz }}  
 
-{{- if .resultData.unused_indexes -}}
+{{ if .resultData.unused_indexes }}
 ### Never Used Indexes ###
-Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Index size | Usage
+Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| Index size | Usage
 --------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----
 {{ range $key, $value := (index .resultData "unused_indexes") }}
 {{- if ne $key "_keys" -}}
@@ -41,7 +43,7 @@ Index | Reason |{{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {
 
 ### Redundant indexes ###
 
-Index | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Usage | Index size
+Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| Usage | Index size
 --------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----
 {{ range $key, $value := (index .resultData "redundant_indexes") }}
 {{- if ne $key "_keys" -}}

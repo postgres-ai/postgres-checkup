@@ -27,7 +27,11 @@ with data as (
     row_to_json(dbstat)
   from (
     select
-      sd.stats_reset::timestamptz(0)
+      sd.stats_reset::timestamptz(0),
+      age(
+        date_trunc('minute',now()),
+        date_trunc('minute',sd.stats_reset)
+      ) as stats_age
     from pg_stat_database sd
     where datname = current_database()
   ) dbstat
