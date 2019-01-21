@@ -182,6 +182,7 @@ fi
 
 # generate sub_sql
 sub_sql=" "
+sub_sql_sum=" "
 for key in \
            calls \
            total_time \
@@ -210,9 +211,13 @@ for key in \
     (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
-    55.55 as ratio_${key},
+    round(100 * (s2.obj->>'${key}')::numeric / (select case when sum_${key} = 0 then 1 else sum_${key} end from calc_sum where calc_sum.md5 = s2.md5)) as ratio_${key},
+  "
+  sub_sql_sum="${sub_sql_sum}
+    sum((s1.obj->>'${key}')::numeric) as sum_${key},
   "
 done
+
 
 sql="
   with snap1(j) as (
@@ -233,6 +238,12 @@ sql="
   ), s2(md5, obj) as (
     select _.*
     from snap2, lateral json_each(j->'queries') as _
+  ), calc_sum as (
+    select ${sub_sql_sum}
+      s1.md5
+    from s1
+    join s2 using(md5)
+    group by s1.md5
   ), queries_pre as (
     select
       ${sub_sql}
