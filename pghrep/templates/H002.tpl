@@ -32,7 +32,7 @@ Index | Reason |{{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {
 {{ range $key, $value := (index .resultData "unused_indexes") }}
 {{- if ne $key "_keys" -}}
 {{- if ne $value.master.reason "Never Used Indexes" -}}
-{{ $key }} | {{ $value.master.reason }} | Index&nbsp;size:{{ Nobr $value.master.index_size }} Table&nbsp;size:{{ Nobr $value.master.table_size }} {{ range $skey, $host := $.hosts.replicas }} |Index&nbsp;size:{{ Nobr (index $value $host).index_size }} Table&nbsp;size:{{ Nobr (index $value $host).table_size }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }}
+{{ $key }} | {{ $value.master.reason }} | Usage:&nbsp;{{ $value.master.idx_scan }}<br/>Index&nbsp;size:{{ Nobr $value.master.index_size }}<br/>Table&nbsp;size:{{ Nobr $value.master.table_size }} {{ range $skey, $host := $.hosts.replicas }} | Usage:&nbsp;{{ (index $value $host).idx_scan }}<br/>Index&nbsp;size:{{ Nobr (index $value $host).index_size }}<br/>Table&nbsp;size:{{ Nobr (index $value $host).table_size }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }}
 {{/* new line */}}
 {{- end -}}
 {{- end }}{{/* ! "_keys" */}}
