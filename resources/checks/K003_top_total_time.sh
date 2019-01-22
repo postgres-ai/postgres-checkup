@@ -281,8 +281,8 @@ sql="
     join sum_si using (key)
   ), absolute_error as ( -- absolute error with respect to calls metric is calculated as: (diff1(calls) + diff2(calls)) / 2
      select
-      (diff1.sum_calls + diff2.sum_calls)/2 as sum_calls,
-      (diff1.sum_total_time + diff2.sum_total_time)/2 as sum_total_time
+      (diff1.sum_calls + diff2.sum_calls) / 2 as sum_calls,
+      (diff1.sum_total_time + diff2.sum_total_time) / 2 as sum_total_time
      from diff1
      join diff2 using (key)
   ), queries_pre as (
