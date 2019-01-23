@@ -738,12 +738,27 @@ glue_md_reports() {
   echo "Last modified at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
   echo >> "${out_fname}"
 
-  # glue reports together
-  local cur_report=""
+  tableOfContents=""
+  content=""
+  echo "" >> "${out_fname}"
+  echo "<a name=\"pgcheckup_top\"></a>" >> "${out_fname}"
+  echo "### Table of contents ###" >> "${out_fname}"
+  #generate table of contents and glue reports together
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
     [[ -e "${cur_report}" ]] || continue
-    cat "${cur_report}" >> "${out_fname}"
+    title=$(head -n 1 ${cur_report})
+    title="${title/\#/}"
+    title="${title/\#/}"
+    title="${title#"${title%%[![:space:]]*}"}"
+    title="${title%"${title##*[![:space:]]}"}"
+    checkId=$(echo $title | cut -c 1-4)
+    tableOfContents="$tableOfContents\n[$title](#pgcheckup_$checkId)  "
+    content="$content\n---\n<a name=\"pgcheckup_$checkId\"></a>\n[Table of contents](#pgcheckup_top)"
+    report=$(cat "${cur_report}")
+    content="$content\n$report"
   done
+  echo -e "$tableOfContents" >> "${out_fname}"
+  echo -e "$content" >> "${out_fname}"
 }
 
 #######################################
