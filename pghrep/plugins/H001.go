@@ -2,128 +2,58 @@ package main
 
 import (
     "../src/pyraconv"
-    "strings"
 )
 
 var Data map[string]interface{}
 
 type prepare string
 
-func compareHostsData(data map[string]interface{}) {
+func prepareDropCode(data map[string]interface{}) {
     hosts := pyraconv.ToInterfaceMap(data["hosts"])
     master := pyraconv.ToString(hosts["master"])
     replicas := pyraconv.ToStringArray(hosts["replicas"])
     resultData := make(map[string]interface{})
-
     results := pyraconv.ToInterfaceMap(data["results"])
-    masterData := pyraconv.ToInterfaceMap(results[master])
-    masterData = pyraconv.ToInterfaceMap(masterData["data"])
 
-    allUnusedIndexes := make(map[string]bool)
-    uIndexesData := pyraconv.ToInterfaceMap(masterData["unused_indexes"])
-    uIndexes := make(map[string]interface{})
-    for indexName, value := range uIndexesData {
-        valueData := pyraconv.ToInterfaceMap(value);
-        idxScanValue := pyraconv.ToInt64(valueData["idx_scan"])
-        idxScanSum := idxScanValue
-        
-        indexData := make(map[string]interface{})
-        indexData["master"] = valueData
-        for _, replica := range replicas {
-            hostIndexData := getReplicaIndex(data, replica, "unused_indexes", indexName)
-            hostIdxScanValue := pyraconv.ToInt64(hostIndexData["idx_scan"])
-            idxScanSum = idxScanSum + hostIdxScanValue
-            indexData[replica] = hostIndexData
-        }
-        indexData["usage"] = idxScanSum > 0
-        if idxScanSum == 0 {
-            allUnusedIndexes[indexName] = true
-        }
-        uIndexes[indexName] = indexData
-    }
-    resultData["unused_indexes"] = uIndexes
+    doUndoCode := make(map[string]interface{})
 
-    rIndexesData := pyraconv.ToInterfaceMap(masterData["redundant_indexes"])
-    rIndexes := make(map[string]interface{})
-    for indexName, value := range rIndexesData {
-        valueData := pyraconv.ToInterfaceMap(value);
-        idxScanValue := pyraconv.ToInt64(valueData["index_usage"])
-        idxScanSum := idxScanValue
+    if results[master] != nil {
+        masterData := pyraconv.ToInterfaceMap(results[master])
+        masterIndexes := pyraconv.ToInterfaceMap(masterData["data"])
 
-        indexData := make(map[string]interface{})
-        indexData["master"] = valueData
-        for _, replica := range replicas {
-            hostIndexData := getReplicaIndex(data, replica, "redundant_indexes", indexName)
-            hostIdxScanValue := pyraconv.ToInt64(hostIndexData["index_usage"])
-            idxScanSum = idxScanSum + hostIdxScanValue
-            indexData[replica] = hostIndexData
-        }
-        indexData["usage"] = idxScanSum > 0
-        if idxScanSum == 0 {
-            allUnusedIndexes[indexName] = true
-        }
-        rIndexes[indexName] = indexData
-    }
-    resultData["redundant_indexes"] = rIndexes
-
-    dropCode := make(map[string]interface{})
-    revertCode := make(map[string]interface{})
-    // enum only not used indexes
-    for indexName, _ := range allUnusedIndexes {
-        dropIndexCode := getIndexCode(data, indexName, "drop")
-        if len(dropIndexCode) > 0 {
-            dropCode[indexName] = dropIndexCode
-        }
-        revertIndexCode := getIndexCode(data, indexName, "revert")
-        if len(revertIndexCode) > 0 {
-            revertCode[indexName] = revertIndexCode
+        for _, value := range masterIndexes {
+            valueData := pyraconv.ToInterfaceMap(value);
+            indexName := pyraconv.ToString(valueData["index_name"]);
+            doUndo := make(map[string]interface{})
+            doUndo["drop_code"] = pyraconv.ToString(valueData["drop_code"]);
+            doUndo["revert_code"] = pyraconv.ToString(valueData["revert_code"]);
+            if len(pyraconv.ToString(valueData["drop_code"])) > 0 && len(pyraconv.ToString(valueData["revert_code"])) > 0 {
+                doUndoCode[indexName] = doUndo
+            }
         }
     }
 
-    resultData["dropCode"] = dropCode
-    resultData["revertCode"] = revertCode
+    for _, replica := range replicas {
+        hostData := pyraconv.ToInterfaceMap(results[replica])
+        hostIndexes := pyraconv.ToInterfaceMap(hostData["data"])
+        for _, value := range hostIndexes {
+            valueData := pyraconv.ToInterfaceMap(value);
+            indexName := pyraconv.ToString(valueData["index_name"]);
+            doUndo := make(map[string]interface{})
+            doUndo["drop_code"] = pyraconv.ToString(valueData["drop_code"]);
+            doUndo["revert_code"] = pyraconv.ToString(valueData["revert_code"]);
+            if len(pyraconv.ToString(valueData["drop_code"])) > 0 && len(pyraconv.ToString(valueData["revert_code"])) > 0 {
+                doUndoCode[indexName] = doUndo
+            }
+        }
+    }
 
+    resultData["repair_code"] = doUndoCode
     data["resultData"] = resultData
 }
 
-func getReplicaIndexUsage(data map[string]interface{}, replica string, indexName string) (int64) {
-    results := pyraconv.ToInterfaceMap(data["results"])
-    hostData := pyraconv.ToInterfaceMap(results[replica])
-    hostData = pyraconv.ToInterfaceMap(hostData["data"])
-    uIndexesData := pyraconv.ToInterfaceMap(hostData["unused_uIndexes"])
-    indexData := pyraconv.ToInterfaceMap(uIndexesData[indexName])
-    return pyraconv.ToInt64(indexData["idx_scan"])
-}
-
-func getReplicaIndex(data map[string]interface{}, replica string, indexType string, indexName string) map[string]interface{} {
-    results := pyraconv.ToInterfaceMap(data["results"])
-    hostData := pyraconv.ToInterfaceMap(results[replica])
-    hostData = pyraconv.ToInterfaceMap(hostData["data"])
-    uIndexesData := pyraconv.ToInterfaceMap(hostData[indexType])
-    indexData := pyraconv.ToInterfaceMap(uIndexesData[indexName])
-    return indexData
-}
-
-func getIndexCode(data map[string]interface{}, indexName string, op string) string {
-    hosts := pyraconv.ToInterfaceMap(data["hosts"])
-    master := pyraconv.ToString(hosts["master"])
-
-    results := pyraconv.ToInterfaceMap(data["results"])
-    hostData := pyraconv.ToInterfaceMap(results[master])
-    hostData = pyraconv.ToInterfaceMap(hostData["data"])
-    codeData := pyraconv.ToInterfaceArray(hostData[op + "_code"])
-    for _, codeValue := range codeData {
-        sql := pyraconv.ToString(codeValue)
-        if strings.Contains(sql, indexName) {
-            return sql
-        }
-    }
-    return ""
-}
-
-
 func (g prepare) Prepare(data map[string]interface{}) map[string]interface{} {
-    compareHostsData(data)
+    prepareDropCode(data)
     return data
 }
 

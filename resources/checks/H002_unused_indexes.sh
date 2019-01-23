@@ -21,6 +21,19 @@ with indexes as (
   select json_object_agg(i."index_name", i) as json from indexes i
 ), redundant as (
   select json_object_agg(ri."index_name", ri) as json from redundant_indexes ri
+), database_stat as (
+  select
+    row_to_json(dbstat)
+  from (
+    select
+      sd.stats_reset::timestamptz(0),
+      age(
+        date_trunc('minute',now()),
+        date_trunc('minute',sd.stats_reset)
+      ) as stats_age
+    from pg_stat_database sd
+    where datname = current_database()
+  ) dbstat
 )
 select json_build_object(
         'unused_indexes',
@@ -30,6 +43,8 @@ select json_build_object(
         'drop_code',
         (select * from deploy_code),
         'revert_code',
-        (select * from revert_code)
+        (select * from revert_code),
+        'database_stat',
+        (select * from database_stat)
     );
 SQL
