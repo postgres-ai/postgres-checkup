@@ -214,7 +214,7 @@ for key in \
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
     case when (select sum_delta_${key} from sum_delta) = 0 then 0
-      else round(100 * (( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ))::numeric / (select sum_delta_${key} from sum_delta)) end as ratio_${key},
+      else round(100 * (( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ))::numeric / (select sum_delta_${key} from sum_delta)) end as ratio_${key},
   "
   sub_sql_sum_s1="${sub_sql_sum_s1}
     sum((s1.obj->>'${key}')::numeric) as sum_${key},"
