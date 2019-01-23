@@ -184,6 +184,7 @@ fi
 sub_sql=" "
 sub_sql_sum_s1=" "
 sub_sql_sum_s2=" "
+sub_sql_sum_delta=" "
 for key in \
            calls \
            total_time \
@@ -212,14 +213,15 @@ for key in \
     (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
-	case when (select sum_${key} from sum_s2) = 0 then 0 else round(100 * (s2.obj->>'${key}')::numeric / (select sum_${key} from sum_s2)) end as ratio_${key},
+    case when (select sum_delta_${key} from sum_delta) = 0 then 0
+      else round(100 * (( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ))::numeric / (select sum_delta_${key} from sum_delta)) end as ratio_${key},
   "
   sub_sql_sum_s1="${sub_sql_sum_s1}
-    sum((s1.obj->>'${key}')::numeric) as sum_${key},
-  "
+    sum((s1.obj->>'${key}')::numeric) as sum_${key},"
   sub_sql_sum_s2="${sub_sql_sum_s2}
-    sum((s2.obj->>'${key}')::numeric) as sum_${key},
-  "
+    sum((s2.obj->>'${key}')::numeric) as sum_${key},"
+  sub_sql_sum_delta="${sub_sql_sum_delta}
+    sum((s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric) as sum_delta_${key},"
 done
 
 
@@ -285,6 +287,12 @@ sql="
       (diff1.sum_total_time + diff2.sum_total_time) / 2 as sum_total_time
      from diff1
      join diff2 using (key)
+  ), sum_delta as (
+    select
+      ${sub_sql_sum_delta}
+      '' as _
+    from s1
+    join s2 using(md5)
   ), queries_pre as (
     select
       ${sub_sql}
