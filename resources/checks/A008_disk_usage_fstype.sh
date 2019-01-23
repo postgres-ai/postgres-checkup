@@ -53,14 +53,14 @@ fi
 #######################################
 df_to_json() {
   echo "{
-  \"path\": \"$1\",
-  \"device\": \"$2\",
   \"fstype\": \"$3\",
   \"size\": \"$4\",
-  \"used\": \"$5\",
   \"avail\": \"$6\",
+  \"used\": \"$5\",
   \"use_percent\": \"$7\",
-  \"mount_point\": \"$8\"
+  \"mount_point\": \"$8\",
+  \"path\": \"$1\",
+  \"device\": \"$2\"
 }"
 
 }
@@ -92,11 +92,11 @@ for ts in ${PG_TABLESPSACES_DIRS}; do
   echo ","
 done
 
-echo "\"data_directory\":"
+echo "\"PGDATA\":"
 print_df "$PG_DATA_DIR"
 echo ","
 
-echo "\"wal_directory\":"
+echo "\"WAL directory\":"
 print_df "$PG_WAL_DIR"
 echo ","
 

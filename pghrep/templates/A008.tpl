@@ -5,8 +5,8 @@ Output of `df -TPh` (follows symlinks)
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 
-Name | Path | Device | FS Type | Size | Used | Available | Used, % | Mount Point
------|------|--------|---------|------|------|-----------|---------|------------
+Name | FS Type | Size | Available | Use | Used | Mount Point | Path | Device
+-----|---------|------|-----------|-----|------|-------------|------|-------
 {{ range $i, $name := (index (index (index .results .hosts.master) "data") "_keys") -}}
 {{ $name }} {{ range $k, $val_name := (index (index (index (index $.results $.hosts.master) "data") $name) "_keys") -}}
  | {{ (index (index (index (index $.results $.hosts.master) "data") $name) $val_name) }} {{ end }}{{/* end of range $k, $val_name */}}
@@ -17,8 +17,8 @@ Name | Path | Device | FS Type | Size | Used | Available | Used, % | Mount Point
   {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 
-Name | Path | Device | FS Type | Size | Used | Available | Used, % | Mount Point
------|------|--------|---------|------|------|-----------|---------|------------
+Name | FS Type | Size | Available | Use | Used | Mount Point | Path | Device
+-----|---------|------|-----------|-----|------|-------------|------|-------
 {{- if (index $.results $host) }}
 {{ range $i, $name := (index (index (index $.results $host) "data") "_keys") -}}
 {{ $name }} {{ range $k, $val_name := (index (index (index (index $.results $host) "data") $name) "_keys") -}}
