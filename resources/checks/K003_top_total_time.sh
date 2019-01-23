@@ -204,10 +204,7 @@ for key in \
            kcache_reads \
            kcache_writes \
            kcache_user_time_ms \
-           kcache_system_time_ms \
-           queryid \
-           userid \
-           dbid ;
+           kcache_system_time_ms ;
                                    do
   sub_sql="${sub_sql}
     (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
