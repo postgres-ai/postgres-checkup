@@ -96,7 +96,7 @@ echo "\"data_directory\":"
 print_df "$PG_DATA_DIR"
 echo ","
 
-echo "\"xlog_directory\":"
+echo "\"wal_directory\":"
 print_df "$PG_WAL_DIR"
 echo ","
 
