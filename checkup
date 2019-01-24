@@ -3,7 +3,7 @@
 # 2018 © Victor Yagofarov victor@postgres.ai
 # 2018 © Postgres.ai
 #
-# Perform a PostgreSQL instance(s) health checks
+# Perform a PostgreSQL instance(s) health checks (checkups)
 # Usage: $0 --help
 #
 
@@ -425,7 +425,7 @@ usage() {
   else
     out_descriptor="1" # STDOUT
     # help part starts here
-    echo "postgres-checkup is the PostgreSQL ultimate healthcheck utility." >&${out_descriptor}
+    echo "'postgres-checkup' is an ultimate open-source PostgreSQL database health check utility." >&${out_descriptor}
     echo >&${out_descriptor}
   fi
 
@@ -479,7 +479,7 @@ usage() {
       echo >&${out_descriptor}
       echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-health-check ." >&${out_descriptor}
+      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup ." >&${out_descriptor}
     fi
     prev_section=${SECTION[$i]}
   done
@@ -731,8 +731,8 @@ glue_md_reports() {
   [[ "${FILE}" != "None" ]] && return 0
 
   # make header
-  echo "# Project '${PROJECT}' PostgreSQL health check" > "${out_fname}"
-  echo "## Epoch: '${EPOCH}'" >> "${out_fname}"
+  echo "# Postgres-checkup. Project: '${PROJECT}'. Database: '${DBNAME}'" > "${out_fname}"
+  echo "## Epoch number: '${EPOCH}'" >> "${out_fname}"
   echo "NOTICE: while most reports describe the “current database”, some of them may contain cluster-wide information describing all databases in the cluster." >> "${out_fname}"
   echo >> "${out_fname}"
   echo "Last modified at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
@@ -741,7 +741,7 @@ glue_md_reports() {
   tableOfContents=""
   content=""
   echo "" >> "${out_fname}"
-  echo "<a name=\"pgcheckup_top\"></a>" >> "${out_fname}"
+  echo "<a name=\"postgres-checkup_top\"></a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
   #generate table of contents and glue reports together
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
@@ -752,8 +752,8 @@ glue_md_reports() {
     title="${title#"${title%%[![:space:]]*}"}"
     title="${title%"${title##*[![:space:]]}"}"
     checkId=$(echo $title | cut -c 1-4)
-    tableOfContents="$tableOfContents\n[$title](#pgcheckup_$checkId)  "
-    content="$content\n---\n<a name=\"pgcheckup_$checkId\"></a>\n[Table of contents](#pgcheckup_top)"
+    tableOfContents="$tableOfContents\n[$title](#postgres-checkup_$checkId)  "
+    content="$content\n---\n<a name=\"postgres-checkup_$checkId\"></a>\n[Table of contents](#postgres-checkup_top)"
     report=$(cat "${cur_report}")
     content="$content\n$report"
   done

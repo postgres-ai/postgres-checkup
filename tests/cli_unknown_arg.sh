@@ -4,7 +4,7 @@
 export PATH=$PATH:${BASH_SOURCE%/*}/..
 
 # put invalid '--force' argument
-output=$(./check -h postgres --username ${POSTGRES_USER} --force --project test --dbname ${POSTGRES_DB} 2>&1)
+output=$(./checkup -h postgres --username ${POSTGRES_USER} --force --project test --dbname ${POSTGRES_DB} 2>&1)
 
 if [[ $output =~ "invalid argument" ]]; then
   echo -e "\e[36mOK\e[39m"

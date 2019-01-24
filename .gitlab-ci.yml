@@ -22,11 +22,11 @@ before_script:
   script:
     - psql -h postgres -d dbname -U username -c "SELECT version();"
     - psql -h postgres -d dbname -U username -f .ci/h002.sql
-    - ./check -h postgres --username username --project test --dbname dbname -e 1
+    - ./checkup -h postgres --username username --project test --dbname dbname -e 1
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 101
     - psql -h postgres -d dbname -U username -f .ci/h002_step2.sql
     - rm -Rf ./artifacts/
-    - ./check -h postgres --username username --project test --dbname dbname -e 1
+    - ./checkup -h postgres --username username --project test --dbname dbname -e 1
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
 
