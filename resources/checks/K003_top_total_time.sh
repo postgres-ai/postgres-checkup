@@ -253,7 +253,7 @@ sql="
         sum((s2.obj->>'total_time')::numeric) as sum_total_time,
         1 as key
     from s2
-    where s2.md5 in (select md5 from s2)
+    where s2.md5 in (select md5 from si)
   ), sum_s1 as (
     select
       ${sub_sql_sum_s1}

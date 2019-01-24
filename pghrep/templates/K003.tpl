@@ -8,6 +8,9 @@ End: {{ (index (index (index .results .hosts.master) "data") "end_timestamptz") 
 Period seconds: {{ (index (index (index .results .hosts.master) "data") "period_seconds") }}  
 Period age: {{ (index (index (index .results .hosts.master) "data") "period_age") }}  
 
+Absolute error (calls): {{ (index (index (index .results .hosts.master) "data") "absolute_error_calls") }}
+Absolute error (total time): {{ (index (index (index .results .hosts.master) "data") "absolute_error_calls") }}
+
 \# | Calls | Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time | Query
 ----|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|------- 
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "queries") "_keys") }}
