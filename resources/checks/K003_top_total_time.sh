@@ -247,7 +247,14 @@ sql="
         intersect
         select s2.md5
         from s2
-  ), sum_si as ( -- calculate sum(calls) and sum(total_time) for si
+  ), sum_si_s1 as ( -- calculate sum(calls) and sum(total_time) for si-s1
+    select
+        sum((s1.obj->>'calls')::numeric) as sum_calls,
+        sum((s1.obj->>'total_time')::numeric) as sum_total_time,
+        1 as key
+    from s1
+    where s1.md5 in (select md5 from si)
+  ), sum_si_s2 as ( -- calculate sum(calls) and sum(total_time) for si-s2
     select
         sum((s2.obj->>'calls')::numeric) as sum_calls,
         sum((s2.obj->>'total_time')::numeric) as sum_total_time,
@@ -266,22 +273,22 @@ sql="
     from s2
   ), diff1 as (   -- the difference between sum for si and sum for s1
     select
-      abs(sum_s1.sum_calls - sum_si.sum_calls) as sum_calls,
-      abs(sum_s1.sum_total_time - sum_si.sum_total_time) as sum_total_time,
+      abs(sum_s1.sum_calls - sum_si_s1.sum_calls) as sum_calls,
+      abs(sum_s1.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,
       key
     from sum_s1
-    join sum_si using (key)
+    join sum_si_s1 using (key)
   ), diff2 as (   -- the difference between sum for si and sum for s2
     select
-      abs(sum_s2.sum_calls - sum_si.sum_calls) as sum_calls,
-      abs(sum_s2.sum_total_time - sum_si.sum_total_time) as sum_total_time,
+      abs(sum_s2.sum_calls - sum_si_s2.sum_calls) as sum_calls,
+      abs(sum_s2.sum_total_time - sum_si_s2.sum_total_time) as sum_total_time,
       key
     from sum_s2
-    join sum_si using (key)
+    join sum_si_s2 using (key)
   ), absolute_error as ( -- absolute error with respect to calls metric is calculated as: (diff1(calls) + diff2(calls)) / 2
      select
-      (diff1.sum_calls + diff2.sum_calls) / 2 as sum_calls,
-      (diff1.sum_total_time + diff2.sum_total_time) / 2 as sum_total_time
+      (diff1.sum_calls + diff2.sum_calls)::numeric / 2 as sum_calls,
+      (diff1.sum_total_time + diff2.sum_total_time)::numeric / 2 as sum_total_time
      from diff1
      join diff2 using (key)
   ), sum_delta as (
