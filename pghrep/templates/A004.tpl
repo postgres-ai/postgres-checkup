@@ -13,7 +13,7 @@
 {{- end -}}
 {{ if (index (index (index .results .hosts.master) "data") "database_sizes") }}
 #### Databases sizes ####
-Database | Size
+Database | &#9660;&nbsp;Size
 ---------|------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "database_sizes") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "database_sizes") $key) -}}

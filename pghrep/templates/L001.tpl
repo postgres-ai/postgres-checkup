@@ -3,7 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-Table | Rows | Total size | Table size | Index(es) Size | TOAST Size
+Table | Rows | &#9660;&nbsp;Total size | Table size | Index(es) Size | TOAST Size
 ------|------|------------|------------|----------------|------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
