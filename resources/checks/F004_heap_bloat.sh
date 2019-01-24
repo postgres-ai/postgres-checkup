@@ -2,8 +2,10 @@ sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5ba8c47
 
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
-$sql
+  $sql
+), limited_data as (
+  select * from data limit 100
 )
-select json_object_agg(data."Table", data) as json from data;
+select json_object_agg(ld."Table", ld) as json from limited_data ld;
 
 SQL

@@ -12,9 +12,3 @@
 {{ else }}
 No data
 {{ end }}
-
-## Conclusions ##
-
-
-## Recommendations ##
-
