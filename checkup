@@ -9,7 +9,7 @@
 
 # GLOBALS (user-assigned variables)
 CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
-                 # TODO(vyagofarov): think about timing 
+                 # TODO(vyagofarov): think about timing
                  # out commands in macOS
 FULL_REPORT_FNAME="full_report.md"
 
@@ -168,8 +168,8 @@ read_possible_args() {
 
     iter_num=$(( iter_num + 1 ))
   done < <(load_cli_res)
-  
-  # $CLI_ARGS_POSSIBLE is a global index 
+
+  # $CLI_ARGS_POSSIBLE is a global index
   # for all CLI input values and their properties,
   # starting from zero (convenient for arrays)
   CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
@@ -436,11 +436,11 @@ usage() {
 
   # calc max size of FULL_NAME[] for text alignment
   local max_name_len=0
-  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do 
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     bytlen=${#FULL_NAME[$i]}
     if [[ "$bytlen" -ge "$max_name_len" ]]; then
       max_name_len=$bytlen
-    fi 
+    fi
   done
 
   local space
@@ -460,7 +460,7 @@ usage() {
     for f in $(seq 0 $(( max_name_len - curr_byte_len + 2 )) ); do
       echo -n " "  >&${out_descriptor}
     done
-    echo -n " --"${FULL_NAME[$i]} >&${out_descriptor} 
+    echo -n " --"${FULL_NAME[$i]} >&${out_descriptor}
     echo    "   "${DESCRIPTION[$i]} >&${out_descriptor}
     # print options about this usage/help and additional info in the last iteration
     curr_byte_len="help"
@@ -470,7 +470,7 @@ usage() {
       for f in $(seq 0 $(( max_name_len - curr_byte_len + 2 )) ); do
         echo -n " "  >&${out_descriptor}
       done
-      echo -n " --help" >&${out_descriptor} 
+      echo -n " --help" >&${out_descriptor}
       echo    "   this help" >&${out_descriptor}
       # additional info
       echo >&${out_descriptor}
@@ -483,7 +483,7 @@ usage() {
     fi
     prev_section=${SECTION[$i]}
   done
- 
+
   exit $exit_code
 }
 
@@ -887,7 +887,7 @@ update_nodes_json() {
       mkdir -p "${JSON_REPORTS_DIR}"
 
       MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
-    fi 
+    fi
 
     local input_json_fname="${PROJECT_DIR}/nodes.json"
   fi
@@ -900,7 +900,7 @@ update_nodes_json() {
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
     msg "WARNING: important difference between checks detected:"
     msg "WARNING: host's role has been changed from '${prev_role}' to '${ROLE}'"
-    role_changed_at="${TIMESTAMPTZ}" 
+    role_changed_at="${TIMESTAMPTZ}"
   fi
 
   # generate new ALIAS_INDEX and ALIAS_NAME for a new host
