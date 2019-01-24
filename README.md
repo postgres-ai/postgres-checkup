@@ -14,7 +14,7 @@ Example
 
 Let's make a report for a project named `my-site_org-slony`:
 Cluster `slony` contains two servers - `db1` and `db2`.
-postgres-checkup automatically detects which one is a master:
+Postgres-checkup automatically detects which one is a master:
 
 ```bash
 ./checkup -h db1 -p 5432 --username postgres --dbname postgres --project my-site_org-slony
