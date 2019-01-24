@@ -14,14 +14,14 @@ Example
 
 Let's make a report for a project named `my-site_org-slony`:
 Cluster `slony` contains two servers - `db1` and `db2`.
-PgHealth automatically detects which one is a master:
+postgres-checkup automatically detects which one is a master:
 
 ```bash
-./check -h db1 -p 5432 --username postgres --dbname postgres --project my-site_org-slony
+./checkup -h db1 -p 5432 --username postgres --dbname postgres --project my-site_org-slony
 ```
 
 ```bash
-./check -h db2 -p 5432 --username postgres --dbname postgres --project my-site_org-slony -e 1
+./checkup -h db2 -p 5432 --username postgres --dbname postgres --project my-site_org-slony -e 1
 ```
 
 Which literally means: "connect to the server with given credentials, save data into `my-site_org-slony`
@@ -32,7 +32,7 @@ At the first run we can skip `-e 1` because default epoch is `1`, but at the sec
 must exist: we don't want to overwrite historical results.
 
 
-As a result of health-check we have got two directories with .json files and .md files:
+As a result of postgres-checkup we have got two directories with .json files and .md files:
 
 ```bash
 ./artifacts/my-site_org-slony/json_reports/1_2018_12_06T14_12_36_+0300/
