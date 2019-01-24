@@ -5,11 +5,11 @@
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data") }}
- Table | Size | Extra | Bloat | Live | Last vacuum
--------|------|-------|-------|------|-------------
+ Table | Size | Extra | Bloat | Live | Last vacuum | Fill factor
+-------|------|-------|-------|------|-------------|-------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-{{ $key }} | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ if (index $value "Last Vaccuum") }} {{ ( index $value "Last Vaccuum") }} {{ end }}
+{{ $key }} | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ if (index $value "Last Vaccuum") }} {{ ( index $value "Last Vaccuum") }} {{ end }} | {{ ( index $value "Fill Factor") }}
 {{ end }}
 {{- else -}}
 No data
