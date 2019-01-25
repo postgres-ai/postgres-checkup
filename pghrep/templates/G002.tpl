@@ -3,7 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-Num | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
+\# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
 ----|------|----|---------------|-------|-----------------------|-----------------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
@@ -17,7 +17,7 @@ Num | User | DB | Current state | Count | State changed >1m ago | State changed 
 {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
-Num | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
+\# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
 ----|------|----|---------------|-------|-----------------------|-----------------------
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}

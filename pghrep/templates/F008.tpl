@@ -22,12 +22,12 @@ Ram amount you can see in report A001
 
 {{- $autovacuum_work_mem := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "autovacuum_work_mem").setting (index (index (index .results .hosts.master) "data") "autovacuum_work_mem").unit) -}}
 {{- $maintenance_work_mem := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "maintenance_work_mem").setting (index (index (index .results .hosts.master) "data") "maintenance_work_mem").unit) -}}
-{{- $max_connections := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "max_connections").setting (index (index (index .results .hosts.master) "data") "max_connections").unit) }}
+{{- $autovacuum_max_workers := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "autovacuum_max_workers").setting (index (index (index .results .hosts.master) "data") "autovacuum_max_workers").unit) }}
 
 {{ if eq $autovacuum_work_mem -1 -}}
-Max workers memory: {{ ByteFormat ( Mul $maintenance_work_mem $max_connections ) 0 }}
+Max workers memory: {{ ByteFormat ( Mul $maintenance_work_mem $autovacuum_max_workers ) 0 }}
 {{- else -}}
-Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $max_connections ) 0 }}
+Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $autovacuum_max_workers ) 0 }}
 {{- end }}
 
 

@@ -3,7 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-&#9660;&nbsp;Setting | Value | Unit | Pretty value
+Setting | Value | Unit | Pretty value
 --------|-------|------|--------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
