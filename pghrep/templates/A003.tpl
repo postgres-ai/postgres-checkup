@@ -12,9 +12,3 @@ Setting | Value | Unit | Pretty value
 {{ else }}
 No data
 {{ end }}
-
-## Conclusions ##
-
-
-## Recommendations ##
-

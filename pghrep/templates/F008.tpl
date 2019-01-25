@@ -4,6 +4,7 @@
 
 ### Settings ###
 
+{{if .hosts.master }}
 Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
@@ -21,17 +22,21 @@ Ram amount you can see in report A001
 
 {{- $autovacuum_work_mem := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "autovacuum_work_mem").setting (index (index (index .results .hosts.master) "data") "autovacuum_work_mem").unit) -}}
 {{- $maintenance_work_mem := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "maintenance_work_mem").setting (index (index (index .results .hosts.master) "data") "maintenance_work_mem").unit) -}}
-{{- $max_connections := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "max_connections").setting (index (index (index .results .hosts.master) "data") "max_connections").unit) }}
+{{- $autovacuum_max_workers := (RawIntUnitValue (index (index (index .results .hosts.master) "data") "autovacuum_max_workers").setting (index (index (index .results .hosts.master) "data") "autovacuum_max_workers").unit) }}
 
 {{ if eq $autovacuum_work_mem -1 -}}
-Max workers memory: {{ ByteFormat ( Mul $maintenance_work_mem $max_connections ) 0 }}
+Max workers memory: {{ ByteFormat ( Mul $maintenance_work_mem $autovacuum_max_workers ) 0 }}
 {{- else -}}
-Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $max_connections ) 0 }}
+Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $autovacuum_max_workers ) 0 }}
 {{- end }}
+
 
 ### DISK ###
 
 :warning: Warning: collection of current impact on disks is not yet implemented. Please refer to Postgres logs and see current read and write IO bandwidth caused by autovacuum.  
+{{ else }}{{/* if master */}}
+No data
+{{ end }}{{/* if master */}}
 
 ## Conclusions ##
 

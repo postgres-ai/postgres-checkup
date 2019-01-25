@@ -4,7 +4,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
- Index (Table) | Size | Extra | Bloat | Live | Fill factor
+ Index (Table) | &#9660;&nbsp;Size | Extra | Bloat | Live | Fill factor
 ---------------|------|-------|-------|------|-------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}

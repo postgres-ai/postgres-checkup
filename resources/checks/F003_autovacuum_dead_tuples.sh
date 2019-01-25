@@ -19,7 +19,7 @@ with data as (
   from pg_stat_all_tables
   join pg_class c on c.oid = relid
   where reltuples > 10000
-  order by 12 desc limit 50
+  order by 13 desc limit 50
 ), dead_tuples as (
   select json_object_agg(data."relation", data) as json from data
 ), database_stat as (
@@ -27,7 +27,11 @@ with data as (
     row_to_json(dbstat)
   from (
     select
-      sd.stats_reset::timestamptz(0)
+      sd.stats_reset::timestamptz(0),
+      age(
+        date_trunc('minute',now()),
+        date_trunc('minute',sd.stats_reset)
+      ) as stats_age
     from pg_stat_database sd
     where datname = current_database()
   ) dbstat

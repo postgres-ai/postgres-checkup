@@ -3,8 +3,8 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-Stats reset: {{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }}  
-Report created: {{ DtFormat .timestamptz }}
+Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
+Report created: {{ DtFormat .timestamptz }}  
 
  Relation | Type | Since last autovacuum | Since last vacuum | Autovacuum Count | Vacuum Count | n_tup_ins | n_tup_upd | n_tup_del | pg_class.reltuples | n_live_tup | n_dead_tup | &#9660;Dead Tuples Ratio, %
 ----------|------|-----------------------|-------------------|----------|---------|-----------|-----------|-----------|--------------------|------------|------------|-----------

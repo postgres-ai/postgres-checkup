@@ -4,7 +4,7 @@ Postgres Healt Reporter
 2018 © Dmitry Udalov dmius@postgres.ai
 2018 © Postgres.ai
 
-Perform a generation *md reports on base of results health checks
+Perform a generation of Markdown report based on JSON results of postgres-checkup
 Usage: 
 pghrep --checkdata=file:///path_to_check_results.json --outdir=/home/results
 */
@@ -260,6 +260,7 @@ func determineMasterReplica(data map[string]interface{}) {
     replicas := make(map[int]string)
     nodes_json := pyraconv.ToInterfaceMap(data["last_nodes_json"])
     hosts := pyraconv.ToInterfaceMap(nodes_json["hosts"]);
+    hostRoles["master"] = nil
     for host, value := range hosts {
         hostData := pyraconv.ToInterfaceMap(value)
         if hostData["role"] == "master" {
