@@ -4,7 +4,7 @@ stages:
   - test
 
 variables:
-  INSIDE_DOCKER: yes
+  INSIDE_DOCKER: "yes"
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: username # set username
   POSTGRES_PASSWORD: ""  
