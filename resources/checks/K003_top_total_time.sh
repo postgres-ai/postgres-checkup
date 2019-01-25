@@ -182,6 +182,9 @@ fi
 
 # generate sub_sql
 sub_sql=" "
+sub_sql_sum_s1=" "
+sub_sql_sum_s2=" "
+sub_sql_sum_delta=" "
 for key in \
            calls \
            total_time \
@@ -201,17 +204,23 @@ for key in \
            kcache_reads \
            kcache_writes \
            kcache_user_time_ms \
-           kcache_system_time_ms \
-           queryid \
-           userid \
-           dbid ;
+           kcache_system_time_ms ;
                                    do
   sub_sql="${sub_sql}
     (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
     ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
+    case when (select sum_delta_${key} from sum_delta) = 0 then 0
+      else round(100 * (( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ))::numeric / (select sum_delta_${key} from sum_delta)) end as ratio_${key},
   "
+  sub_sql_sum_s1="${sub_sql_sum_s1}
+    sum((s1.obj->>'${key}')::numeric) as sum_${key},"
+  sub_sql_sum_s2="${sub_sql_sum_s2}
+    sum((s2.obj->>'${key}')::numeric) as sum_${key},"
+  sub_sql_sum_delta="${sub_sql_sum_delta}
+    sum((s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric) as sum_delta_${key},"
 done
+
 
 sql="
   with snap1(j) as (
@@ -232,6 +241,75 @@ sql="
   ), s2(md5, obj) as (
     select _.*
     from snap2, lateral json_each(j->'queries') as _
+  ), si as (  -- let's create si as intersection of s1 and s2 (si contains all query groups which both s1 and s2 have)
+        select s1.md5
+        from s1
+        intersect
+        select s2.md5
+        from s2
+  ), sum_si_s1 as ( -- calculate sum(calls) and sum(total_time) for si-s1
+    select
+        sum((s1.obj->>'calls')::numeric) as sum_calls,
+        sum((s1.obj->>'total_time')::numeric) as sum_total_time,
+        1 as key
+    from s1
+    where s1.md5 in (select md5 from si)
+  ), sum_si_s2 as ( -- calculate sum(calls) and sum(total_time) for si-s2
+    select
+        sum((s2.obj->>'calls')::numeric) as sum_calls,
+        sum((s2.obj->>'total_time')::numeric) as sum_total_time,
+        1 as key
+    from s2
+    where s2.md5 in (select md5 from si)
+  ), sum_s1 as (
+    select
+      ${sub_sql_sum_s1}
+      1 as key
+    from s1
+  ), sum_s2 as (
+    select
+      ${sub_sql_sum_s2}
+      1 as key
+    from s2
+  ), diff1 as (   -- the difference between sum for si and sum for s1
+    select
+      abs(sum_s1.sum_calls - sum_si_s1.sum_calls) as sum_calls,
+      abs(sum_s1.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,
+      key
+    from sum_s1
+    join sum_si_s1 using (key)
+  ), diff2 as (   -- the difference between sum for si and sum for s2
+    select
+      abs(sum_s2.sum_calls - sum_si_s2.sum_calls) as sum_calls,
+      abs(sum_s2.sum_total_time - sum_si_s2.sum_total_time) as sum_total_time,
+      key
+    from sum_s2
+    join sum_si_s2 using (key)
+  ), diff_calc_rel_err as (   
+    select
+      abs(sum_si_s2.sum_calls - sum_si_s1.sum_calls) as sum_calls,
+      abs(sum_si_s2.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,
+      key
+    from sum_si_s2
+    join sum_si_s1 using (key)
+  ), calc_error as ( -- absolute error with respect to calls metric is calculated as: (diff1(calls) + diff2(calls)) / 2
+    select
+        (diff1.sum_calls + diff2.sum_calls)::numeric / 2 as absolute_error_calls,
+        (diff1.sum_total_time + diff2.sum_total_time)::numeric / 2 as absolute_error_total_time,
+        case when (select sum_calls from diff_calc_rel_err) = 0 then 0 else
+            (((diff1.sum_calls + diff2.sum_calls) / 2) * 100) / (select sum_calls from diff_calc_rel_err)
+        end as relative_error_calls,
+        case when (select sum_total_time from diff_calc_rel_err) = 0 then 0 else
+            (((diff1.sum_total_time + diff2.sum_total_time) / 2) * 100) / (select sum_total_time from diff_calc_rel_err)
+        end as relative_error_total_time
+    from diff1
+    join diff2 using (key)
+  ), sum_delta as (
+    select
+      ${sub_sql_sum_delta}
+      '' as _
+    from s1
+    join s2 using(md5)
   ), queries_pre as (
     select
       ${sub_sql}
@@ -251,6 +329,10 @@ sql="
     'end_timestamptz'::text, (select j->'snapshot_timestamptz' from snap2),
     'period_seconds'::text, ( select (snap2.j->>'snapshot_timestamptz_s')::numeric - (snap1.j->>'snapshot_timestamptz_s')::numeric from snap1, snap2 ),
     'period_age'::text, ( select (snap2.j->>'snapshot_timestamptz')::timestamptz - (snap1.j->>'snapshot_timestamptz')::timestamptz from snap1, snap2 ),
+    'absolute_error_calls'::text, (select absolute_error_calls from calc_error),
+    'absolute_error_total_time'::text, (select absolute_error_total_time from calc_error),
+    'relative_error_calls'::text, (select relative_error_calls from calc_error),
+    'relative_error_total_time'::text, (select relative_error_total_time from calc_error),
     'queries', json_object_agg(queries.rownum, queries.*)
   )
   from queries
