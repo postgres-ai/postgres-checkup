@@ -1,0 +1,11 @@
+* text eol=lf
+
+*.md text
+*.txt text
+*.json tezxt
+*.go text
+*.sh text
+*.sql text
+*.ini text
+*.yml text
+*.tpl text
