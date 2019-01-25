@@ -22,7 +22,6 @@ test-docker-exec:
   services:
     - postgres:10
   script:
-    - # docker exec -it postgres "ls" && echo "docker exec successfull"
     - psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h postgres -c "select 'ololo'"
     - ssh postgres "ps auxww"
     - echo "We not failed if you can see this"
