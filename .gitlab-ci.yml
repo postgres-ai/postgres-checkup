@@ -22,7 +22,7 @@ test-docker-exec:
   stage: test
   services:
     - postgres:10
-    - ssh
+    - panubo/sshd
   script:
     - ssh postgres "ps auxww"
     - echo "We not failed if you can see this"
