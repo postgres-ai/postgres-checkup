@@ -15,7 +15,7 @@ before_script:
 
 .test-check:
   script:
-    - docker exec -it postgres "echo \"TEST MESSAGE\""
+    - docker exec -it postgres "ls" && echo "docker exec successfull"
 
 test-docker-exec:
   stage: test
