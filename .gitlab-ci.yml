@@ -24,7 +24,5 @@ test-docker-exec:
     - postgres:10
     - panubo/sshd
   script:
-    - host postgres
-    - hostname
-    - ssh postgres "ps auxww"
+    - ps auxww
     - echo "We not failed if you can see this"
