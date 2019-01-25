@@ -285,12 +285,25 @@ sql="
       key
     from sum_s2
     join sum_si_s2 using (key)
-  ), absolute_error as ( -- absolute error with respect to calls metric is calculated as: (diff1(calls) + diff2(calls)) / 2
-     select
-      (diff1.sum_calls + diff2.sum_calls)::numeric / 2 as sum_calls,
-      (diff1.sum_total_time + diff2.sum_total_time)::numeric / 2 as sum_total_time
-     from diff1
-     join diff2 using (key)
+  ), diff_calc_rel_err as (   
+    select
+      abs(sum_si_s2.sum_calls - sum_si_s1.sum_calls) as sum_calls,
+      abs(sum_si_s2.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,
+      key
+    from sum_si_s2
+    join sum_si_s1 using (key)
+  ), calc_error as ( -- absolute error with respect to calls metric is calculated as: (diff1(calls) + diff2(calls)) / 2
+    select
+        (diff1.sum_calls + diff2.sum_calls)::numeric / 2 as absolute_error_calls,
+        (diff1.sum_total_time + diff2.sum_total_time)::numeric / 2 as absolute_error_total_time,
+        case when (select sum_calls from diff_calc_rel_err) = 0 then 0 else
+            (((diff1.sum_calls + diff2.sum_calls) / 2) * 100) / (select sum_calls from diff_calc_rel_err)
+        end as relative_error_calls,
+        case when (select sum_total_time from diff_calc_rel_err) = 0 then 0 else
+            (((diff1.sum_total_time + diff2.sum_total_time) / 2) * 100) / (select sum_total_time from diff_calc_rel_err)
+        end as relative_error_total_time
+    from diff1
+    join diff2 using (key)
   ), sum_delta as (
     select
       ${sub_sql_sum_delta}
@@ -316,8 +329,10 @@ sql="
     'end_timestamptz'::text, (select j->'snapshot_timestamptz' from snap2),
     'period_seconds'::text, ( select (snap2.j->>'snapshot_timestamptz_s')::numeric - (snap1.j->>'snapshot_timestamptz_s')::numeric from snap1, snap2 ),
     'period_age'::text, ( select (snap2.j->>'snapshot_timestamptz')::timestamptz - (snap1.j->>'snapshot_timestamptz')::timestamptz from snap1, snap2 ),
-    'absolute_error_calls'::text, (select sum_calls from absolute_error),
-    'absolute_error_total_time'::text, (select sum_total_time from absolute_error),
+    'absolute_error_calls'::text, (select absolute_error_calls from calc_error),
+    'absolute_error_total_time'::text, (select absolute_error_total_time from calc_error),
+    'relative_error_calls'::text, (select relative_error_calls from calc_error),
+    'relative_error_total_time'::text, (select relative_error_total_time from calc_error),
     'queries', json_object_agg(queries.rownum, queries.*)
   )
   from queries
