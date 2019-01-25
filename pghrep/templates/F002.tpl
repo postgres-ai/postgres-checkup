@@ -5,7 +5,7 @@
 ### Master (`{{.hosts.master}}`) ###
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
 #### Per instance ####
- Database | &#9660;&nbsp;Age | Capacity used, % | Warning | datfrozenxid
+ Database | Age | &#9660;&nbsp;Capacity used, % | Warning | datfrozenxid
 ----------|-----|------------------|---------|--------------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_instance") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_instance") $key) -}}

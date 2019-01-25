@@ -3,6 +3,7 @@ package main
 import (
     "../src/pyraconv"
     "strings"
+    "../src/orderedmap"
 )
 
 var Data map[string]interface{}
@@ -38,7 +39,7 @@ func compareHostsData(data map[string]interface{}) {
     hosts := pyraconv.ToInterfaceMap(data["hosts"])
     master := pyraconv.ToString(hosts["master"])
     replicas := pyraconv.ToStringArray(hosts["replicas"])
-    resultData := make(map[string]interface{})
+    resultData := orderedmap.New() //make(map[string]interface{})
 
     results := pyraconv.ToInterfaceMap(data["results"])
     masterData := pyraconv.ToInterfaceMap(results[master])
@@ -46,8 +47,14 @@ func compareHostsData(data map[string]interface{}) {
 
     allUnusedIndexes := make(map[string]bool)
     uIndexesData := pyraconv.ToInterfaceMap(masterData["unused_indexes"])
-    uIndexes := make(map[string]interface{})
-    for indexName, value := range uIndexesData {
+    uIndexes := orderedmap.New()
+    uKeys := pyraconv.ToStringArray(uIndexesData["_keys"])
+    for i := 0; i < len(uKeys); i++ {
+        indexName := uKeys[i]
+        value := uIndexesData[indexName]
+        if (indexName == "_keys") {
+            continue
+        }
         valueData := pyraconv.ToInterfaceMap(value);
         idxScanValue := pyraconv.ToInt64(valueData["idx_scan"])
         idxScanSum := idxScanValue
@@ -64,13 +71,19 @@ func compareHostsData(data map[string]interface{}) {
         if idxScanSum == 0 {
             allUnusedIndexes[indexName] = true
         }
-        uIndexes[indexName] = indexData
+        uIndexes.Set(indexName, indexData)
     }
-    resultData["unused_indexes"] = uIndexes
+    resultData.Set("unused_indexes", *uIndexes)
 
     rIndexesData := pyraconv.ToInterfaceMap(masterData["redundant_indexes"])
-    rIndexes := make(map[string]interface{})
-    for indexName, value := range rIndexesData {
+    rIndexes := orderedmap.New()
+    rKeys := pyraconv.ToStringArray(rIndexesData["_keys"])
+    for i := 0; i < len(rKeys); i++ {
+        indexName := rKeys[i]
+        value := uIndexesData[indexName]
+        if (indexName == "_keys") {
+            continue
+        }
         valueData := pyraconv.ToInterfaceMap(value);
         idxScanValue := pyraconv.ToInt64(valueData["index_usage"])
         idxScanSum := idxScanValue
@@ -87,9 +100,9 @@ func compareHostsData(data map[string]interface{}) {
         if idxScanSum == 0 {
             allUnusedIndexes[indexName] = true
         }
-        rIndexes[indexName] = indexData
+        rIndexes.Set(indexName, indexData)
     }
-    resultData["redundant_indexes"] = rIndexes
+    resultData.Set("redundant_indexes", *rIndexes)
 
     dropCode := make(map[string]interface{})
     revertCode := make(map[string]interface{})
@@ -105,10 +118,11 @@ func compareHostsData(data map[string]interface{}) {
         }
     }
 
-    resultData["drop_code"] = dropCode
-    resultData["revert_code"] = revertCode
+    resultData.Set("drop_code", dropCode)
+    resultData.Set("revert_code", revertCode)
 
-    data["resultData"] = resultData
+    rd := resultData.ToInterfaceArray()
+    data["resultData"] = rd
 }
 
 func getReplicaIndexUsage(data map[string]interface{}, replica string, indexName string) (int64) {
