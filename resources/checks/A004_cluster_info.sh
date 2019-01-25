@@ -30,7 +30,9 @@ with data as (
 ), general_info as (
   select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
 ), database_sizes as (
-  select json_object_agg(datname, (SELECT pg_database_size(pd.datname))) from pg_database pd
+  select pd.datname, pg_database_size(pd.datname) as db_size from pg_database pd order by db_size desc
+), sorted_database_sizes as (
+  select json_object_agg(datname, db_size) from database_sizes ds
 )
-select json_build_object('general_info', (select * from general_info), 'database_sizes', (select * from database_sizes));
+select json_build_object('general_info', (select * from general_info), 'database_sizes', (select * from sorted_database_sizes));
 SQL

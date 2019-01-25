@@ -18,7 +18,7 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.table_scans }} |
     {{- $value.parent_name }} |
     {{- $value.parent_mb}} |
-    {{- $value.parent_writes}} |
+    {{- NumFormat $value.parent_writes -1 }} |
     {{- $value.cols_list }} |
     {{- $value.indexdef }}
 {{ end }}{{/* range */}}
