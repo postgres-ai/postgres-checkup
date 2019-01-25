@@ -10,9 +10,8 @@ variables:
   POSTGRES_PASSWORD: ""  
 
 before_script:
-  - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
-  - source ~/.profile
-  - apt-cache search ssh
+  - apt-get update
+  - apt-get -y upgrade
   - apt-get install openssh-client -y
 
 .test-check:
