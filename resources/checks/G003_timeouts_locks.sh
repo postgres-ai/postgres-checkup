@@ -5,7 +5,12 @@ with timeouts as (
 ), locks as (
   select json_object_agg(s.name,s ) from pg_settings s where name in ('deadlock_timeout', 'lock_timeout', 'max_locks_per_transaction', 'max_pred_locks_per_page', 'max_pred_locks_per_relation', 'max_pred_locks_per_transaction')
 ), databases_stat as (
-  select *, ((now() - sd.stats_reset)::interval(0)::text) as stats_reset_age from pg_stat_database sd where datname in (SELECT datname FROM pg_database WHERE datistemplate = false)
+  select
+    *,
+    ((now() - sd.stats_reset)::interval(0)::text) as stats_reset_age
+  from pg_stat_database sd
+  where datname in (SELECT datname FROM pg_database WHERE datistemplate = false)
+  order by deadlocks desc
 ), dbs_data as (
   select json_object_agg(sd.datname, sd) from databases_stat sd
 ), db_specified_settings as (
