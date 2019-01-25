@@ -19,6 +19,8 @@ before_script:
 
 test-docker-exec:
   stage: test
+  services:
+    - postgres:10
   script:
     - docker exec -it postgres "ls" && echo "docker exec successfull"
     - echo "We not failed if you can see this"
