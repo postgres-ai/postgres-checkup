@@ -4,4 +4,6 @@ ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
 $sql
 )
-select json_object_agg(data."Index (Table)", data) as json from data;
+select json_object_agg(data."Index (Table)", data) as json from data
+SQL
+
