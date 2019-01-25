@@ -4,73 +4,20 @@ stages:
   - test
 
 variables:
+  INSIDE_DOCKER: yes
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: username # set username
   POSTGRES_PASSWORD: ""  
 
 before_script:
-  - apt-get update
-  - apt-get install -y jq curl
-  - apt-get -y upgrade
-  - apt-get -y install golang-1.9-go
   - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
   - source ~/.profile
-  - apt-get -y install postgresql postgresql-contrib
-  - psql --version
 
 .test-check:
   script:
-    - psql -h postgres -d dbname -U username -c "SELECT version();"
-    - psql -h postgres -d dbname -U username -f .ci/h002.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 101
-    - psql -h postgres -d dbname -U username -f .ci/h002_step2.sql
-    - rm -Rf ./artifacts/
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
-    - echo "Passed"
+    - docker exec -it postgres "echo \"TEST MESSAGE\""
 
-test-pghrep:
+test-docker-exec:
   stage: test
   script:
-    - cd pghrep && make test
-
-test-check-9.6:
-  extends: ".test-check"
-  stage: "test"
-  services:
-    - postgres:9.6
-
-test-check-10:
-  extends: ".test-check"
-  stage: "test"
-  services:
-    - postgres:10
-
-test-check-11:
-  extends: ".test-check"
-  stage: "test"
-  services:
-    - postgres:11
-
-test-check-cli:
-  services:
-    - postgres:11
-  stage: "test"
-  script: |
-    errcount=0
-    printTail="                                                                      "
-    for f in tests/cli_*.sh; do
-      printf "$f${printTail:0:-${#f}}"
-      bash "$f" -H
-      status=$?
-      if [ "$status" -ne 0 ]; then
-        errcount="$(($errcount+1))"
-      fi
-    done
-    if [ "$errcount" -ne 0 ]; then
-      >&2 echo "Oh no! $errcount tests failed"
-      exit 1
-    fi
-
-
+    - echo "We not failed if you can see this"
