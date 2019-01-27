@@ -731,7 +731,7 @@ glue_md_reports() {
   [[ "${FILE}" != "None" ]] && return 0
 
   # make header
-  echo "# Postgres-checkup. Project: '${PROJECT}'. Database: '${DBNAME}'" > "${out_fname}"
+  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${DBNAME}'" > "${out_fname}"
   echo "## Epoch number: '${EPOCH}'" >> "${out_fname}"
   echo "NOTICE: while most reports describe the “current database”, some of them may contain cluster-wide information describing all databases in the cluster." >> "${out_fname}"
   echo >> "${out_fname}"
