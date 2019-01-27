@@ -150,3 +150,8 @@ func DtFormat(value interface{}) string {
     }
 	return val
 }
+
+func RawIntFormat(value interface{}) string {
+    val := pyraconv.ToInt64(value)
+    return fmtutils.RawIntFormat(val)
+}
