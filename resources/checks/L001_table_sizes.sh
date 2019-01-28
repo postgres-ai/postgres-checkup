@@ -1,5 +1,5 @@
 # Collect pg cluster info
-main_sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/2_table_sizes.sql | awk '{gsub("; *$", "", $0); print $0}')
+main_sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/2_table_sizes.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 with data as (
