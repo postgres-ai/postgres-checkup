@@ -1,4 +1,4 @@
-# {{ .checkId }} Top 50 queries <a name="K003"/>
+# {{ .checkId }} Top-50 queries by total_time
 
 ## Observations ##
 {{ if .hosts.master }}

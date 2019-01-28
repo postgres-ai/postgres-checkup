@@ -1,4 +1,4 @@
-# {{ .checkId }} Globally aggregated <a name="K002"/>
+# {{ .checkId }} Globally aggregated query metrics
 
 ## Observations ##
 {{ if .hosts.master }}

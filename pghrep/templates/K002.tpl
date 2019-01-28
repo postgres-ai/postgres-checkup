@@ -1,4 +1,4 @@
-# {{ .checkId }} Workload type (first word analysis) <a name="K002"/>
+# {{ .checkId }} Workload type ("first word" analysis)
 
 ## Observations ##
 {{ if .hosts.master }}

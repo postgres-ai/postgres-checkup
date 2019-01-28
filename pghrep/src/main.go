@@ -208,7 +208,7 @@ func getRawData(data map[string]interface{}) {
 
 /*
 Generate MD reports by given check Id
-Check Id can content id of specified check (H003) or category (K000)
+CheckId can be either ID of concrete check (e.g. H003) or represent the whole category (e.g. K000)
 */
 func generateMdReports(checkId string, reportData map[string]interface{}, outputDir string) bool{
     category := checkId[0:1]
@@ -238,7 +238,7 @@ func generateMdReports(checkId string, reportData map[string]interface{}, output
             outputFileName := strings.Replace(fileName, ".tpl", ".md", -1)
             reportData["checkId"] = curCheckId
             if !generateMdReport(curCheckId, outputFileName, reportData, outputDir) {
-                Err("Can't generate report " + outputFileName + " on base " + checkId + " json data")
+                Err("Can't generate report " + outputFileName + " based on " + checkId + " json data")
                 return false
             }
         }
@@ -340,12 +340,7 @@ func main() {
         DEBUG = true
     }
 
-    //reportFilename := ""
     if FileExists(checkData) {
-        //_, file := path.Split(checkData)
-        //fmt.Println(file)
-        //reportFilename = strings.Replace(file, ".json", ".md", -1)
-
         resultData = LoadJsonFile(checkData)
         if resultData == nil {
             log.Fatal("ERROR: File given by --checkdata content wrong json data.")
