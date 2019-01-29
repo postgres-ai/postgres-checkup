@@ -1,4 +1,3 @@
-source ~/tmp/wrapper.sh
 
 # Generates JSON for three type of reports:
 # - K001 - Globally aggregated
