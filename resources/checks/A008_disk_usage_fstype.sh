@@ -1,21 +1,21 @@
 # Check disk space and file system type for important Postgres-related disk partitions
 
-PG_MAJOR_VER=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+PG_MAJOR_VER=$(ssh "$HOST" "${_PSQL} -f -" <<EOF
   select setting::integer / 10000 from pg_settings where name = 'server_version_num'
 EOF
 )
 
-PG_DATA_DIR=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+PG_DATA_DIR=$(ssh "$HOST" "${_PSQL} -f -" <<EOF
   show data_directory
 EOF
 )
 
-PG_STATS_TEMP_DIR=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+PG_STATS_TEMP_DIR=$(ssh "$HOST" "${_PSQL} -f -" <<EOF
   show stats_temp_directory
 EOF
 )
 
-PG_LOG_DIR=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+PG_LOG_DIR=$(ssh "$HOST" "${_PSQL} -f -" <<EOF
   show log_directory
 EOF
 )
@@ -28,7 +28,7 @@ if ! [[ "${PG_STATS_TEMP_DIR}" =~ ^/ ]]; then
   PG_STATS_TEMP_DIR="${PG_DATA_DIR}/${PG_STATS_TEMP_DIR}"
 fi
 
-PG_TABLESPSACES_DIRS=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+PG_TABLESPSACES_DIRS=$(ssh "$HOST" "${_PSQL} -f -" <<EOF
   SELECT pg_catalog.pg_tablespace_location(oid)
   FROM pg_catalog.pg_tablespace
   WHERE pg_tablespace_location(oid) ~ '/'
@@ -77,7 +77,7 @@ df_to_json() {
 #######################################
 print_df() {
   local path="$1"
-  df_to_json "${path}" $(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\" | tail -n +2")
+  df_to_json "${path}" $(ssh ${HOST} "sudo df -TPh \"${path}\" | tail -n +2")
 }
 
 # json output starts here
@@ -104,11 +104,8 @@ echo "\"stats_temp_directory\":"
 print_df "$PG_STATS_TEMP_DIR"
 echo ","
 
-# do not fail if log_directory does not exist
-if $(${CHECK_HOST_CMD} "sudo stat \"$PG_LOG_DIR\" >/dev/null 2>&1"); then
-  echo "\"log_directory\":"
-  print_df "$PG_LOG_DIR"
-fi
+echo "\"log_directory\":"
+print_df "$PG_LOG_DIR"
 
 echo "}"
- 
+
