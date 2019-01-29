@@ -1,4 +1,8 @@
-# TOP-50 queries by total time
+
+# Generates JSON for three type of reports:
+# - K001 - Globally aggregated
+# - K002 - Workload type (first word analysis)
+# - K003 - TOP-50 queries by total time
 
 # json_object - currently generated json
 # prev_json_object - previously generated json
@@ -23,7 +27,7 @@ else
 fi
 
 
-tmp_dir="${JSON_REPORTS_DIR}/tmp_K003"
+tmp_dir="${JSON_REPORTS_DIR}/tmp_K000"
 mkdir -p "${tmp_dir}"
 
 results_cnt="0"
@@ -51,7 +55,7 @@ fi
 # check pg_stat_kcache availability
 err_code="0"
 res=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<'SQL' >/dev/null 2>&1
-${change_db_cmd}
+\${change_db_cmd}
 select from pg_stat_kcache limit 1 -- the fastest way
 SQL
 ) || err_code="$?"
@@ -207,11 +211,10 @@ for key in \
            kcache_system_time_ms ;
                                    do
   sub_sql="${sub_sql}
-    (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
-    ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
-    ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
-    case when (select sum_delta_${key} from sum_delta) = 0 then 0
-      else round(100 * (( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ))::numeric / (select sum_delta_${key} from sum_delta)) end as ratio_${key},
+    sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric) as diff_${key},
+    (sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric)) / nullif((select seconds from delta ), 0) as per_sec_${key},
+    (sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric)) / nullif((sum((s2.obj->>'calls')::numeric) - sum((s1.obj->>'calls')::numeric)), 0) as per_call_${key},
+    round(100 * (sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric))::numeric / nullif((select sum_delta_${key} from sum_delta), 0), 2) as ratio_${key},
   "
   sub_sql_sum_s1="${sub_sql_sum_s1}
     sum((s1.obj->>'${key}')::numeric) as sum_${key},"
@@ -220,7 +223,6 @@ for key in \
   sub_sql_sum_delta="${sub_sql_sum_delta}
     sum((s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric) as sum_delta_${key},"
 done
-
 
 sql="
   with snap1(j) as (
@@ -317,11 +319,42 @@ sql="
       s1.obj->>'query' as query
     from s1
     join s2 using(md5)
+    group by s1.md5, s1.obj->>'query'
   ), queries as (
     select
       row_number() over(order by diff_total_time desc) as rownum,
       *
     from queries_pre
+    order by diff_total_time desc
+  ), aggregated as (
+    -- globally aggregated metrics (K001)
+    select
+      ${sub_sql}
+      '' as _
+    from s1
+    join s2 using(md5)
+  ), workload_type_pre as (
+    -- query type is defined by the first word (K002)
+    select
+      case lower(regexp_replace(s1.obj->>'query', '^\W*(\w+)\W+.*$',  '\1'))
+        when 'select' then
+          case
+            when s1.obj->>'query' ~* 'for\W+(no\W+key\W+)?update' then 'select ... for [no key] update'
+            when s1.obj->>'query' ~* 'for\W+(key\W+)?share' then 'select ... for [key] share'
+            else 'select'
+          end
+        else lower(regexp_replace(s1.obj->>'query', '^\W*(\w+)\W+.*$',  '\1'))
+      end as word,
+      ${sub_sql}
+      '' as _
+    from s1
+    join s2 using(md5)
+    group by 1
+  ), workload_type as (
+    select
+      row_number() over(order by diff_total_time desc) as rownum,
+      *
+    from workload_type_pre
     order by diff_total_time desc
   )
   select json_build_object(
@@ -333,7 +366,9 @@ sql="
     'absolute_error_total_time'::text, (select absolute_error_total_time from calc_error),
     'relative_error_calls'::text, (select relative_error_calls from calc_error),
     'relative_error_total_time'::text, (select relative_error_total_time from calc_error),
-    'queries', json_object_agg(queries.rownum, queries.*)
+    'queries', json_object_agg(queries.rownum, queries.*),
+    'aggregated', (select json_object_agg(1, aggregated.*) from aggregated),
+    'workload_type', (select json_object_agg(workload_type.rownum, workload_type.*) from workload_type)
   )
   from queries
 "
@@ -342,5 +377,4 @@ ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL | jq -r .
   ${change_db_cmd}
   ${sql}
 SQL
-
 

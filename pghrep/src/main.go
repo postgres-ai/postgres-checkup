@@ -17,7 +17,6 @@ import (
     "strings"
     "encoding/json"
     "io/ioutil"
-    "path"
     "path/filepath"
     "./pyraconv"
     "log"
@@ -207,6 +206,47 @@ func getRawData(data map[string]interface{}) {
     data["rawData"] = rawData
 }
 
+/*
+Generate MD reports by given check Id
+CheckId can be either ID of concrete check (e.g. H003) or represent the whole category (e.g. K000)
+*/
+func generateMdReports(checkId string, reportData map[string]interface{}, outputDir string) bool{
+    category := checkId[0:1]
+    checkNum, err := strconv.ParseInt(checkId[1:4], 10, 64)
+
+    reportPrefix := ""
+    if checkNum != 0 {
+        reportPrefix = checkId // specified check given
+    } else {
+        reportPrefix = category // category given
+    }
+
+    dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+        Err(err)
+        return false
+    }
+    files, err := ioutil.ReadDir(dir + "/../templates")
+    if err != nil {
+        Err(err)
+        return false
+    }
+    for _, file := range files {
+        fileName := file.Name()
+        if strings.HasPrefix(fileName, reportPrefix) && strings.HasSuffix(fileName, ".tpl") {
+            curCheckId := fileName[0:4]
+            outputFileName := strings.Replace(fileName, ".tpl", ".md", -1)
+            reportData["checkId"] = curCheckId
+            if !generateMdReport(curCheckId, outputFileName, reportData, outputDir) {
+                Err("Can't generate report " + outputFileName + " based on " + checkId + " json data")
+                return false
+            }
+        }
+    }
+
+    return true
+}
+
 // Generate md report (file) on base of reportData and save them to file in outputDir
 func generateMdReport(checkId string, reportFilename string, reportData map[string]interface{}, outputDir string) bool{
     var outputFileName string
@@ -300,12 +340,7 @@ func main() {
         DEBUG = true
     }
 
-    reportFilename := ""
     if FileExists(checkData) {
-        _, file := path.Split(checkData)
-        //fmt.Println(file)
-        reportFilename = strings.Replace(file, ".json", ".md", -1)
-
         resultData = LoadJsonFile(checkData)
         if resultData == nil {
             log.Fatal("ERROR: File given by --checkdata content wrong json data.")
@@ -354,7 +389,7 @@ func main() {
     } else {
         outputDir = *outDirPtr
     }
-    reportDone := generateMdReport(checkId, reportFilename, reportData, outputDir)
+    reportDone := generateMdReports(checkId, reportData, outputDir)
     if ! reportDone  {
         log.Fatal("Cannot generate report. Data file or template is wrong.")
     }
