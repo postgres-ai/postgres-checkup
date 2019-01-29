@@ -1,6 +1,5 @@
 # Autovacuum: resource usage
 
-#psql -U postila_ru -t -0 -f - <<SQL
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
   select 
     json_object_agg(s.name, s) 
