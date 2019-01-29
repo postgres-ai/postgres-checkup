@@ -165,6 +165,9 @@ func loadTemplates() *template.Template {
     tplFuncMap["NumFormat"] = NumFormat
     tplFuncMap["MsFormat"] = MsFormat
     tplFuncMap["DtFormat"] = DtFormat
+    tplFuncMap["RawIntFormat"] = RawIntFormat
+    tplFuncMap["RawFloatFormat"] = RawFloatFormat	
+
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
         log.Fatal("Can't load templates", err)
