@@ -1,4 +1,4 @@
-# Collect settings whish is altered
+# Collect settings which is altered
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 with settings_count as (
   select json_object_agg(coalesce(s.sourcefile, 'default'), s.count)
