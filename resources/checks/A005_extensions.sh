@@ -1,6 +1,6 @@
 # Collect extensions and their settings
 
-sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/4.0/sql/e1_extensions.sql | awk '{gsub("; *$", "", $0); print $0}')
+sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/e1_extensions.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 dbs=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 select datname from pg_database where datname not in ('template0', 'template1', 'postgres')
