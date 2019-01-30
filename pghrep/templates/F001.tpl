@@ -18,8 +18,10 @@ Namespace | Relation | Options
 ----------|----------|------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
 {{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "table_settings") $key) -}}
-{{ $value.namespace }} | {{ $value.relname }}|{{ $value.reloptions }}
-{{- end -}}{{/* range */}}
+{{- $value.namespace }} |
+{{- $value.relname }} |
+{{- range $j, $valopt := $value.reloptions }} {{ $valopt }}<br/>{{ end }}
+{{ end }}{{/* range */}}
 {{- end -}}{{/* if table_settings */}}
 {{- else -}}
 No data
