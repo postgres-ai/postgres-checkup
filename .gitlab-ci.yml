@@ -53,14 +53,12 @@ test-acceptance:
     - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
-    - /etc/init.d/postgresql start && psql -U postgres -c 'create database dbname;' && /etc/init.d/postgresql stop
+    - /etc/init.d/postgresql start 
+    - psql -U postgres -c 'create database dbname;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;
-    - echo "#!/bin/bash" > /pg_start.sh && chmod a+x /pg_start.sh
-    - printf "sudo -u postgres /usr/lib/postgresql/11/bin/postgres -D /var/lib/postgresql/11/main -c config_file=/etc/postgresql/11/main/postgresql.conf & \n" >> /pg_start.sh
-    - echo "etcd" >> /pg_start.sh
-    - /pg_start.sh
+    
   script:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
