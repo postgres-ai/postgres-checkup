@@ -26,9 +26,10 @@ before_script:
     - cp std.log ./artifacts/test/
     - cp err.log ./artifacts/test/
     - tar -cvf test_artifacts.tar ./artifacts/test/*
+    - ls -al
   artifacts:
     paths:
-    - test_artifacts.ta
+    - test_artifacts.tar
     expire_in: 1 week
 
 
