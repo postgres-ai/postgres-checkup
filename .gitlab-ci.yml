@@ -65,11 +65,13 @@ test-acceptance:
     - service ssh restart
     
   script:
+    - bash -version
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
+    #- sh -c ">&2 cat err.log"
     #- grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log
     #- grep -v "^^ this is not a real error. Just run check again" err1.log > err.log
 
