@@ -1,6 +1,6 @@
-unusedSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/bbfd94d82ebba379bb7bc7fb9108b62e9ae5951c/sql/i1_rare_indexes.sql | awk '{gsub("; *$", "", $0); print $0}')
-redundantSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/bbfd94d82ebba379bb7bc7fb9108b62e9ae5951c/sql/i2_redundant_indexes.sql | awk '{gsub("; *$", "", $0); print $0}')
-migrationSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/bbfd94d82ebba379bb7bc7fb9108b62e9ae5951c/sql/i5_indexes_migration.sql | awk '{gsub("; *$", "", $0); print $0}')
+unusedSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/i1_rare_indexes.sql | awk '{gsub("; *$", "", $0); print $0}')
+redundantSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/i2_redundant_indexes.sql | awk '{gsub("; *$", "", $0); print $0}')
+migrationSql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/i5_indexes_migration.sql | awk '{gsub("; *$", "", $0); print $0}')
 
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with indexes as (

@@ -18,19 +18,21 @@
 ----------|----------|------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
 {{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "table_settings") $key) -}}
-{{ $value.namespace }} | {{ $value.relname }}|{{ $value.reloptions }}
-{{- end -}}{{/* range */}}
+{{- $value.namespace }} |
+{{- $value.relname }} |
+{{- range $j, $valopt := $value.reloptions }} {{ $valopt }}<br/>{{ end }}
+{{ end }}{{/* range */}}
 {{- end -}}{{/* if table_settings */}}
 {{- else -}}
 No data
 {{- end -}}{{/* master */}}
-{{- if gt (len .hosts.replicas) 0 -}}
 
+{{ if gt (len .hosts.replicas) 0 }}
 ### Replicas settings ###
 Setting {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}
 --------{{ range $skey, $host := .hosts.replicas }}|-------- {{ end }}
 [hot_standby_feedback](https://postgresqlco.nf/en/doc/param/hot_standby_feedback)
-{{- range $skey, $host := .hosts.replicas -}}| {{- $value := (index (index (index (index (index $.results $host) "data") "settings") "global_settings") "hot_standby_feedback") -}}{{- $value.setting -}}
+{{- range $skey, $host := .hosts.replicas -}}| {{if (index $.results $host) }}{{- $value := (index (index (index (index (index $.results $host) "data") "settings") "global_settings") "hot_standby_feedback") -}}{{- $value.setting -}}{{ else }}No data{{ end }}
 {{- end -}}{{/* range replicas */}}
 {{ end }}{{/* if replicas */}}
 

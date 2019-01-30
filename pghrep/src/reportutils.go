@@ -150,3 +150,14 @@ func DtFormat(value interface{}) string {
     }
 	return val
 }
+
+func RawIntFormat(value interface{}) string {
+    val := pyraconv.ToInt64(value)
+    return fmtutils.RawIntFormat(val)
+}
+
+func RawFloatFormat(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    return fmtutils.RawFloatFormat(val, int(pl))
+}

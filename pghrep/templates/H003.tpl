@@ -14,7 +14,7 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.fk_name }} |
     {{- $value.issue }} |
     {{- $value.table_mb }} |
-    {{- $value.writes }} |
+    {{- NumFormat $value.writes -1 }} |
     {{- $value.table_scans }} |
     {{- $value.parent_name }} |
     {{- $value.parent_mb}} |

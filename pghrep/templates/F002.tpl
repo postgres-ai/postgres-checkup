@@ -4,8 +4,8 @@
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
-#### Per instance ####
- Database | Age | &#9660;&nbsp;Capacity used, % | Warning | datfrozenxid
+#### Databases ####
+ Database | &#9660;&nbsp;Age | Capacity used, % | Warning | datfrozenxid
 ----------|-----|------------------|---------|--------------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_instance") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_instance") $key) -}}
@@ -18,7 +18,7 @@
 {{- end -}}{{/* if per_instance exists */}}
 
 {{/* if index (index (index .results .hosts.master) "data") "per_database" */}}
-#### Per database ####
+#### Tables in the observed database ####
  Relation | Age | &#9660;&nbsp;Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid 
 ----------|-----|------------------|---------|-----------------|--------------------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_database") "_keys") }}

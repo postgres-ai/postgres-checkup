@@ -1,4 +1,8 @@
-# TOP-50 queries by total time
+
+# Generates JSON for three type of reports:
+# - K001 - Globally aggregated
+# - K002 - Workload type (first word analysis)
+# - K003 - TOP-50 queries by total time
 
 # json_object - currently generated json
 # prev_json_object - previously generated json
@@ -23,7 +27,7 @@ else
 fi
 
 
-tmp_dir="${JSON_REPORTS_DIR}/tmp_K003"
+tmp_dir="${JSON_REPORTS_DIR}/tmp_K000"
 mkdir -p "${tmp_dir}"
 
 results_cnt="0"
@@ -51,7 +55,7 @@ fi
 # check pg_stat_kcache availability
 err_code="0"
 res=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<'SQL' >/dev/null 2>&1
-${change_db_cmd}
+\${change_db_cmd}
 select from pg_stat_kcache limit 1 -- the fastest way
 SQL
 ) || err_code="$?"
@@ -182,6 +186,9 @@ fi
 
 # generate sub_sql
 sub_sql=" "
+sub_sql_sum_s1=" "
+sub_sql_sum_s2=" "
+sub_sql_sum_delta=" "
 for key in \
            calls \
            total_time \
@@ -201,16 +208,20 @@ for key in \
            kcache_reads \
            kcache_writes \
            kcache_user_time_ms \
-           kcache_system_time_ms \
-           queryid \
-           userid \
-           dbid ;
+           kcache_system_time_ms ;
                                    do
   sub_sql="${sub_sql}
-    (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric as diff_${key},
-    ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( select seconds from delta ), 0) as per_sec_${key},
-    ( (s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric ) / nullif(( (s2.obj->>'calls')::numeric - (s1.obj->>'calls')::numeric ), 0) as per_call_${key},
+    sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric) as diff_${key},
+    (sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric)) / nullif((select seconds from delta ), 0) as per_sec_${key},
+    (sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric)) / nullif((sum((s2.obj->>'calls')::numeric) - sum((s1.obj->>'calls')::numeric)), 0) as per_call_${key},
+    round(100 * (sum((s2.obj->>'${key}')::numeric) - sum((s1.obj->>'${key}')::numeric))::numeric / nullif((select sum_delta_${key} from sum_delta), 0), 2) as ratio_${key},
   "
+  sub_sql_sum_s1="${sub_sql_sum_s1}
+    sum((s1.obj->>'${key}')::numeric) as sum_${key},"
+  sub_sql_sum_s2="${sub_sql_sum_s2}
+    sum((s2.obj->>'${key}')::numeric) as sum_${key},"
+  sub_sql_sum_delta="${sub_sql_sum_delta}
+    sum((s2.obj->>'${key}')::numeric - (s1.obj->>'${key}')::numeric) as sum_delta_${key},"
 done
 
 sql="
@@ -232,6 +243,75 @@ sql="
   ), s2(md5, obj) as (
     select _.*
     from snap2, lateral json_each(j->'queries') as _
+  ), si as (  -- let's create si as intersection of s1 and s2 (si contains all query groups which both s1 and s2 have)
+        select s1.md5
+        from s1
+        intersect
+        select s2.md5
+        from s2
+  ), sum_si_s1 as ( -- calculate sum(calls) and sum(total_time) for si-s1
+    select
+        sum((s1.obj->>'calls')::numeric) as sum_calls,
+        sum((s1.obj->>'total_time')::numeric) as sum_total_time,
+        1 as key
+    from s1
+    where s1.md5 in (select md5 from si)
+  ), sum_si_s2 as ( -- calculate sum(calls) and sum(total_time) for si-s2
+    select
+        sum((s2.obj->>'calls')::numeric) as sum_calls,
+        sum((s2.obj->>'total_time')::numeric) as sum_total_time,
+        1 as key
+    from s2
+    where s2.md5 in (select md5 from si)
+  ), sum_s1 as (
+    select
+      ${sub_sql_sum_s1}
+      1 as key
+    from s1
+  ), sum_s2 as (
+    select
+      ${sub_sql_sum_s2}
+      1 as key
+    from s2
+  ), diff1 as (   -- the difference between sum for si and sum for s1
+    select
+      abs(sum_s1.sum_calls - sum_si_s1.sum_calls) as sum_calls,
+      abs(sum_s1.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,
+      key
+    from sum_s1
+    join sum_si_s1 using (key)
+  ), diff2 as (   -- the difference between sum for si and sum for s2
+    select
+      abs(sum_s2.sum_calls - sum_si_s2.sum_calls) as sum_calls,
+      abs(sum_s2.sum_total_time - sum_si_s2.sum_total_time) as sum_total_time,
+      key
+    from sum_s2
+    join sum_si_s2 using (key)
+  ), diff_calc_rel_err as (   
+    select
+      abs(sum_si_s2.sum_calls - sum_si_s1.sum_calls) as sum_calls,
+      abs(sum_si_s2.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,
+      key
+    from sum_si_s2
+    join sum_si_s1 using (key)
+  ), calc_error as ( -- absolute error with respect to calls metric is calculated as: (diff1(calls) + diff2(calls)) / 2
+    select
+        (diff1.sum_calls + diff2.sum_calls)::numeric / 2 as absolute_error_calls,
+        (diff1.sum_total_time + diff2.sum_total_time)::numeric / 2 as absolute_error_total_time,
+        case when (select sum_calls from diff_calc_rel_err) = 0 then 0 else
+            (((diff1.sum_calls + diff2.sum_calls) / 2) * 100) / (select sum_calls from diff_calc_rel_err)
+        end as relative_error_calls,
+        case when (select sum_total_time from diff_calc_rel_err) = 0 then 0 else
+            (((diff1.sum_total_time + diff2.sum_total_time) / 2) * 100) / (select sum_total_time from diff_calc_rel_err)
+        end as relative_error_total_time
+    from diff1
+    join diff2 using (key)
+  ), sum_delta as (
+    select
+      ${sub_sql_sum_delta}
+      '' as _
+    from s1
+    join s2 using(md5)
   ), queries_pre as (
     select
       ${sub_sql}
@@ -239,11 +319,42 @@ sql="
       s1.obj->>'query' as query
     from s1
     join s2 using(md5)
+    group by s1.md5, s1.obj->>'query'
   ), queries as (
     select
       row_number() over(order by diff_total_time desc) as rownum,
       *
     from queries_pre
+    order by diff_total_time desc
+  ), aggregated as (
+    -- globally aggregated metrics (K001)
+    select
+      ${sub_sql}
+      '' as _
+    from s1
+    join s2 using(md5)
+  ), workload_type_pre as (
+    -- query type is defined by the first word (K002)
+    select
+      case lower(regexp_replace(s1.obj->>'query', '^\W*(\w+)\W+.*$',  '\1'))
+        when 'select' then
+          case
+            when s1.obj->>'query' ~* 'for\W+(no\W+key\W+)?update' then 'select ... for [no key] update'
+            when s1.obj->>'query' ~* 'for\W+(key\W+)?share' then 'select ... for [key] share'
+            else 'select'
+          end
+        else lower(regexp_replace(s1.obj->>'query', '^\W*(\w+)\W+.*$',  '\1'))
+      end as word,
+      ${sub_sql}
+      '' as _
+    from s1
+    join s2 using(md5)
+    group by 1
+  ), workload_type as (
+    select
+      row_number() over(order by diff_total_time desc) as rownum,
+      *
+    from workload_type_pre
     order by diff_total_time desc
   )
   select json_build_object(
@@ -251,7 +362,13 @@ sql="
     'end_timestamptz'::text, (select j->'snapshot_timestamptz' from snap2),
     'period_seconds'::text, ( select (snap2.j->>'snapshot_timestamptz_s')::numeric - (snap1.j->>'snapshot_timestamptz_s')::numeric from snap1, snap2 ),
     'period_age'::text, ( select (snap2.j->>'snapshot_timestamptz')::timestamptz - (snap1.j->>'snapshot_timestamptz')::timestamptz from snap1, snap2 ),
-    'queries', json_object_agg(queries.rownum, queries.*)
+    'absolute_error_calls'::text, (select absolute_error_calls from calc_error),
+    'absolute_error_total_time'::text, (select absolute_error_total_time from calc_error),
+    'relative_error_calls'::text, (select relative_error_calls from calc_error),
+    'relative_error_total_time'::text, (select relative_error_total_time from calc_error),
+    'queries', json_object_agg(queries.rownum, queries.*),
+    'aggregated', (select json_object_agg(1, aggregated.*) from aggregated),
+    'workload_type', (select json_object_agg(workload_type.rownum, workload_type.*) from workload_type)
   )
   from queries
 "
@@ -260,5 +377,4 @@ ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL | jq -r .
   ${change_db_cmd}
   ${sql}
 SQL
-
 
