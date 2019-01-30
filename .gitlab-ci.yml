@@ -57,7 +57,7 @@ test-acceptance:
     - psql -U postgres -c 'create database dbname;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
-    - psql -U postgres dbname -c "create role username superuser login;
+    - psql -U postgres dbname -c "create role username superuser login;"
     
   script:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
@@ -74,32 +74,32 @@ test-acceptance:
     expire_in: 1 week
 
 test-pghrep:
-  stage: test
+#  stage: test
   script:
     - cd pghrep && make test
 
 test-check-9.6:
   extends: ".test-check"
-  stage: "test"
+#  stage: "test"
   services:
     - postgres:9.6
 
 test-check-10:
   extends: ".test-check"
-  stage: "test"
+#  stage: "test"
   services:
     - postgres:10
 
 test-check-11:
   extends: ".test-check"
-  stage: "test"
+#  stage: "test"
   services:
     - postgres:11
 
 test-check-cli:
   services:
     - postgres:11
-  stage: "test"
+#  stage: "test"
   script: |
     errcount=0
     printTail="                                                                      "
