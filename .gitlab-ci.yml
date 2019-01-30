@@ -60,7 +60,7 @@ test-acceptance:
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;"
     - apt-get -y install openssh-server
-    - systemctl enable sshd
+    - service ssh restart
     
   script:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
