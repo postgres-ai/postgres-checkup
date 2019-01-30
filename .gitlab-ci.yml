@@ -50,7 +50,7 @@ test-acceptance:
     - apt-get install -y postgresql-server-dev-11 && apt-get install -y postgresql-11-pg-stat-kcache
     - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
     - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
-    - echo "host all  all    ::1/128  md5" >> /etc/postgresql/11/main/pg_hba.conf
+    - echo "host all  all    ::1/128  trust" >> /etc/postgresql/11/main/pg_hba.conf
     - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
