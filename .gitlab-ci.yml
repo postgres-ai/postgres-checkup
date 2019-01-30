@@ -33,11 +33,20 @@ before_script:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
   
-  
 test-acceptance:
   stage: test
   before_script:
-    - apt-get -y install postgresql-11 postgresql-contrib-11
+    - apt-get update
+    - apt-get install -y jq curl wget
+    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+    - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update
+    - apt-get -y upgrade
+    - apt-get -y install golang-1.9-go
+    - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
+    - source ~/.profile
+    - apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-client-11
+    - psql --version
     - apt-get install -y postgresql-server-dev-11 && apt-get install -y postgresql-11-pg-stat-kcache
     - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
     - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
