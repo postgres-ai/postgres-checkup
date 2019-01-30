@@ -6,7 +6,7 @@ stages:
 variables:
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: username # set username
-  POSTGRES_PASSWORD: ""  
+  POSTGRES_PASSWORD: ""
 
 before_script:
   - apt-get update
@@ -32,7 +32,7 @@ before_script:
     - ./checkup -h postgres --username username --project test --dbname dbname -e 1
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
-  
+
 test-acceptance:
   stage: test
   before_script:
@@ -54,7 +54,7 @@ test-acceptance:
     - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
-    - /etc/init.d/postgresql start 
+    - /etc/init.d/postgresql start
     - psql -U postgres -c 'create database dbname;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
@@ -62,12 +62,13 @@ test-acceptance:
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && chmod 644 ~/.ssh/authorized_keys && chmod 600 ~/.ssh/id_rsa
     - apt-get -y install openssh-server
     - service ssh restart
-    
+
   script:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
+    - >&2 cat err.log
     #- grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log
     #- grep -v "^^ this is not a real error. Just run check again" err1.log > err.log
 
