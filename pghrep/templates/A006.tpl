@@ -9,7 +9,7 @@ Setting | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $hos
 {{ range $key, $value := (index .diffData "pg_settings") }}{{ $key }} {{ range $key, $value := $value }} | {{ if (index $value "unit") }}{{ UnitValue (index $value "value") (index $value "unit") }}{{else}}{{ index $value "value" }}{{ end  }}{{ end }}
 {{ end }}
 {{ else }}
-No `pg_settings` differences
+No differences in `pg_settings` are found.
 {{end}}
 {{ if (index .diffData "pg_configs") }}
 Configs(pg_config) that differ
@@ -18,7 +18,7 @@ Configs(pg_config) that differ
 Config {{ $key }}: {{ range $key, $value := $value }} On {{ $key }}: {{ if (index $value "unit") }}{{ UnitValue (index $value "value") (index $value "unit") }}{{else}}{{ index $value "value" }}{{ end  }}{{ end }}
 {{ end }}
 {{ else }}
-No `pg_configs` differences
+No differences in `pg_config` are found.
 {{end}}
 {{ else }}
 No data
