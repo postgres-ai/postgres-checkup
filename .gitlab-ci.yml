@@ -66,11 +66,9 @@ test-acceptance:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
-    - cat err.log | grep -v "ERROR: need two checks to compare results." > err.log
-    - cat err.log | grep -v "NOTICE: ^^ this is not a real error." > err.log
-    - cp std.log ./artifacts/test/
-    - cp err.log ./artifacts/test/
-    - tar -cvf test_artifacts.tar ./artifacts/test/*
+    - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err.log
+    - grep -v "^^ this is not a real error. Just run check again" err.log > err.log
+
   artifacts:
     paths:
       - ./artifacts/test
