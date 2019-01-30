@@ -59,7 +59,7 @@ test-acceptance:
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;"
-    - mkdir -p ~/.ssh && cp .ci/private_key ~/.ssh/id_rsa && cp ./ci/public_key ~/.ssh/authorized_keys
+    - mkdir -p ~/.ssh && cp .ci/private_key ~/.ssh/id_rsa && cp .ci/public_key ~/.ssh/authorized_keys
     - apt-get -y install openssh-server
     - service ssh restart
     
