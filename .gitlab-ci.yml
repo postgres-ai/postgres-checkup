@@ -48,8 +48,9 @@ test-acceptance:
     - apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-client-11
     - psql --version
     - apt-get install -y postgresql-server-dev-11 && apt-get install -y postgresql-11-pg-stat-kcache
-    - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
-    - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
+#    - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
+#    - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
+#    - echo "host all  all    ::1/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
     - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
@@ -73,33 +74,33 @@ test-acceptance:
       - ./err.log
     expire_in: 1 week
 
-test-pghrep:
-#  stage: test
+.test-pghrep:
+  stage: test
   script:
     - cd pghrep && make test
 
-test-check-9.6:
+.test-check-9.6:
   extends: ".test-check"
-#  stage: "test"
+  stage: "test"
   services:
     - postgres:9.6
 
-test-check-10:
+.test-check-10:
   extends: ".test-check"
-#  stage: "test"
+  stage: "test"
   services:
     - postgres:10
 
-test-check-11:
+.test-check-11:
   extends: ".test-check"
-#  stage: "test"
+  stage: "test"
   services:
     - postgres:11
 
-test-check-cli:
+.test-check-cli:
   services:
     - postgres:11
-#  stage: "test"
+  stage: "test"
   script: |
     errcount=0
     printTail="                                                                      "
