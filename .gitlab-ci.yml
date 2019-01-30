@@ -20,9 +20,9 @@ before_script:
 
 .test-check:
   script:
-    - psql -h postgres -d dbname -U username -c "SELECT version();"
-    - psql -h postgres -d dbname -U username -f .ci/test_db_dump.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 > std.log 2> err.log
+    - psql -h localhost -d dbname -U username -c "SELECT version();"
+    - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
+    - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cp std.log ./artifacts/test/
     - cp err.log ./artifacts/test/
     - tar -cvf test_artifacts.tar ./artifacts/test/*
