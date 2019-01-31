@@ -76,9 +76,9 @@ test-acceptance:
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - stat --format="%s" err.log
-    - grep -v "Failed to create bus connection" err.log
-    #- cat err1.log
-    #- stat --format="%s" err1.log
+    - grep -v "Failed to create bus connection" err.log > err1.log || true
+    - cat err1.log
+    - stat --format="%s" err1.log
     #- exit $(stat --format="%s" err1.log)
     #- sh -c ">&2 cat err.log"
     #- grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log
