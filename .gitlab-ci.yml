@@ -55,7 +55,7 @@ test-acceptance:
     - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
-    - echo "logging_collector = on" >> /etc/postgresql/11/main/postgresql.conf
+    #- echo "logging_collector = on" >> /etc/postgresql/11/main/postgresql.conf
     - /etc/init.d/postgresql start 
     - psql -U postgres -c 'create database dbname;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
