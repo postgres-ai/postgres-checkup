@@ -10,8 +10,8 @@ alter database checkup_test_db set lock_timeout = '4s';
 create table t_fillfactor (i int) with (fillfactor=60);
 
 -- H002 Unused and redundant indexes
-create table t_with_unsed_index as select i from generate_series(1, 1000000) _(i);
-create index concurrently i_unused on t_with_unsed_index(i);
+create table t_with_unused_index as select i from generate_series(1, 1000000) _(i);
+create index concurrently i_unused on t_with_unused_index(i);
 create table t_with_redundant_index as select i from generate_series(1, 1000000) _(i);
 create index concurrently i_redundant_1 on t_with_redundant_index(i);
 create index concurrently i_redundant_2 on t_with_redundant_index(i);
