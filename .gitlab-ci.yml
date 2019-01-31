@@ -78,6 +78,7 @@ test-acceptance:
     - stat --format="%s" err.log
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
+    - echo "Error message" >> err1.log
     - stat --format="%s" err1.log
     - exit $(stat --format="%s" err1.log)
     #- sh -c ">&2 cat err.log"
