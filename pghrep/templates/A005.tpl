@@ -3,7 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-Database | Extension name | Installed version | Default version | Is old
+&#9660;&nbsp;Database | Extension name | Installed version | Default version | Is old
 ---------|----------------|-------------------|-----------------|--------
 {{ range $d, $db := (index (index (index .results .hosts.master) "data") "_keys") -}}
 {{- $dbData := (index (index (index $.results $.hosts.master) "data") $db) -}}

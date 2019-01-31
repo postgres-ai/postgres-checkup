@@ -14,7 +14,7 @@ with per_instance as (
     datfrozenxid,
     (age(datfrozenxid) > 1200000000)::int as warning
   from pg_database
-  order by 2 desc
+  order by 3 desc
 ), per_database as (
   select
     coalesce(nullif(n.nspname || '.', 'public.'), '') || c.relname as relation,

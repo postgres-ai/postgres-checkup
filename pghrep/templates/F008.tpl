@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: resource usage #
+# {{ .checkId }} Autovacuum: Resource usage #
 
 ## Observations ##
 
