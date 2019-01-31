@@ -37,7 +37,7 @@ test-acceptance:
   stage: test
   before_script:
     - apt-get update
-    - apt-get install -y jq curl wget dbus
+    - apt-get install -y jq curl wget
     - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
     - apt-get update
@@ -76,7 +76,7 @@ test-acceptance:
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - stat --format="%s" err.log
-    #- grep -v "Failed to create bus connection" err.log > err1.log
+    - grep -v "Failed to create bus connection" err.log
     #- cat err1.log
     #- stat --format="%s" err1.log
     #- exit $(stat --format="%s" err1.log)
