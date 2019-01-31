@@ -72,6 +72,7 @@ test-acceptance:
     - psql -h localhost -d dbname -U username -c "show log_directory;"
     - psql -h localhost -d dbname -U username -c "show data_directory;"
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
+    - cat err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     #- grep -v "Failed to create bus connection" err.log > err1.log
     - cat err.log
