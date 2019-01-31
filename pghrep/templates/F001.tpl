@@ -3,7 +3,7 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-Setting name | Value | Unit | Pretty value
+&#9660;&nbsp;Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "global_settings") "_keys") -}}
 {{- if ne $key "hot_standby_feedback" -}}
@@ -14,7 +14,7 @@ Setting name | Value | Unit | Pretty value
 
 {{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
 #### Tables settings override ####
-Namespace | Relation | Options
+&#9660;&nbsp;Namespace | Relation | Options
 ----------|----------|------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
 {{- $value := (index (index (index (index (index $.results $.hosts.master) "data") "settings") "table_settings") $key) -}}

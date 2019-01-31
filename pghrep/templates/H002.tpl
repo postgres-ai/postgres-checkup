@@ -3,14 +3,16 @@
 ## Observations ##
 
 {{ if .resultData }}
+
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 Report created: {{ DtFormat .timestamptz }}  
 
 {{ if .resultData.unused_indexes }}
 ### Never Used Indexes ###
-Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| Index size | Usage
+Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Usage
 --------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----
-{{ range $key, $value := (index .resultData "unused_indexes") }}
+{{ range $i, $key := (index (index .resultData "unused_indexes") "_keys") }}
+{{- $value := (index (index $.resultData "unused_indexes") $key) -}}
 {{- if ne $key "_keys" -}}
 {{- if eq $value.master.reason "Never Used Indexes" -}}
 {{- if $value.usage -}}
@@ -29,7 +31,8 @@ Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ 
 ### Other unused indexes ###
 Index | Reason |{{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}| Usage
 ------|--------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----
-{{ range $key, $value := (index .resultData "unused_indexes") }}
+{{ range $i, $key := (index (index .resultData "unused_indexes") "_keys") }}
+{{- $value := (index (index $.resultData "unused_indexes") $key) -}}
 {{- if ne $key "_keys" -}}
 {{- if ne $value.master.reason "Never Used Indexes" -}}
 {{ $key }} | {{ $value.master.reason }} | Usage:&nbsp;{{ $value.master.idx_scan }}<br/>Index&nbsp;size:{{ Nobr $value.master.index_size }}<br/>Table&nbsp;size:{{ Nobr $value.master.table_size }} {{ range $skey, $host := $.hosts.replicas }} | Usage:&nbsp;{{ (index $value $host).idx_scan }}<br/>Index&nbsp;size:{{ Nobr (index $value $host).index_size }}<br/>Table&nbsp;size:{{ Nobr (index $value $host).table_size }}{{- end -}} | {{ if $value.usage }} Used{{ else }}Not used {{ end }}
@@ -45,7 +48,8 @@ Index | Reason |{{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {
 
 Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| Usage | Index size
 --------|-------{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----
-{{ range $key, $value := (index .resultData "redundant_indexes") }}
+{{ range $i, $key := (index (index .resultData "redundant_indexes") "_keys") }}
+{{- $value := (index (index $.resultData "redundant_indexes") $key) -}}
 {{- if ne $key "_keys" -}}
 {{- if $value.usage -}}
 {{- else -}}
