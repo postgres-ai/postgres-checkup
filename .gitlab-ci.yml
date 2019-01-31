@@ -71,14 +71,13 @@ test-acceptance:
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
     - psql -h localhost -d dbname -U username -c "show log_directory;"
     - psql -h localhost -d dbname -U username -c "show data_directory;"
-    - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
-    - cat err.log
+    #- ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
+    #- cat err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - stat --format="%s" err.log
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
-    #- echo "Error message" >> err1.log
     - stat --format="%s" err1.log
     - exit $(stat --format="%s" err1.log)
 
