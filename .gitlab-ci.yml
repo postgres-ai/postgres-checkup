@@ -55,6 +55,7 @@ test-acceptance:
     - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
+    - echo "logging_collector = on" >> /etc/postgresql/11/main/postgresql.conf
     - /etc/init.d/postgresql start 
     - psql -U postgres -c 'create database dbname;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
@@ -69,11 +70,12 @@ test-acceptance:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
     - psql -h localhost -d dbname -U username -c "show log_directory;"
+    - psql -h localhost -d dbname -U username -c "show data_directory;"
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - grep -v "Failed to create bus connection" err.log > err1.log
-    - cat err1.log > 2
-    - exit ${wc -c err1.log}
+    - cat err1.log
+    - exit $(stat --format="%s" err1.log)
     #- sh -c ">&2 cat err.log"
     #- grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log
     #- grep -v "^^ this is not a real error. Just run check again" err1.log > err.log
