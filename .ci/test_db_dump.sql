@@ -32,3 +32,7 @@ alter table t_fk_2 add constraint fk_t2_t1 foreign key (t1_id) references t_fk_1
 create table bloated as select i from generate_series(1, 100000) _(i); 
 create index i_bloated on bloated(i); 
 delete from bloated where i % 2 = 0;
+
+-- F004
+create table t_with_bloat as select i from generate_series(1, 1000000) _(i);
+update t_with_bloat set id = id;
