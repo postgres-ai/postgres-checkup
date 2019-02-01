@@ -33,7 +33,7 @@ before_script:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
   
-test-acceptance:
+test-general:
   stage: test
   before_script:
     - apt-get update
