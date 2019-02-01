@@ -79,8 +79,10 @@ before_script:
     - stat --format="%s" err1.log
     - echo "${S3_CFG}" > ~/.s3cfg
     - s3cmd ls s3://postgres-checkup-tests/
-    - tar -cvf "$CI_COMMIT_REF_NAME.tar" ./artifacts/* 
-    - s3cmd put -f "$CI_COMMIT_REF_NAME.tar" s3://postgres-checkup-tests/
+    - export ARTIFACT_FILENAME=$(date +%Y%m%d_%H%M%S%N_%Z)
+    - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
+    - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* 
+    - s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - s3cmd ls s3://postgres-checkup-tests/
     - exit $(stat --format="%s" err1.log)
 
