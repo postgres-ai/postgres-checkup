@@ -78,9 +78,9 @@ before_script:
     - cat err1.log
     - stat --format="%s" err1.log
     - echo "${S3_CFG}" > ~/.s3cfg
-    - s3cfg ls
+    - ls /usr/bin/
+    - /usr/bin/s3cfg ls
     - exit $(stat --format="%s" err1.log)
-    
 
   artifacts:
     paths:
