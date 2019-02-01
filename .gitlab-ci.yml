@@ -64,7 +64,6 @@ test-general:
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && chmod 644 ~/.ssh/authorized_keys && chmod 600 ~/.ssh/id_rsa
     - apt-get -y install openssh-server
     - service ssh restart
-    - ssh-add ~/.ssh/id_rsa
     
   script:
     - bash -version
@@ -86,6 +85,7 @@ test-general:
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - ls -al ~/.ssh
+    - eval $(ssh-agent -s) && ssh-add ~/.ssh/id_rsa
     - ssh -T git@gitlab.com
     - git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai"
     - git config --global user.name
