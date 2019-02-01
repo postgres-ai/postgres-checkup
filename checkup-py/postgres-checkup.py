@@ -16,10 +16,8 @@ class SysConf:
 class CheckupGlobal:
     sys_conf = None
     args = None
-    common_report = [       # checks order defined
-        IndexesInvalid()
-    ]
-    check_names = {v.__class__.check_name:v for v in common_report}
+    common_report = None
+    check_names = None
 
     def __init__(self):
         try:
@@ -68,6 +66,10 @@ class CheckupGlobal:
                 sys.exit(0)
 
             self.sys_conf = SysConf()
+            self.common_report = [       # checks order defined
+                IndexesInvalid(self)
+            ]
+            self.check_names = {v.__class__.check_name:v for v in self.common_report}
         except SystemExit as e:
             print("Exiting...")
             sys.exit(0)

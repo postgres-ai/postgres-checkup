@@ -28,3 +28,8 @@ def get_file_content(file_name):
     file_content = current_file.read()
     current_file.close()
     return file_content
+
+def save_to(filename, contents):
+    fh = open(filename, 'w')
+    fh.write(contents)
+    fh.close()
