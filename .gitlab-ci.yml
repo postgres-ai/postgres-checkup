@@ -61,7 +61,7 @@ test-general:
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;"
-    - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && chmod 644 ~/.ssh/authorized_keys && chmod 600 ~/.ssh/id_rsa
+    - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - apt-get -y install openssh-server
     - service ssh restart
     
@@ -87,6 +87,7 @@ test-general:
     - ls -al ~/.ssh
     - git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai"
     - eval $(ssh-agent -s) && ssh-add ~/.ssh/id_rsa
+    - cat ~/.ssh/rsa_id.pub
     - ssh -T git@gitlab.com
     - git config --global user.name
     - git config --global user.email
