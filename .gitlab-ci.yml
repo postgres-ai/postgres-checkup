@@ -37,7 +37,7 @@ before_script:
   stage: test
   before_script:
     - apt-get update
-    - apt-get install -y jq curl wget git
+    - apt-get install -y jq curl wget git s3cmd
     - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
     - apt-get update
@@ -77,7 +77,10 @@ before_script:
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
     - stat --format="%s" err1.log
+    - echo "${S3_CFG}" > ~/.s3cfg
+    - s3cfg ls
     - exit $(stat --format="%s" err1.log)
+    
 
   artifacts:
     paths:
@@ -89,10 +92,6 @@ before_script:
 test-general-all-branches:
   extends: ".test-general"
   stage: "test"
-  script:
-    - apt-get -y install s3cmd
-    - echo "${S3_CFG}" > ~/.s3cfg
-    - s3cfg ls
 
 test-general-master:
   extends: ".test-general"
