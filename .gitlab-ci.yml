@@ -83,7 +83,7 @@ test-general:
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* 
     - echo $CI_COMMIT_REF_NAME
-    - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
+    - ([[ $CI_COMMIT_REF_NAME -eq "229-dmius-common-ci-test" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - s3cmd ls s3://postgres-checkup-tests/
     - exit $(stat --format="%s" err1.log)
 
