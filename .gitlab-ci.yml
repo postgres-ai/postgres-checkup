@@ -84,7 +84,10 @@ test-general:
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
+    - ls -al ~/.ssh
     - git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai"
+    - git config --global user.name
+    - git config --global user.email
     - cd ~ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git
     - ls -al ~
     - exit $(stat --format="%s" err1.log)
