@@ -33,7 +33,7 @@ before_script:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
   
-test-general:
+.test-general:
   stage: test
   before_script:
     - apt-get update
@@ -86,30 +86,44 @@ test-general:
       - ./err.log
     expire_in: 1 week
 
-test-pghrep:
+test-general-all-branches:
+  extends: ".test-general"
+  stage: "test"
+  script:
+    - apt-get -y install s3cmd
+    - echo "${S3_CFG}" > ~/.s3cfg
+    - s3cfg ls
+
+test-general-master:
+  extends: ".test-general"
+  stage: "test"
+  only:
+    - master
+
+.test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
 
-test-check-9.6:
+.test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-test-check-10:
+.test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-test-check-11:
+.test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-test-check-cli:
+.test-check-cli:
   services:
     - postgres:11
   stage: "test"
