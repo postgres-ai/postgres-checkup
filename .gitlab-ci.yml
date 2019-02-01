@@ -83,8 +83,8 @@ test-general:
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* 
     - echo $CI_COMMIT_REF_NAME
-    - s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
-    - [[ "$CI_COMMIT_REF_NAME" == "master" ]] && s3cmd ls s3://postgres-checkup-tests/
+    - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
+    - s3cmd ls s3://postgres-checkup-tests/
     - exit $(stat --format="%s" err1.log)
 
   artifacts:
@@ -93,12 +93,6 @@ test-general:
       - ./std.log
       - ./err.log
     expire_in: 1 week
-
-test-general-master:
-  extends: ".test-general"
-  stage: "test"
-  only:
-    - master
 
 .test-pghrep:
   stage: test
