@@ -84,6 +84,9 @@ test-general:
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
+    - git config --global user.name "postgres-ai" && git config --global user.name "postgres-ai"
+    - cd ~ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git
+    - ls -al ~
     - exit $(stat --format="%s" err1.log)
 
   artifacts:
@@ -93,30 +96,30 @@ test-general:
       - ./err.log
     expire_in: 1 week
 
-test-pghrep:
+.test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
 
-test-check-9.6:
+.test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-test-check-10:
+.test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-test-check-11:
+.test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-test-check-cli:
+.test-check-cli:
   services:
     - postgres:11
   stage: "test"
