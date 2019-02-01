@@ -22,5 +22,7 @@ test-docker-exec:
   stage: test
   services:
     - registry.gitlab.com/postgres-ai-team/postgres-checkup:postgres11
+      alias: replica1
   script:
+    - ssh replica1 "echo hello from replica1 container"
     - echo "We not failed if you can see this"
