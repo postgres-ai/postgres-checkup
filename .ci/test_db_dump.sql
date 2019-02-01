@@ -35,4 +35,5 @@ delete from bloated where i % 2 = 0;
 
 -- F004
 create table t_with_bloat as select i from generate_series(1, 1000000) _(i);
-update t_with_bloat set id = id;
+update t_with_bloat set i = i;
+

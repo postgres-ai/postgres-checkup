@@ -37,7 +37,7 @@ test-acceptance:
   stage: test
   before_script:
     - apt-get update
-    - apt-get install -y jq curl wget
+    - apt-get install -y jq curl wget git
     - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
     - apt-get update
@@ -78,10 +78,10 @@ test-acceptance:
     - cat err1.log
     - stat --format="%s" err1.log
     #- exit $(stat --format="%s" err1.log)
-    - git clone https://gitlab.com/postgres-ai-team/postgres-checkup-tests.git
-    - ls -al
-    - cp -R ./artifacts/test ./postgres-checkup-tests
-    - cd postgres-checkup-tests && git add ./* && git commit -m "Tests results" && git push
+    - cd / && git clone https://gitlab.com/postgres-ai-team/postgres-checkup-tests.git
+    - ls -al /
+    - cp -R ./artifacts/test /postgres-checkup-tests/
+    - cd /postgres-checkup-tests && git add ./* && git commit -m "Tests results" && git push
 
   artifacts:
     paths:
@@ -90,30 +90,30 @@ test-acceptance:
       - ./err.log
     expire_in: 1 week
 
-test-pghrep:
+.test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
 
-test-check-9.6:
+.test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-test-check-10:
+.test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-test-check-11:
+.test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-test-check-cli:
+.test-check-cli:
   services:
     - postgres:11
   stage: "test"
