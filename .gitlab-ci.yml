@@ -33,7 +33,7 @@ before_script:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
   
-.test-general:
+test-general:
   stage: test
   before_script:
     - apt-get update
@@ -79,11 +79,12 @@ before_script:
     - stat --format="%s" err1.log
     - echo "${S3_CFG}" > ~/.s3cfg
     - s3cmd ls s3://postgres-checkup-tests/
-    - export ARTIFACT_FILENAME=$(date +%Y%m%d_%H%M%S%N_%Z)
+    - export ARTIFACT_FILENAME=$(date +%Y%m%d_%H%M%S)
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* 
+    - echo $CI_COMMIT_REF_NAME
     - s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
-    - s3cmd ls s3://postgres-checkup-tests/
+    - [[ "$CI_COMMIT_REF_NAME" == "master" ]] && s3cmd ls s3://postgres-checkup-tests/
     - exit $(stat --format="%s" err1.log)
 
   artifacts:
@@ -92,10 +93,6 @@ before_script:
       - ./std.log
       - ./err.log
     expire_in: 1 week
-
-test-general-all-branches:
-  extends: ".test-general"
-  stage: "test"
 
 test-general-master:
   extends: ".test-general"
