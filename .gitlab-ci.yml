@@ -1,7 +1,7 @@
 image: ubuntu:16.04
 
 services:
-- registry.gitlab.com/postgres-ai-team/postgres-checkup:postgres11
+- name: registry.gitlab.com/postgres-ai-team/postgres-checkup:postgres11
   alias: replica1
 
 stages:
