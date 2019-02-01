@@ -69,6 +69,7 @@ test-general:
     - bash -version
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
+    - vacuumdb -U username dbname --analyze
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
@@ -82,9 +83,7 @@ test-general:
     - export ARTIFACT_FILENAME=$(date +%Y%m%d_%H%M%S)
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* 
-    - echo $CI_COMMIT_REF_NAME
-    - ([[ $CI_COMMIT_REF_NAME -eq "229-dmius-common-ci-test" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
-    - s3cmd ls s3://postgres-checkup-tests/
+    - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - exit $(stat --format="%s" err1.log)
 
   artifacts:
@@ -94,30 +93,30 @@ test-general:
       - ./err.log
     expire_in: 1 week
 
-.test-pghrep:
+test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
 
-.test-check-9.6:
+test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-.test-check-10:
+test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-.test-check-11:
+test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-.test-check-cli:
+test-check-cli:
   services:
     - postgres:11
   stage: "test"
