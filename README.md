@@ -1,41 +1,77 @@
 # About
-Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup)) is a new-generation diagnostics tool that allows to collect deep analysis of a Postgres database health. It aims to detect and describe all current and potential issues in the fields of database performance, scalability and security, advising how to resolve or prevent them.
+Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
+is a new-generation diagnostics tool that allows users to collect  deep analysis
+of the health of a Postgres database. It aims to detect and describe all current
+and potential issues in the fields of database performance, scalability, and
+security, providing advices how to resolve or prevent them.
 
-Compared to a monitoring system, postgres-checkup goes deeper in database system and environment analysis, it combines numerious database internal characteristics with data about resources and OS into multiple comprehensive reports. These reports use formats which are easy readable both by humans and machines and are extremely oriented to DBA problems solving. Monitoring systems constantly collect telemetry, they help to react to issues quicker and do post-mortem analyses. Checkups are needed for a different purpose: detect issues at very early stage, advising on how to prevent them. This procedure is to be done on a regular basis — weekly, monthly, or quarterly. Additionally, it is recommended to run it right right before and right after any major change in database server.
+Compared to a monitoring system, postgres-checkup goes deeper into the analysis
+of the database system and environment.  It combines numerous internal
+characteristics of the database with data about resources and OS, producing
+multiple comprehensive reports. These reports use formats which are easily
+readable both by humans and machines and which are extremely oriented to DBA
+problem-solving. Monitoring systems constantly collect telemetry, help to react
+to issues more quickly, and are useful for post-mortem analyses. At the same
+time, checkups are needed for a different purpose: detect issues at a very early
+stage, advising on how to prevent them. This procedure is to be done on a
+regular basis — weekly, monthly, or quarterly. Additionally, it is recommended
+to run it immediately before and after any major change in the database server.
 
 The three key principles behind postgres-checkup:
 
-    - *Unobtrusiveness*: postgres-checkup’s impact on the observing system is close to zero. It does not use any heavy queries, keeping resource usage very low, avoids having the “observer effect”.
+    - *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
+    close to zero. It does not use any heavy queries, keeping resource usage
+    very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology))
 
-    - *Zero install* (on observed machines): it is able to analyze any Linux machine (including virtual machines), as well as Cloud Postgres instanced (such as Amazon RDs or Google Cloud SQL), not requiring any additional setup or any changes. It does, hovewer, require the privileged access (a DBA usually has it anyway).
+    - *Zero install* (on observed machines): it is able to analyze any Linux
+    machine (including virtual machines), as well as Cloud Postgres instances
+    (such as Amazon RDs or Google Cloud SQL), not requiring any additional setup
+    or any changes. It does, hovewer, require a privileged access (a DBA usually
+    has it anyway).
 
-    - *Complex analysis*: unlike most monitoring tools, which provide raw data, postgres-checkup combines data from various parts of the system (w.g.: internal Postgres stats are combined with knowledge about system resources in autovacuum setting and behavior analysis). Also, it analyzes the master database server together with all its replicas (e.g. to build the list of unused indexes).
+    - *Complex analysis*: unlike most monitoring tools, which provide raw data,
+    postgres-checkup combines data from various parts of the system (e.g.,
+    internal Postgres stats are combined with knowledge about system resources
+    in autovacuum setting and behavior analysis). Also, it analyzes the master
+    database server together with all its replicas (e.g. to build the list of
+    unused indexes).
 
 # Reports Structure
-The two kinds of reports postgres-checkup produces for every check:
+Postgres-checkup produces two kinds of reports for every check:
 
-    - JSON reports (*.json) — can be consumed by any program or service, or stores in some database.
+    - JSON reports (*.json) — can be consumed by any program or service, or
+    stores in some database.
 
-    - Markdown reports (*.md) — the main format for humans, may contain lists, tables, pictures. Being of native format for GitLab and GitHub, such reports are ready to be used, for instance, in their issue trackers, simplifying workflow. Markdown reports are derived from JSON reports.
+    - Markdown reports (*.md) — the main format for humans, may contain lists,
+    tables, pictures. Being of native format for GitLab and GitHub, such reports
+    are ready to be used, for instance, in their issue trackers, simplifying
+    workflow. Markdown reports are derived from JSON reports.
 
 Markdown reports can be converted to different formats such as HTML or PDF.
 
 Each report consists of three sections:
 
-    1. "Observations": automatically collected data. This is to be consumed by an expert DBA.
-    1. "Conclusions": what we conclude from the Observations, what is good, what is bad (right now, it is to be manually filled for most checks).
-    1. "Recommendations": actions items, what to do to fix issues found. Both "Conclusions" and "Recommendations" are to be consumed by an engineers who will make decisions what, how and when to optimize, how to react to the findings.
+    1. "Observations": automatically collected data. This is to be consumed by
+    an expert DBA.
+    1. "Conclusions": what we conclude from the Observations—what is good, what
+    is bad (right now, it is to be manually filled for most checks).
+    1. "Recommendations": action items, what to do to fix the discovered issues.
+    Both "Conclusions" and "Recommendations" are to be consumed by engineers who
+    will make decisions what, how and when to optimize, and how to react to the
+    findings.
 
 # Installation and Usage
 
 ## Requirements
 
-The supported OS of the observer machine (those from which the tool is to be executed):
+The supported OS of the observer machine (those from which the tool is to be
+executed):
 
-* Linux (modern RHEL/CentOS or Debian/Ubuntu; others should work as well, but not yet tested);
+* Linux (modern RHEL/CentOS or Debian/Ubuntu; others should work as well, but
+are not yet tested);
 * MacOS.
 
-It has to have the following programs:
+The following programs must be installed on the observer machine:
 
 * bash
 * psql
@@ -45,13 +81,15 @@ It has to have the following programs:
 * awk
 * sed
 
-Nothing special has to be istalled on the observed machines. However, these machines must run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others should work as well, but not yet tested).
+Nothing special has to be installed on the observed machines. However, these
+machines must run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others
+should work as well, but are not yet tested).
 
 :warning: Only Postgres version 9.6 and higher are currently supported.
 
 ## How to Install
 
-Use `git clone`. This is the only way of installation currently supported.
+Use `git clone`. This is the only method of installation currently supported.
 
 ## Example of Use
 
@@ -85,7 +123,7 @@ As a result of postgres-checkup we have got two directories with .json files and
 Each of generated files contains information about "what we check" and collected data for
 all instances of the postgres cluster `prod1`.
 
-Human-readable report can be found at:
+A human-readable report can be found at:
 
 ```bash
 ./artifacts/prod1/e1_full_report.md
