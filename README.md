@@ -19,46 +19,46 @@ to run it immediately before and after any major change in the database server.
 
 The three key principles behind postgres-checkup:
 
-    - *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
-    close to zero. It does not use any heavy queries, keeping resource usage
-    very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology))
+- *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
+close to zero. It does not use any heavy queries, keeping resource usage
+very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology))
 
-    - *Zero install* (on observed machines): it is able to analyze any Linux
-    machine (including virtual machines), as well as Cloud Postgres instances
-    (such as Amazon RDs or Google Cloud SQL), not requiring any additional setup
-    or any changes. It does, hovewer, require a privileged access (a DBA usually
-    has it anyway).
+- *Zero install* (on observed machines): it is able to analyze any Linux
+machine (including virtual machines), as well as Cloud Postgres instances
+(such as Amazon RDs or Google Cloud SQL), not requiring any additional setup
+or any changes. It does, hovewer, require a privileged access (a DBA usually
+has it anyway).
 
-    - *Complex analysis*: unlike most monitoring tools, which provide raw data,
-    postgres-checkup combines data from various parts of the system (e.g.,
-    internal Postgres stats are combined with knowledge about system resources
-    in autovacuum setting and behavior analysis). Also, it analyzes the master
-    database server together with all its replicas (e.g. to build the list of
-    unused indexes).
+- *Complex analysis*: unlike most monitoring tools, which provide raw data,
+postgres-checkup combines data from various parts of the system (e.g.,
+internal Postgres stats are combined with knowledge about system resources
+in autovacuum setting and behavior analysis). Also, it analyzes the master
+database server together with all its replicas (e.g. to build the list of
+unused indexes).
 
 # Reports Structure
 Postgres-checkup produces two kinds of reports for every check:
 
-    - JSON reports (*.json) — can be consumed by any program or service, or
-    stores in some database.
+- JSON reports (*.json) — can be consumed by any program or service, or
+stores in some database.
 
-    - Markdown reports (*.md) — the main format for humans, may contain lists,
-    tables, pictures. Being of native format for GitLab and GitHub, such reports
-    are ready to be used, for instance, in their issue trackers, simplifying
-    workflow. Markdown reports are derived from JSON reports.
+- Markdown reports (*.md) — the main format for humans, may contain lists,
+tables, pictures. Being of native format for GitLab and GitHub, such reports
+are ready to be used, for instance, in their issue trackers, simplifying
+workflow. Markdown reports are derived from JSON reports.
 
 Markdown reports can be converted to different formats such as HTML or PDF.
 
 Each report consists of three sections:
 
-    1. "Observations": automatically collected data. This is to be consumed by
-    an expert DBA.
-    1. "Conclusions": what we conclude from the Observations—what is good, what
-    is bad (right now, it is to be manually filled for most checks).
-    1. "Recommendations": action items, what to do to fix the discovered issues.
-    Both "Conclusions" and "Recommendations" are to be consumed by engineers who
-    will make decisions what, how and when to optimize, and how to react to the
-    findings.
+1. "Observations": automatically collected data. This is to be consumed by
+an expert DBA.
+1. "Conclusions": what we conclude from the Observations—what is good, what
+is bad (right now, it is to be manually filled for most checks).
+1. "Recommendations": action items, what to do to fix the discovered issues.
+Both "Conclusions" and "Recommendations" are to be consumed by engineers who
+will make decisions what, how and when to optimize, and how to react to the
+findings.
 
 # Installation and Usage
 
