@@ -87,7 +87,6 @@ test-general:
     - ls -al ~/.ssh
     - git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai"
     - eval $(ssh-agent -s) && ssh-add ~/.ssh/id_rsa
-    - cat ~/.ssh/id_rsa.pub
     - ssh -T git@gitlab.com
     - git config --global user.name
     - git config --global user.email
