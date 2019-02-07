@@ -73,37 +73,32 @@ test-general:
     - psql -h localhost -d dbname -U username -c "SELECT version();"
     - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
     - vacuumdb -U username dbname --analyze
-    - pwd
+    - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
-    - stat --format="%s" err.log
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
-    - stat --format="%s" err1.log
+    - export TEST_RESULT=$(stat --format="%s" err1.log) && echo $TEST_RESULT
     - echo "${S3_CFG}" > ~/.s3cfg
     - s3cmd ls s3://postgres-checkup-tests/
     - export ARTIFACT_FILENAME=$(date +%Y%m%d_%H%M%S)
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
-    - git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai"
-    - cat ~/.ssh/config
-    - eval $(ssh-agent -s)
-    - ssh-add -D || true
-    - ssh-add -l || true
-    - ssh-add ~/.ssh/gitlab_key
-    - ssh-add -l || true
-    - ssh-add -L || true
+    - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai") || true
+    - eval $(ssh-agent -s) || true
+    - ssh-add ~/.ssh/gitlab_key || true
     - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts || true
-    - ssh git@github.com || true
     - ssh -T git@gitlab.com || true
-    - git config --global user.name
-    - git config --global user.email
-    - cd ~ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git
-    - ls -al ~
-    - exit $(stat --format="%s" err1.log)
+    - git config --global user.name || true
+    - git config --global user.email || true
+    - (cd ~/ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git) || true
+    - (mkdir -p ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME && rm -Rf ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/*)  || true
+    - (cp -Rf $ARTIFACTS_PATH/test/* ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/) || true
+    - (git add ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/* && git commit -m "$CI_COMMIT_REF_NAME artifacts" && git push) || true
+    - exit $TEST_RESULT
 
 #    - ls -al ~/.ssh
   artifacts:
