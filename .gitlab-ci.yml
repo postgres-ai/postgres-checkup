@@ -62,7 +62,8 @@ test-general:
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;"
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
-    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+    - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config
     - apt-get -y install openssh-server
     - service ssh restart
     
@@ -88,8 +89,8 @@ test-general:
     - cat ~/.ssh/config
     - eval $(ssh-agent -s)
     - ssh-add -l || true
-    - ssh-add ~/.ssh/id_rsa
-    - ssh-add -l || true
+    - ssh-add ~/.ssh/gitlab_key
+    - ssh-add -l || true    
     - ssh -T git@gitlab.com || true
     - git config --global user.name
     - git config --global user.email
