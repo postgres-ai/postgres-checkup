@@ -81,7 +81,7 @@ test-general:
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
     - export TEST_RESULT=$(stat --format="%s" err1.log) && echo $TEST_RESULT
-    - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai") || true
+    - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai" && git config --global push.default simple) || true
     - eval $(ssh-agent -s) || true
     - ssh-add ~/.ssh/gitlab_key || true
     - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts || true
