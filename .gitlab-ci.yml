@@ -86,7 +86,7 @@ test-general:
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - cat ~/.ssh/config
-    - ssh-agent -s
+    - eval $(ssh-agent -s)
     - ssh-add -l
     - ssh-add ~/.ssh/id_rsa
     - ssh-add -l
