@@ -85,7 +85,10 @@ test-general:
     - export ARTIFACT_FILENAME="$CI_COMMIT_REF_NAME-$ARTIFACT_FILENAME.tar"
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
+    - ssh-add -l
     - eval $(ssh-agent -s) && ssh-add ~/.ssh/id_rsa
+    - ssh-add -l
+    - cat ~/.ssh/config
     - ssh -T git@gitlab.com || true
     - git config --global user.name
     - git config --global user.email
