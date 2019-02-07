@@ -87,9 +87,9 @@ test-general:
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - cat ~/.ssh/config
     - eval $(ssh-agent -s)
-    - ssh-add -l
+    - ssh-add -l || true
     - ssh-add ~/.ssh/id_rsa
-    - ssh-add -l
+    - ssh-add -l || true
     - ssh -T git@gitlab.com || true
     - git config --global user.name
     - git config --global user.email
