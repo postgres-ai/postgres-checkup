@@ -62,6 +62,7 @@ test-general:
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;"
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
     - apt-get -y install openssh-server
     - service ssh restart
     
@@ -85,7 +86,7 @@ test-general:
     - tar -cvf "$ARTIFACT_FILENAME" ./artifacts/* > /dev/null
     - ([[ $CI_COMMIT_REF_NAME -eq "master" ]]) && s3cmd put -f "$ARTIFACT_FILENAME" s3://postgres-checkup-tests/
     - eval $(ssh-agent -s) && ssh-add ~/.ssh/id_rsa
-    - ssh -T git@gitlab.com
+    - ssh -T git@gitlab.com || true
     - git config --global user.name
     - git config --global user.email
     - cd ~ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git
