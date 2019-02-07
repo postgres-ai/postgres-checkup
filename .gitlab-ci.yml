@@ -63,10 +63,11 @@ test-general:
     - psql -U postgres dbname -c "create role username superuser login;"
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
-    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
     - apt-get -y install openssh-server
     - service ssh restart
     
+    #&& echo "  StrictHostKeyChecking no" >> ~/.ssh/config
   script:
     - bash -version
     - psql -h localhost -d dbname -U username -c "SELECT version();"
@@ -94,6 +95,7 @@ test-general:
     - ssh-add ~/.ssh/gitlab_key
     - ssh-add -l || true
     - ssh-add -L || true
+    - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts || true
     - ssh git@github.com || true
     - ssh -T git@gitlab.com || true
     - git config --global user.name
