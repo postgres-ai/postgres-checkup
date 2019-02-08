@@ -4,12 +4,20 @@
 ## Observations ##
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
- Index (Table) | &#9660;&nbsp;Size | Extra | Bloat | Live | Fill factor
----------------|------|-------|-------|------|-------------
-{{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
-{{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
+ Index (Table) | &#9660;&nbsp;Size | Extra | Bloat | Bloat, bytes | Bloat ratio,% | Live | Fill factor
+---------------|-------------------|-------|-------|-------------|-------------|------|-------------
+**Total** |**{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Real size bytes sum" ) 2 }}** ||**{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat size bytes sum" ) 2 }}** |**{{- NumFormat  (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat size bytes sum" ) -1 }}** |Avg: **{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Avg bloat ratio" ) 2 }}**||
+{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
+{{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
 {{- $tableIndex := Split $key "\n" -}}
-{{ $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}) | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ ( index $value "fillfactor") }}
+{{ $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}) |
+{{- ByteFormat ( index $value "Real size bytes") 2 }} |
+{{- ( index $value "Extra") }} |
+{{- if ( index $value "Bloat size bytes")}}{{ ByteFormat ( index $value "Bloat size bytes") 2 }}{{end}} |
+{{- if ( index $value "Bloat size bytes")}}{{- NumFormat ( index $value "Bloat size bytes") -1 }}{{end}} |
+{{- if ( index $value "Bloat ratio")}}{{- RawFloatFormat ( index $value "Bloat ratio") 2 }}{{end}} |
+{{- ( index $value "Live") }} |
+{{- ( index $value "fillfactor") }}
 {{ end }}
 {{- else -}}
 No data
