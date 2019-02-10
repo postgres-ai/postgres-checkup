@@ -4,6 +4,7 @@
 # 2018 © Postgres.ai
 #
 # Perform a PostgreSQL instance(s) health checks (checkups)
+#
 # Usage: $0 --help
 #
 
@@ -26,7 +27,7 @@ BOLD=`tput md 2>/dev/null` || :
 RESET=`tput me 2>/dev/null` || :
 
 #######################################
-# Print an message to STDOUT
+# Print a message to STDOUT with timestamp
 # Globals:
 #   None
 # Arguments:
@@ -39,7 +40,7 @@ function msg() {
 }
 
 #######################################
-# Print a debug-level message to STDOUT
+# Print a debug-level message to STDOUT with timestamp
 # Globals:
 #   DEBUG
 # Arguments:
@@ -54,7 +55,7 @@ function dbg() {
 }
 
 #######################################
-# Print an error/warning/notice message to STDERR
+# Print an error/warning/notice to STDERR with timestamp
 #   Please use 'exit' with code after usage
 #   of this function (if needed)
 # Globals:
@@ -92,7 +93,7 @@ error_handler() {
 #   (lines with text) STDOUT/STDERR
 #######################################
 cleanup_and_exit() {
-  local exit_code="$?" # we can detect exit code here 
+  local exit_code="$?" # we can detect exit code here
   if [[ ! -z ${HOST+x} ]]; then
     dbg "closing ssh conenction to host '$HOST' (if exists)"
     (ssh -O exit ${HOST} 2>/dev/null) || true
@@ -113,15 +114,15 @@ cleanup_and_exit() {
 load_cli_res() {
   local setting
   if [[ ! -f "${SCRIPT_DIR}/resources/cli.conf" ]]; then
-    err "Can't load '${SCRIPT_DIR}/resources/cli.conf'"
+    err "Cannot load '${SCRIPT_DIR}/resources/cli.conf'"
     exit 2
   fi
   while read -r setting; do
-    # skip comments
+    # skip comments and empty lines
     local re='^(#|$|[:blank:])'
     [[ "$setting" =~ $re ]] && continue
     echo "${setting}'"
-  done <"${SCRIPT_DIR}"/resources/cli.conf
+  done < "${SCRIPT_DIR}"/resources/cli.conf
 }
 
 #######################################
@@ -135,7 +136,7 @@ load_cli_res() {
 # Returns:
 #   None
 #######################################
-read_possible_args() {
+read_possible_args() { # TODO(Nik) I cannot find where this function is being called
   local iter_num=0
   local section short_name full_name arg_type mandatary description
 
@@ -333,7 +334,7 @@ validate_args() {
   local need_fail_exit="false"
 
   if [[ "${CLI_ARGS_CNT}" -lt 1 ]]; then
-    usage "given less then 1 mandatory argument" "1"
+    usage "No arguments are provided, at least one is needed." "1"
   fi
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
@@ -403,7 +404,7 @@ validate_args() {
 # Arguments:
 #   description exit_code code
 # Returns:
-#   (text) stdtout/stderror
+#   (text) stdtout/stderr
 #######################################
 usage() {
   local i
@@ -425,14 +426,15 @@ usage() {
   else
     out_descriptor="1" # STDOUT
     # help part starts here
-    echo "'postgres-checkup' is an ultimate open-source PostgreSQL database health check utility." >&${out_descriptor}
+    echo >&${out_descriptor}
+    echo "POSTGRES-CHECKUP collects deep diagnostics of a Postgres database's health." >&${out_descriptor}
+    echo "Project home: https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
     echo >&${out_descriptor}
   fi
 
   echo "Usage:" >&${out_descriptor}
   echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
   echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
-  echo >&${out_descriptor}
 
   # calc max size of FULL_NAME[] for text alignment
   local max_name_len=0
@@ -447,6 +449,7 @@ usage() {
   local prev_section="Misc"
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${SECTION[$i]}" != "$prev_section" ]] || [[ -z ${SECTION[0]} ]] ; then
+      echo >&${out_descriptor}
       echo  "${SECTION[$i]}:" >&${out_descriptor}
     fi
     [[ "${SHORT_NAME[$i]}" = "None" ]] && SHORT_NAME[$i]=" "
@@ -475,11 +478,13 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "PGPASSWORD=postgres ./${SCRIPT_NAME} -h dev -p 5432 --username ${USER} --dbname postgres --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
+      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h host_to_connect_via_ssh \\"
+      echo "    --username ${USER} --dbname postgres \\"
+      echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "Add more checks into './resources/checks/' directory." >&${out_descriptor}
+      echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
       echo >&${out_descriptor}
-      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup ." >&${out_descriptor}
+      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
     fi
     prev_section=${SECTION[$i]}
   done
@@ -496,7 +501,7 @@ usage() {
 # Arguments:
 #   input, check_id
 # Returns:
-#   (text) stdtout/stderror
+#   (text) stdtout/stderr
 #######################################
 generate_report_json() {
   local input_json="$1"
@@ -588,7 +593,7 @@ is_in_recovery() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderror
+#   (text) stdtout/stderr
 #######################################
 build_pghrep() {
   dbg "building pghrep..."
@@ -607,7 +612,7 @@ build_pghrep() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderror
+#   (text) stdtout/stderr
 #######################################
 check_bin_deps() {
   # detect OS
@@ -815,7 +820,7 @@ host_pre_start_checks() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderror
+#   (text) stdtout/stderr
 #######################################
 update_nodes_json() {
   local prev_role=""
@@ -947,7 +952,7 @@ update_nodes_json() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderror
+#   (text) stdtout/stderr
 #######################################
 run_checks() {
   # perform pre-checks here
