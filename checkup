@@ -404,7 +404,7 @@ validate_args() {
 # Arguments:
 #   description exit_code code
 # Returns:
-#   (text) stdtout/stderr
+#   (text) stdout/stderr
 #######################################
 usage() {
   local i
@@ -501,7 +501,7 @@ usage() {
 # Arguments:
 #   input, check_id
 # Returns:
-#   (text) stdtout/stderr
+#   (text) stdout/stderr
 #######################################
 generate_report_json() {
   local input_json="$1"
@@ -593,7 +593,7 @@ is_in_recovery() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderr
+#   (text) stdout/stderr
 #######################################
 build_pghrep() {
   dbg "building pghrep..."
@@ -612,7 +612,7 @@ build_pghrep() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderr
+#   (text) stdout/stderr
 #######################################
 check_bin_deps() {
   # detect OS
@@ -820,7 +820,7 @@ host_pre_start_checks() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderr
+#   (text) stdout/stderr
 #######################################
 update_nodes_json() {
   local prev_role=""
@@ -952,7 +952,7 @@ update_nodes_json() {
 # Arguments:
 #   None
 # Returns:
-#   (text) stdtout/stderr
+#   (text) stdout/stderr
 #######################################
 run_checks() {
   # perform pre-checks here
