@@ -10,12 +10,15 @@ variables:
 
 before_script:
   - apt-get update
-  - apt-get install -y jq curl
+  - apt-get install -y jq curl wget
+  - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+  - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
+  - apt-get update
   - apt-get -y upgrade
   - apt-get -y install golang-1.9-go
   - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
   - source ~/.profile
-  - apt-get -y install postgresql postgresql-contrib
+  - apt-get -y install postgresql-client-11
   - psql --version
 
 .test-check:
@@ -29,31 +32,98 @@ before_script:
     - ./checkup -h postgres --username username --project test --dbname dbname -e 1
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
     - echo "Passed"
+  
+test-general:
+  stage: test
+  before_script:
+    - apt-get update
+    - apt-get install -y jq curl wget git s3cmd
+    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+    - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update
+    - apt-get -y upgrade
+    - apt-get install -y sudo
+    - apt-get -y install golang-1.9-go
+    - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
+    - source ~/.profile
+    - apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-client-11
+    - psql --version
+    - apt-get install -y postgresql-server-dev-11 && apt-get install -y postgresql-11-pg-stat-kcache
+    - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
+    - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
+    - echo "host all  all    ::1/128  trust" >> /etc/postgresql/11/main/pg_hba.conf
+    - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
+    - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
+    - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
+    #- echo "logging_collector = on" >> /etc/postgresql/11/main/postgresql.conf
+    - /etc/init.d/postgresql start 
+    - psql -U postgres -c 'create database dbname;'
+    - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
+    - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
+    - psql -U postgres dbname -c "create role username superuser login;"
+    - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
+    - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
+    - apt-get -y install openssh-server
+    - service ssh restart
+    
+    #&& echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+  script:
+    - bash -version
+    - psql -h localhost -d dbname -U username -c "SELECT version();"
+    - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
+    - vacuumdb -U username dbname --analyze
+    - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
+    - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
+    - cat err.log
+    - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
+    - cat err.log
+    - grep -v "Failed to create bus connection" err.log > err1.log || true
+    - cat err1.log
+    - export TEST_RESULT=$(stat --format="%s" err1.log) && echo $TEST_RESULT
+    - ([[ $TEST_RESULT -ne 0 ]]) && exit 1
+    - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai" && git config --global push.default simple) || true
+    - eval $(ssh-agent -s) || true
+    - ssh-add ~/.ssh/gitlab_key || true
+    - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts || true
+    - ssh -T git@gitlab.com || true
+    - (cd ~/ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git) || true
+    - (mkdir -p ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME && rm -Rf ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/*) || true
+    - (cp -Rf $ARTIFACTS_PATH/test/* ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/) || true
+    - (cd ~/postgres-checkup-tests && git add ./$CI_COMMIT_REF_NAME && git commit -m "$CI_COMMIT_REF_NAME artifacts" && git push) || true
+    - exit $TEST_RESULT
 
-test-pghrep:
+  artifacts:
+    paths:
+      - ./artifacts/test
+      - ./std.log
+      - ./err.log
+    expire_in: 1 week
+
+.test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
 
-test-check-9.6:
+.test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-test-check-10:
+.test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-test-check-11:
+.test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-test-check-cli:
+.test-check-cli:
   services:
     - postgres:11
   stage: "test"
@@ -72,5 +142,3 @@ test-check-cli:
       >&2 echo "Oh no! $errcount tests failed"
       exit 1
     fi
-
-
