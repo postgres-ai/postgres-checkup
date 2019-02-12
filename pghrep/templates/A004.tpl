@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index (index .results .hosts.master) "data") "general_info") }}
  Indicator | Value
@@ -21,6 +22,8 @@ Database | &#9660;&nbsp;Size
 {{ end }}
 {{- end -}}
 {{- end -}}
+{{- end -}}
+
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
   {{ range $skey, $host := .hosts.replicas }}

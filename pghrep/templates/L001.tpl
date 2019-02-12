@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 Table | Rows | &#9660;&nbsp;Total size | Table size | Index(es) Size | TOAST Size
 ------|------|------------|------------|----------------|------------
@@ -9,9 +10,12 @@ Table | Rows | &#9660;&nbsp;Total size | Table size | Index(es) Size | TOAST Siz
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
 {{ index $value "Table"}} | {{ index $value "Rows"}} | {{ index $value "Total Size"}} | {{ index $value "Table Size"}} | {{ index $value "Index(es) Size"}} | {{ index $value "TOAST Size"}}
 {{ end }}
-{{- else }}
+{{- else -}}{{/*Master data*/}}
 No data
-{{- end }}
+{{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master*/}}
+No data
+{{ end }}{{/*Master*/}}
 
 ## Conclusions ##
 

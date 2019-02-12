@@ -3,6 +3,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
  Index (Table) | &#9660;&nbsp;Size | Extra | Bloat | Live | Fill factor
 ---------------|------|-------|-------|------|-------------
@@ -11,9 +12,12 @@
 {{- $tableIndex := Split $key "\n" -}}
 {{ $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}) | {{ ( index $value "Size") }} | {{ ( index $value "Extra") }} | {{ ( index $value "Bloat") }} | {{ ( index $value "Live") }} | {{ ( index $value "fillfactor") }}
 {{ end }}
-{{- else -}}
+{{- else -}}{{/*Master data*/}}
 No data
-{{ end }}
+{{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master*/}}
+No data
+{{ end }}{{/*Master*/}}
 
 ## Conclusions ##
 

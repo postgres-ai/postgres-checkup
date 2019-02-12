@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data").system.raw}}
 **System**
@@ -9,36 +10,38 @@
 ```
 {{ (index (index .results .hosts.master) "data").system.raw}}
 ```
-{{ end }}
+{{ end }}{{/* system */}}
 {{ if (index (index .results .hosts.master) "data").cpu.raw}}
 **CPU**
 
 ```
 {{ (index (index .results .hosts.master) "data").cpu.raw }}
 ```
-{{ end }}
+{{ end }}{{/* cpu */}}
 {{ if (index (index .results .hosts.master) "data").ram.raw}}
 **Memory**
 
 ```
 {{ (index (index .results .hosts.master) "data").ram.raw }}
 ```
-{{ end }}
+{{ end }}{{/* memory */}}
 {{ if (index (index .results .hosts.master) "data").disk.raw }}
 **Disk**
 
 ```
 {{ (index (index .results .hosts.master) "data").disk.raw}}
 ```
-{{ end }}
+{{ end }}{{/* disk */}}
 {{ if (index (index .results .hosts.master) "data").virtualization.raw }}
 **Virtualization**
 
 ```
 {{ (index (index .results .hosts.master) "data").virtualization.raw }}
 ```
-{{ end }}
-{{ end }}
+{{ end }}{{/* virtualization */}}
+{{ end }}{{/* master data */}}
+{{ end }}{{/* master */}}
+
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
     {{ range $key, $value := .hosts.replicas }}

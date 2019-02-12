@@ -4,6 +4,8 @@
 
 {{ if .resultData }}
 
+{{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 Report created: {{ DtFormat .timestamptz }}  
 
@@ -59,6 +61,9 @@ Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ 
 {{- end }}{{/* in ! _keys */}}
 {{- end }}{{/* range redundant_indexes */}}
 {{end}}{{/* if redundant_indexes */}}
+
+{{end}}{{/* master data */}}
+{{end}}{{/* master */}}
 
 ## Conclusions ##
 

@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
 #### Databases ####
@@ -32,9 +33,13 @@
 {{ end }}{{/* range */}}
 {{/*- end -*/}}{{/* if per_instance exists */}}
 
-{{- else }}
+{{- else -}}{{/*Master data*/}}
 No data
-{{- end }}
+{{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master*/}}
+No data
+{{ end }}{{/*Master*/}}
+
 
 ## Conclusions ##
 

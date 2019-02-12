@@ -3,6 +3,7 @@
 ## Observations ##
 
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 
 {{ if (index (index .results .hosts.master) "data") }}
@@ -19,6 +20,11 @@
 {{- else -}}
 Invalid indexes not found
 {{- end -}}{{/* if data */}}
+{{- else -}}
+No data
+{{- end -}}{{/* if .host.master data */}}
+{{- else -}}
+No data
 {{- end -}}{{/* if .host.master */}}
 
 ## Conclusions ##

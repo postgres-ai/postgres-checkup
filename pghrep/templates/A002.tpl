@@ -2,12 +2,15 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 
 ```
 {{ (index (index .results .hosts.master) "data").version }}
 ```
-{{ end }}
+{{ end }}{{/*master data*/}}
+{{ end }}{{/*master*/}}
+
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
 {{ range $key, $value := .hosts.replicas }}

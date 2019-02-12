@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index (index .results .hosts.master) "data") "pg_stat_statements") }}
 #### `pg_stat_statements` extension settings ####
@@ -22,9 +23,12 @@ Setting | Value | Unit | Type | Min value | Max value
 [{{ $setting_name }}](https://postgresqlco.nf/en/doc/param/{{ $setting_name }})|{{ $setting_data.setting }}|{{ if $setting_data.unit }}{{ $setting_data.unit }} {{ end }}|{{ $setting_data.vartype }}|{{ if $setting_data.min_val }}{{ $setting_data.min_val }} {{ end }}|{{ if $setting_data.max_val }}{{ $setting_data.max_val }} {{ end }}
 {{ end }}
 {{- end -}}
-{{ else }}
+{{- else -}}{{/*Master data*/}}
 No data
-{{ end }}
+{{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master*/}}
+No data
+{{ end }}{{/*Master*/}}
 
 ## Conclusions ##
 
