@@ -1,4 +1,5 @@
 # About
+
 Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
 is a new-generation diagnostics tool that allows users to collect  deep analysis
 of the health of a Postgres database. It aims to detect and describe all current
@@ -37,6 +38,7 @@ database server together with all its replicas (e.g. to build the list of
 unused indexes).
 
 # Reports Structure
+
 Postgres-checkup produces two kinds of reports for every check:
 
 - JSON reports (*.json) — can be consumed by any program or service, or
@@ -130,6 +132,11 @@ A human-readable report can be found at:
 ```
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
+
+# Demo
+
+Automatically generated fresh demonstration based on the code in the master
+branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/blob/master/master/e1_full_report.md
 
 # The Full List of Checks
 
