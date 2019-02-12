@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
 ----|------|----|---------------|-------|-----------------------|-----------------------
@@ -9,8 +10,8 @@
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
     {{ $key }} | {{ Trim (Trim $value.User "*") " " }} | {{ Trim (Trim $value.DB "*") " " }} | {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }}
 {{ end }}{{/* range */}}
+{{ end }}{{/* if .host.master data */}}
 {{ end }}{{/* if .host.master */}}
-
 
 {{- if gt (len .hosts.replicas) 0 -}}
 ### Replica servers: ###

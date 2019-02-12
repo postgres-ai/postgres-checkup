@@ -33,6 +33,7 @@ No data
 #### Replica (`{{ $host }}`) ####
 {{- if (index $.results $host) }}
 {{ if (index (index $.results $host) "data")}}
+{{ if gt (len (index (index $.results $host) "data")) 0 }}
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
@@ -51,6 +52,11 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.cols_list }} |
     {{- $value.indexdef }}
 {{ end }}{{/* range */}}
+{{- else -}}{{/* if data > 0*/}} 
+No data
+{{ end }}{{/* if data > 0*/}}
+{{- else -}}{{/* if data */}}
+No data
 {{ end }}{{/* if data */}}
 {{- else -}}{{/* if $.results $host */}}
 No data

@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 &#9660;&nbsp;Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
@@ -23,9 +24,8 @@
 {{- range $j, $valopt := $value.reloptions }} {{ $valopt }}<br/>{{ end }}
 {{ end }}{{/* range */}}
 {{- end -}}{{/* if table_settings */}}
-{{- else -}}
-No data
-{{- end -}}{{/* master */}}
+{{- end }}{{/*Master data*/}}
+{{ end }}{{/*Master*/}}
 
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replicas settings ###

@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 &#9660;&nbsp;Database | Extension name | Installed version | Default version | Is old
 ---------|----------------|-------------------|-----------------|--------
@@ -14,7 +15,10 @@
 {{ end -}}
 {{ else }}
 Extensions information not found
-{{ end }}
+{{ end }}{{/* if master data */}}
+{{ else }}
+Extensions information not found
+{{ end }}{{/* if master*/}}
 
 ## Conclusions ##
 

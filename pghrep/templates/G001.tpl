@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 
 Setting name | Value | Unit | Pretty value
@@ -10,7 +11,9 @@ Setting name | Value | Unit | Pretty value
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
     [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }}) | {{ $value.setting }}| {{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
 {{ end -}}
-{{ end }}
+{{ end }}{{/* master data */}}
+{{ end }}{{/* master */}}
+
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
     {{ range $skey, $host := .hosts.replicas }}

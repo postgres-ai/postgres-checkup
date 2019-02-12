@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 Report created: {{ DtFormat .timestamptz }}  
@@ -24,9 +25,13 @@ Report created: {{ DtFormat .timestamptz }}
 {{- NumFormat (index $value "n_dead_tup") -1 }} |
 {{- index $value "dead_ratio"}}
 {{ end }}
-{{- else }}
+{{- else -}}{{/*Master data*/}}
 No data
-{{- end }}
+{{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master*/}}
+No data
+{{ end }}{{/*Master*/}}
+
 
 ## Conclusions ##
 

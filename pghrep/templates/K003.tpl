@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 Start: {{ (index (index (index .results .hosts.master) "data") "start_timestamptz") }}  
 End: {{ (index (index (index .results .hosts.master) "data") "end_timestamptz") }}  
@@ -31,9 +32,8 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 {{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
 {{- Nobr (LimitStr $value.query 2000 ) }}
 {{ end }}{{/* range */}}
-{{ else }}{{/* if .host.master*/}}
-No data
-{{ end }}{{/* if .host.master*/}}
+{{- end }}{{/*Master data*/}}
+{{ end }}{{/*Master*/}}
 
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###

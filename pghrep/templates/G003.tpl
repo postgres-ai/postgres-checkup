@@ -2,6 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 #### Timeouts ####
 Setting name | Value | Unit | Pretty value
@@ -44,6 +45,7 @@ Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset
 {{$key}}|{{ $value.conflicts}}|{{ $value.deadlocks }}|{{ $value.stats_reset }}|{{ $value.stats_reset_age }}
 {{ end }}
 {{ end }}
+{{- end -}}
 {{- end -}}
 
 {{ if gt (len .hosts.replicas) 0 }}
