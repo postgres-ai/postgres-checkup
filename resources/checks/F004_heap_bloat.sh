@@ -61,14 +61,22 @@ with data as (
     case is_na when true then 'TRUE' else '' end as "Is N/A",
     coalesce(nullif(schema_name, 'public') || '.', '') || table_name as "Table",
     pg_size_pretty(real_size::numeric) as "Size",
-    extra_size as "Extra size bytes",
+    case
+      when extra_size::numeric >= 0
+        then extra_size::numeric
+      else null
+    end as "Extra size bytes",
     extra_ratio as "Extra_ratio",
     case
       when extra_size::numeric >= 0
         then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
       else null
     end  as "Extra",
-    bloat_size as "Bloat size bytes",
+    case
+      when bloat_size::numeric >= 0
+        then bloat_size::numeric
+      else null
+    end as "Bloat size bytes",
     bloat_ratio as "Bloat ratio",
     case
       when bloat_size::numeric >= 0
