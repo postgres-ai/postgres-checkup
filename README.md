@@ -167,7 +167,7 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 ## D. Monitoring / Troubleshooting   
 
 - [ ] D001 Logging (syslog?), log_*** #35  
-- [ ] D002 Useful Linux tools  #36  
+- [x] D002 Useful Linux tools  #36  
 - [ ] D003 List of monitoring metrics #37  
 - [x] D004 pg_stat_statements, tuning opts, pg_stat_kcache #38  
 - [ ] D005 track_io_timing, …, auto_explain  #39  
@@ -197,11 +197,11 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 - [x] G003 Timeouts, locks, deadlocks (amount) #47  
 - [ ] G004 Query planner (diff) #48   
 - [ ] G005 I/O settings #49   
-- [ ] G006 Default_statistics_target (per table?) #50   
+- [ ] G006 Default_statistics_target (plus per table?) #50   
 
 ## H. Index Analysis
 
-- [ ] H001 Indexes: invalid #192, #51  
+- [x] H001 Indexes: invalid #192, #51  
 - [x] H002 < H001 Indexes: unused, redundant #51, #180, #170, #168  
 - [x] H003 < H002 Missing FK indexes #52, #142, #173  
 
@@ -211,8 +211,8 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 
 ## K. SQL query Analysis
 
-- [ ] K001 Globally aggregated query metrics #158, #178, #182, #184  
-- [ ] K002 Workload type ("first word" analysis) #159, #178, #179, #182, #184  
+- [x] K001 Globally aggregated query metrics #158, #178, #182, #184  
+- [x] K002 Workload type ("first word" analysis) #159, #178, #179, #182, #184  
 - [x] K003 Top-50 queries by total_time  #160, #172, #174, #178, #179, #182, #184, #193
 
 ## L. DB Schema Analysis
