@@ -2,7 +2,7 @@
 
 ## Observations ##
 {{ if .hosts.master }}
-{{ if (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 Source | Settings count | Changed settings
 -------|----------------|-----------------
