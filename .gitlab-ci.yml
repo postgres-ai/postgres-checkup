@@ -100,30 +100,30 @@ test-general:
       - ./err.log
     expire_in: 1 week
 
-.test-pghrep:
+test-pghrep:
   stage: test
   script:
     - cd pghrep && make test
 
-.test-check-9.6:
+test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-.test-check-10:
+test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-.test-check-11:
+test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-.test-check-cli:
+test-check-cli:
   services:
     - postgres:11
   stage: "test"
