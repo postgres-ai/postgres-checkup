@@ -81,6 +81,11 @@ with data as (
         then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
         else null
       end as "Live",
+    case
+      when (real_size - bloat_size)::numeric >=0
+        then (real_size - bloat_size)::numeric
+        else null
+      end as "Live bytes",
     greatest(last_autovacuum, last_vacuum)::timestamp(0)::text
       || case greatest(last_autovacuum, last_vacuum)
         when last_autovacuum then ' (auto)'

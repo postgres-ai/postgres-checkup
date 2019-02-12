@@ -1,4 +1,3 @@
-#psql -U postila_ru -t -0 -f - <<SQL
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with step1 as (
@@ -97,13 +96,17 @@ with data as (
     ) as "Index (Table)",
     real_size as "Real size bytes",
     pg_size_pretty(real_size::numeric) as "Size",
-    extra_ratio as "Extra_ratio",
+    extra_ratio as "Extra ratio",
     case
       when extra_size::numeric >= 0
         then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
       else null
     end  as "Extra",
-    extra_size as "Extra size bytes",
+    case
+      when extra_size::numeric >= 0
+        then extra_size
+      else null
+    end as "Extra size bytes",
     case
       when bloat_size::numeric >= 0
         then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
@@ -124,6 +127,11 @@ with data as (
         then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
         else null
      end as "Live",
+    case
+      when (real_size - bloat_size)::numeric >=0
+        then (real_size - bloat_size)::numeric
+        else null
+     end as "Live bytes",     
     fillfactor
   from step4
   order by real_size desc nulls last
