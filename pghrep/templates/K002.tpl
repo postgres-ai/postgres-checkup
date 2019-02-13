@@ -1,6 +1,8 @@
 # {{ .checkId }} Workload type ("first word" analysis)
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
+Current database: {{ .database }}  
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###

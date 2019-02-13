@@ -2,6 +2,8 @@
 :warning: This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and even more). Use it only as an indicator of potential issues.
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
+Current database: {{ .database }}  
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###

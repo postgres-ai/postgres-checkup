@@ -1,6 +1,7 @@
 # {{ .checkId }} Postgres setting deviations #
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
 {{ if .diffData }}
 ### Settings (pg_settings) that differ ###
 {{ if (index .diffData "pg_settings") }}

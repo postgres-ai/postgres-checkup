@@ -1,6 +1,8 @@
 # {{ .checkId }} Top-50 queries by total_time
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
+Current database: {{ .database }}  
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###

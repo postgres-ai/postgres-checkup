@@ -1,7 +1,7 @@
 # {{ .checkId }} Autovacuum: Resource usage #
 
 ## Observations ##
-
+Data collected: {{ DtFormat .timestamptz }}  
 ### Settings ###
 
 {{ if .hosts.master }}

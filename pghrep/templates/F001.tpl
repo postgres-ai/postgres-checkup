@@ -1,6 +1,7 @@
 # {{ .checkId }} Autovacuum: Current settings #
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###

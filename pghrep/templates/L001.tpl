@@ -1,6 +1,8 @@
 # {{ .checkId }} Table sizes #
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
+Current database: {{ .database }}  
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
