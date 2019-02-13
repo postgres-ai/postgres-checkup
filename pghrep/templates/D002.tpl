@@ -1,7 +1,7 @@
 # {{ .checkId }} Useful Linux tools
 ## Observations ##
 {{ if .hosts.master }}
-{{ if (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
