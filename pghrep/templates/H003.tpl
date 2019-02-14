@@ -5,7 +5,7 @@ Data collected: {{ DtFormat .timestamptz }}
 Current database: {{ .database }}  
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}

@@ -4,7 +4,7 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 {{- if .hosts.master }}
-{{- if (index .results .hosts.master) }}  
+{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}  
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 ### Master (`{{.hosts.master}}`) ###
 

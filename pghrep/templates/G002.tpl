@@ -3,7 +3,7 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
 ----|------|----|---------------|-------|-----------------------|-----------------------

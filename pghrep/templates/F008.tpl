@@ -5,7 +5,7 @@ Data collected: {{ DtFormat .timestamptz }}
 ### Settings ###
 
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}

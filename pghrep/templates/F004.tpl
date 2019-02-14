@@ -6,7 +6,7 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data") }}
  Table | Size | Extra | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat ratio, % | Live | Last vacuum | Fillfactor
