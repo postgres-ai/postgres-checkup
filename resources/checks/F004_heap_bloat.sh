@@ -116,7 +116,7 @@ with data as (
     sum("Extra size bytes") as "Extra size bytes sum",
     sum("Real size bytes") as "Real size bytes sum",
     sum("Bloat size bytes") as "Bloat size bytes sum",
-    avg("Bloat ratio") as "Avg bloat ratio",
+    (sum("Bloat size bytes")::numeric/sum("Real size bytes")::numeric * 100) as "Bloat ratio",
     sum("Extra size bytes") as "Extra size bytes sum"
   from data
 )
