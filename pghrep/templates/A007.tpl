@@ -1,8 +1,9 @@
 # {{ .checkId }} Altered settings #
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 Source | Settings count | Changed settings
 -------|----------------|-----------------

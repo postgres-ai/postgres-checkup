@@ -1,8 +1,10 @@
 # {{ .checkId }} Workload type ("first word" analysis)
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
+Current database: {{ .database }}  
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 Start: {{ (index (index (index .results .hosts.master) "data") "start_timestamptz") }}  
 End: {{ (index (index (index .results .hosts.master) "data") "end_timestamptz") }}  

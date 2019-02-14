@@ -1,13 +1,12 @@
 # {{ .checkId }} Unused/Rarely Used Indexes #
 
 ## Observations ##
-
+Data collected: {{ DtFormat .timestamptz }}  
+Current database: {{ .database }}  
 {{ if .resultData }}
-
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
-Report created: {{ DtFormat .timestamptz }}  
 
 {{ if .resultData.unused_indexes }}
 ### Never Used Indexes ###

@@ -1,8 +1,9 @@
 # {{ .checkId }} Postgres settings #
 
 ## Observations ##
+Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if (index .results .hosts.master) }}
+{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###  
 &#9660;&nbsp;Category | Setting | Value | Unit | Pretty value
 ---------|---------|-------|------|--------------
