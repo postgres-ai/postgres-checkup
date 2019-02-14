@@ -24,7 +24,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- NumFormat (index $value "pg_class_reltuples") -1 }} |
 {{- NumFormat (index $value "n_live_tup") -1 }} |
 {{- NumFormat (index $value "n_dead_tup") -1 }} |
-{{- index $value "dead_ratio"}}
+{{- if ge (Int (index $value "dead_ratio")) 10 }} **{{ (index $value "dead_ratio")}}** {{else}} {{ (index $value "dead_ratio")}} {{end}}
 {{ end }}
 {{- else -}}{{/*Master data*/}}
 No data

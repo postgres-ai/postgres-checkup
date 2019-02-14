@@ -161,3 +161,10 @@ func RawFloatFormat(value interface{}, places interface{}) string {
     pl := pyraconv.ToInt64(places)
     return fmtutils.RawFloatFormat(val, int(pl))
 }
+
+func Int(value interface{}) int {
+    if value != nil {
+        return int(pyraconv.ToInt64(value))
+    }
+    return 0
+}
