@@ -4,7 +4,8 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 Start: {{ (index (index (index .results .hosts.master) "data") "start_timestamptz") }}  
 End: {{ (index (index (index .results .hosts.master) "data") "end_timestamptz") }}  
@@ -34,6 +35,7 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 {{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
 {{- Nobr (LimitStr $value.query 2000 ) }}
 {{ end }}{{/* range */}}
+{{- end }}{{/*Master data*/}}
 {{- end }}{{/*Master data*/}}
 {{ end }}{{/*Master*/}}
 
