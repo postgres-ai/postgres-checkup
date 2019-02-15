@@ -351,7 +351,6 @@ validate_args() {
   # fill default (not given) psql connection related variables
   [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
-  [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
 
   # custom UNIX domain socket directory for PostgreSQL
   local psql_unix_socket_option=""
@@ -436,6 +435,12 @@ usage() {
   echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
   echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
 
+  if [[ "$exit_code" -ne "0" ]]; then
+    exit "$exit_code"
+  fi
+
+  # Printing CLI options starts here
+
   # calc max size of FULL_NAME[] for text alignment
   local max_name_len=0
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
@@ -478,7 +483,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h host_to_connect_via_ssh \\"
+      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
       echo "    --username ${USER} --dbname postgres \\"
       echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
       echo >&${out_descriptor}
