@@ -377,9 +377,8 @@ sql="
 JSON=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
   ${change_db_cmd}
   ${sql}
-SQL)
-
-TEMP_JSON=""
+SQL
+      )
 
 # for each query of K003 (of 50), generate file with query and link to the file
 for query_id in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
