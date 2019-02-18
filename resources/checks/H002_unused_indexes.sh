@@ -15,6 +15,9 @@ with table_scans as (
     idx_stat.schemaname as schema_name,
     idx_stat.relname as table_name,
     idx_stat.indexrelname as index_name,
+    ( case when lower(idx_stat.schemaname) <> idx_stat.schemaname then ('"' || idx_stat.schemaname || '"') else idx_stat.schemaname::text end ) as formated_schema_name,
+    ( case when lower(idx_stat.indexrelname) <> idx_stat.indexrelname then ('"' || idx_stat.indexrelname || '"') else idx_stat.indexrelname::text end ) as formated_index_name,
+    ( case when lower(idx_stat.relname) <> idx_stat.relname then ('"' || idx_stat.relname || '"') else idx_stat.relname::text end ) as formated_table_name,
     idx_stat.idx_scan,
     pg_relation_size(idx_stat.indexrelid) as index_bytes,
     indexdef ~* 'using btree' as idx_is_btree,
@@ -32,19 +35,22 @@ with table_scans as (
     indexrelid as index_id,
     schema_name,
     table_name,
-    coalesce(nullif(schema_name, 'public') || '.', '') || table_name  as formated_table_name,
     index_name,
     idx_scan,
     all_scans,
-    round(( case when all_scans = 0 then 0.0::numeric
-      else idx_scan::numeric/all_scans * 100 end),2) as index_scan_pct,
+        round(( case when all_scans = 0 then 0.0::numeric
+          else idx_scan::numeric/all_scans * 100 end),2) as index_scan_pct,
     writes,
     round((case when writes = 0 then idx_scan::numeric else idx_scan::numeric/writes end),2)
       as scans_per_write,
     index_bytes as index_size_bytes,
     table_size as table_size_bytes,
     idx_is_btree,
-    index_def
+    index_def,
+    formated_index_name,
+    formated_schema_name,
+    formated_table_name,
+    coalesce(nullif(indexes.formated_schema_name, 'public') || '.', '') || indexes.formated_table_name as formated_object_name
   from indexes
   join table_scans
   using (relid)
@@ -68,7 +74,7 @@ never_used_indexes as (
     from never_used_indexes
 ), never_used_indexes_json as (
   select
-    json_object_agg(nuin.formated_table_name || '.' || nuin.index_name, nuin) as json
+    json_object_agg(nuin.formated_object_name || '.' || nuin.index_name, nuin) as json
   from never_used_indexes_num nuin
 ),
 -- Rarely used indexes
@@ -116,7 +122,7 @@ rarely_used_indexes as (
     from rarely_used_indexes
 ), rarely_used_indexes_json as (
   select
-    json_object_agg(ruin.formated_table_name || '.' || ruin.index_name, ruin) as json
+    json_object_agg(ruin.formated_object_name || '.' || ruin.index_name, ruin) as json
   from rarely_used_indexes_num ruin
 ),
 -- Redundant indexes
@@ -126,26 +132,28 @@ index_data as (
     indkey::text as columns,
     array_to_string(indclass, ', ') as opclasses
   from pg_index
-), redundant_indexes as (
+), original_redundant_indexes as (
   select
     i2.indexrelid as index_id,
     tnsp.nspname AS schema_name,
     trel.relname AS table_name,
     pg_relation_size(trel.oid) as table_size_bytes,
-    coalesce(nullif(tnsp.nspname, 'public') || '.', '') || trel.relname as formated_table_name,
     irel.relname AS index_name,
     am1.amname as access_method,
-    format('redundant to index: %I', i1.indexrelid::regclass) as reason,
+    (i1.indexrelid::regclass)::text as reason,
     pg_get_indexdef(i1.indexrelid) main_index_def,
     pg_size_pretty(pg_relation_size(i1.indexrelid)) main_index_size,
     pg_get_indexdef(i2.indexrelid) index_def,
     pg_relation_size(i2.indexrelid) index_size_bytes,
-    s.idx_scan as index_usage
+    s.idx_scan as index_usage,
+    ( case when lower(tnsp.nspname) <> tnsp.nspname then ('"' || tnsp.nspname || '"') else tnsp.nspname::text end ) as formated_schema_name,
+    ( case when lower(irel.relname) <> irel.relname then ('"' || irel.relname || '"') else irel.relname::text end ) as formated_index_name,
+    ( case when lower(trel.relname) <> trel.relname then ('"' || trel.relname || '"') else trel.relname::text end ) as formated_table_name
   from
     index_data as i1
     join index_data as i2 on (
-        i1.indrelid = i2.indrelid /* same table */
-        and i1.indexrelid <> i2.indexrelid /* NOT same index */
+        i1.indrelid = i2.indrelid -- same table
+        and i1.indexrelid <> i2.indexrelid -- NOT same index
     )
     inner join pg_opclass op1 on i1.indclass[0] = op1.oid
     inner join pg_opclass op2 on i2.indclass[0] = op2.oid
@@ -174,13 +182,17 @@ index_data as (
     and pg_get_expr(i1.indexprs, i1.indrelid) is not distinct from pg_get_expr(i2.indexprs, i2.indrelid)
     -- index predicates is same
     and pg_get_expr(i1.indpred, i1.indrelid) is not distinct from pg_get_expr(i2.indpred, i2.indrelid)
+), redundant_indexes as (
+    select
+      ori.*,
+      coalesce(nullif(formated_schema_name, 'public') || '.', '') || formated_index_name as formated_object_name
+   from original_redundant_indexes ori
 ), redundant_indexes_grouped as (
   select
     index_id,
     schema_name,
     table_name,
     table_size_bytes,
-    formated_table_name,
     index_name,
     access_method,
     string_agg(reason, ', ') as reason,
@@ -188,26 +200,33 @@ index_data as (
     string_agg(main_index_size, ', ') as main_index_size,
     index_def,
     index_size_bytes,
-    index_usage
+    index_usage,
+    formated_index_name,
+    formated_schema_name,
+    formated_table_name,
+    formated_object_name
   from redundant_indexes
   group by
     index_id,
     table_size_bytes,
     schema_name,
     table_name,
-    formated_table_name,
     index_name,
     access_method,
     index_def,
     index_size_bytes,
-    index_usage
+    index_usage,
+    formated_index_name,
+    formated_schema_name,
+    formated_table_name,
+    formated_object_name
   order by index_size_bytes desc
 ), redundant_indexes_num as (
   select row_number() over () num, rig.* from redundant_indexes_grouped rig
 ),
 redundant_indexes_json as (
   select
-    json_object_agg(rin.formated_table_name || '.' || rin.index_name, rin) as json
+    json_object_agg(rin.formated_object_name, rin) as json
   from redundant_indexes_num rin
 ), redundant_indexes_total as (
     select
@@ -225,22 +244,29 @@ together as (
     index_name::text,
     pg_size_pretty(index_size_bytes)::text as index_size,
     index_def::text,
-    null as main_index_def
+    null as main_index_def,
+    formated_index_name::text,
+    formated_schema_name::text,
+    formated_table_name::text,
+    formated_object_name::text
   from never_used_indexes
   union all
   select
-     reason::text,
-     index_id::text,
-     schema_name::text,
-     table_name::text,
-     index_name::text,
-     pg_size_pretty(index_size_bytes)::text as index_size,
-     index_def::text,
-     main_index_def::text
+    reason::text,
+    index_id::text,
+    schema_name::text,
+    table_name::text,
+    index_name::text,
+    pg_size_pretty(index_size_bytes)::text as index_size,
+    index_def::text,
+    main_index_def::text,
+    formated_index_name::text,
+    formated_schema_name::text,
+    formated_table_name::text,
+    formated_object_name::text
   from redundant_indexes
-), do_lines as
-(
-  select format('DROP INDEX CONCURRENTLY %s; -- %s, %s, table %s', max(index_name), max(index_size), string_agg(reason, ', '), table_name) as line
+), do_lines as (
+  select format('DROP INDEX CONCURRENTLY %s; -- %s, %s, table %s', max(formated_index_name), max(index_size), string_agg(reason, ', '), table_name) as line
   from together t1
   group by table_name, index_name
   order by table_name, index_name
