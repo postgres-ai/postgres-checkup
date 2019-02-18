@@ -1,5 +1,23 @@
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
-with table_scans as (
+with fk_indexes as (
+  select
+    schemaname as schema_name,
+    (indexrelid::regclass)::text as index_name,
+    (relid::regclass)::text as table_name,
+    (confrelid::regclass)::text as fk_table_ref,
+    array_to_string(indclass, ', ') as opclasses
+  from
+    pg_stat_user_indexes
+  join pg_index using (indexrelid)
+  left join pg_constraint
+    on array_to_string(indkey, ',') = array_to_string(conkey, ',')
+      and schemaname = (connamespace::regnamespace)::text
+      and conrelid = relid
+      and contype = 'f'
+  where idx_scan = 0
+     and indisunique is false
+     and conkey is not null --conkey is not null then true else false end as is_fk_idx
+), table_scans as (
   select relid,
       tables.idx_scan + tables.seq_scan as all_scans,
       ( tables.n_tup_ins + tables.n_tup_upd + tables.n_tup_del ) as writes,
@@ -21,7 +39,8 @@ with table_scans as (
     idx_stat.idx_scan,
     pg_relation_size(idx_stat.indexrelid) as index_bytes,
     indexdef ~* 'using btree' as idx_is_btree,
-    pg_get_indexdef(pg_index.indexrelid) as index_def
+    pg_get_indexdef(pg_index.indexrelid) as index_def,
+    array_to_string(pg_index.indclass, ', ') as opclasses
   from pg_stat_user_indexes as idx_stat
       join pg_index
           using (indexrelid)
@@ -32,10 +51,10 @@ with table_scans as (
   where pg_index.indisunique = false
 ), index_ratios as (
   select
-    indexrelid as index_id,
-    schema_name,
-    table_name,
-    index_name,
+    i.indexrelid as index_id,
+    i.schema_name,
+    i.table_name,
+    i.index_name,
     idx_scan,
     all_scans,
         round(( case when all_scans = 0 then 0.0::numeric
@@ -49,21 +68,26 @@ with table_scans as (
     index_def,
     formated_index_name,
     formated_schema_name,
-    formated_table_name
-  from indexes
+    formated_table_name,
+    i.opclasses,
+    case when fi.index_name is not null then 'Yes' else 'No' end as supports_fk
+  from indexes i
+  left join fk_indexes fi on
+    fi.fk_table_ref = i.table_name
+    and fi.opclasses like (i.opclasses || '%')
   join table_scans
   using (relid)
 ),
 -- Never used indexes
 never_used_indexes as (
-    select
-      'Never Used Indexes' as reason,
-      index_ratios.*
-    from index_ratios
-    where
-      idx_scan = 0
-      and idx_is_btree
-    order by index_size_bytes desc
+  select
+    'Never Used Indexes' as reason,
+    ir.*
+  from index_ratios ir
+  where
+    idx_scan = 0
+    and idx_is_btree
+  order by index_size_bytes desc
 ), never_used_indexes_num as (
   select row_number() over () num, nui.* from never_used_indexes nui
 ), never_used_indexes_total as (
@@ -147,7 +171,8 @@ index_data as (
     s.idx_scan as index_usage,
     quote_ident(tnsp.nspname) as formated_schema_name,
     quote_ident(irel.relname) as formated_index_name,
-    coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(trel.relname) as formated_table_name
+    coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(trel.relname) as formated_table_name,
+    i2.opclasses
   from
     index_data as i1
     join index_data as i2 on (
@@ -181,6 +206,14 @@ index_data as (
     and pg_get_expr(i1.indexprs, i1.indrelid) is not distinct from pg_get_expr(i2.indexprs, i2.indrelid)
     -- index predicates is same
     and pg_get_expr(i1.indpred, i1.indrelid) is not distinct from pg_get_expr(i2.indpred, i2.indrelid)
+), redundant_indexes_fk as (
+  select
+    ri.*,
+    case when fi.index_name is not null then 'Yes' else 'No' end as supports_fk
+  from redundant_indexes ri
+  left join fk_indexes fi on
+    fi.fk_table_ref = ri.table_name
+    and fi.opclasses like (ri.opclasses || '%')
 ), redundant_indexes_grouped as (
   select
     index_id,
@@ -197,8 +230,9 @@ index_data as (
     index_usage,
     formated_index_name,
     formated_schema_name,
-    formated_table_name
-  from redundant_indexes
+    formated_table_name,
+    supports_fk
+  from redundant_indexes_fk
   group by
     index_id,
     table_size_bytes,
@@ -211,7 +245,8 @@ index_data as (
     index_usage,
     formated_index_name,
     formated_schema_name,
-    formated_table_name
+    formated_table_name,
+    supports_fk
   order by index_size_bytes desc
 ), redundant_indexes_num as (
   select row_number() over () num, rig.* from redundant_indexes_grouped rig

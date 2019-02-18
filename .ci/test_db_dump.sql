@@ -37,3 +37,20 @@ delete from bloated where i % 2 = 0;
 create table t_with_bloat as select i from generate_series(1, 1000000) _(i);
 update t_with_bloat set i = i;
 
+-- h002 Supports fk
+create table t_red_fk_1 as select id::int8 from generate_series(0, 1000000) _(id);
+alter table t_red_fk_1 add primary key (id);
+create index r_red_fk_1_id_idx on t_red_fk_1(id);
+create index r_red_fk_1_X_idx on t_red_fk_1(id);
+
+create table t_red_fk_2 as select id, (random() * 1000000)::int8 as r_t1_id from generate_series(1, 1000000) _(id);
+alter table t_red_fk_2 add constraint fk_red_fk2_t1 foreign key (r_t1_id) references t_red_fk_1(id);
+create index r_red_fk_2_fk_idx on t_red_fk_2(r_t1_id);
+
+-- altered settings
+alter system set random_page_cost = 2.22;
+select pg_reload_conf();
+
+--slow query
+create table t_slw_q as select id::int8 from generate_series(0, 10000000) _(id);
+select * from t_slw_q where id between 3000000 and 3001600;
