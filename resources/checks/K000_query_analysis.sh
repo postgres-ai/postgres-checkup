@@ -1,4 +1,3 @@
-
 # Generates JSON for three type of reports:
 # - K001 - Globally aggregated
 # - K002 - Workload type (first word analysis)
@@ -321,6 +320,7 @@ sql="
     join s2 using(md5)
     group by s1.md5, s1.obj->>'query'
   ), queries as (
+    -- K003
     select
       row_number() over(order by diff_total_time desc) as rownum,
       *
@@ -372,9 +372,30 @@ sql="
   )
   from queries
 "
-# sql result to stdout
-${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL | jq -r .
+
+# save sql result to variable
+JSON=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
   ${change_db_cmd}
   ${sql}
-SQL
+SQL)
+
+TEMP_JSON=""
+
+# for each query of K003 (of 50), generate file with query and link to the file
+for query_id in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
+  query_text=$(jq -r '.queries."'$query_id'".query' <<<${JSON})
+
+  # Put query into a file with name 'query_id.sql'
+  mkdir -p "${JSON_REPORTS_DIR}/K_query_groups" >/dev/null 2>&1 || true
+  echo "$query_text" > "${JSON_REPORTS_DIR}/K_query_groups/${query_id}.sql"
+
+  # Generate link to a full text
+  link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_id}.sql"
+
+  # add link into the object
+  JSON=$(jq --arg link $link -r '.queries."'$query_id'" += { "link": $link }' <<<${JSON})
+done
+
+# print resulting JSON to stdout
+echo "${JSON}"
 

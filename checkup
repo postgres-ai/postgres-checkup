@@ -849,8 +849,6 @@ update_nodes_json() {
     MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
     SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
 
-    mkdir -p "${JSON_REPORTS_DIR}"
-
     local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
 
   # create dirs, etc.
@@ -883,14 +881,10 @@ update_nodes_json() {
       SHORT_DIR_NAME=$(basename "${SHORT_DIR_NAME}")
       JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
 
-      mkdir -p "${JSON_REPORTS_DIR}"
-
       MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
     else
       SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
       JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
-
-      mkdir -p "${JSON_REPORTS_DIR}"
 
       MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
     fi
@@ -901,6 +895,7 @@ update_nodes_json() {
   export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR_NAME
 
   mkdir -p "${JSON_REPORTS_DIR}"
+  mkdir -p "${MD_REPORTS_DIR}"
 
   local role_changed_at="never"
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
@@ -924,8 +919,6 @@ update_nodes_json() {
   dbg "ALIAS_INDEX: '$ALIAS_INDEX'"
   dbg "ROLE: '$ROLE'"
 
-  mkdir -p "${JSON_REPORTS_DIR}"
-
   # finally, fill nodes.json file
   local result_fname="${PROJECT_DIR}/nodes.json"
   local result_fname_tmp=$(mktemp "${PROJECT_DIR}"/nodes.json.tmp_XXXXXX)
@@ -941,6 +934,9 @@ update_nodes_json() {
      "${input_json_fname}" \
      > "${result_fname_tmp}"
   mv "${result_fname_tmp}" "${result_fname}"
+
+  TIMESTAMP_DIRNAME=$(jq -r '.last_check.dir' "${result_fname}")
+  export TIMESTAMP_DIRNAME
 }
 
 #######################################
