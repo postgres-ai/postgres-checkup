@@ -30,7 +30,7 @@ create index concurrently i_redundant_2 on t_with_redundant_index(i);
 create schema test_schema;
 create table test_schema.t_with_invalid_index as select i from generate_series(1, 1000000) _(i);
 set statement_timeout to '20ms';
-create index concurrently test_schema.i_invalid on test_schema.t_with_invalid_index(i);
+create index concurrently i_invalid on test_schema.t_with_invalid_index(i);
 set statement_timeout to 0;
 
 -- H003 non indexed fks 
