@@ -32,7 +32,7 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 {{- NumFormat $value.diff_kcache_writes 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_writes 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_writes 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_writes 2 }}% |
 {{- RawFloatFormat $value.diff_kcache_user_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_user_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_user_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_user_time_ms 2 }}% |
 {{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
-[{{- Nobr (LimitStr $value.query 2000 ) }}]({{- $value.link -}})
+[{{- Nobr (LimitStr $value.query 2000 ) }}]({{ $value.link }})
 {{ end }}{{/* range */}}
 {{- end }}{{/*Master data*/}}
 {{ end }}{{/*Master*/}}
