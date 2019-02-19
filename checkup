@@ -731,7 +731,8 @@ check_bin_deps() {
 #   Integer
 #######################################
 glue_md_reports() {
-  local out_fname="${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}"
+  # final report path and name
+  local out_fname="${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}"
 
   # do not re-generate full report if '--file' is given
   [[ "${FILE}" != "None" ]] && return 0
