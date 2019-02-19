@@ -35,7 +35,8 @@ with fk_indexes as (
     idx_stat.indexrelname as index_name,
     quote_ident(idx_stat.schemaname) as formated_schema_name,
     quote_ident(idx_stat.indexrelname) as formated_index_name,
-    coalesce(nullif(quote_ident(idx_stat.schemaname), 'public') || '.', '') || quote_ident(idx_stat.relname) as formated_table_name,
+    quote_ident(idx_stat.relname) as formated_table_name,
+    coalesce(nullif(quote_ident(idx_stat.schemaname), 'public') || '.', '') || quote_ident(idx_stat.relname) as formated_relation_name,
     idx_stat.idx_scan,
     pg_relation_size(idx_stat.indexrelid) as index_bytes,
     indexdef ~* 'using btree' as idx_is_btree,
@@ -58,9 +59,9 @@ with fk_indexes as (
     idx_scan,
     all_scans,
         round(( case when all_scans = 0 then 0.0::numeric
-          else idx_scan::numeric/all_scans * 100 end),2) as index_scan_pct,
+          else idx_scan::numeric/all_scans * 100 end), 2) as index_scan_pct,
     writes,
-    round((case when writes = 0 then idx_scan::numeric else idx_scan::numeric/writes end),2)
+    round((case when writes = 0 then idx_scan::numeric else idx_scan::numeric/writes end), 2)
       as scans_per_write,
     index_bytes as index_size_bytes,
     table_size as table_size_bytes,
@@ -69,8 +70,9 @@ with fk_indexes as (
     formated_index_name,
     formated_schema_name,
     formated_table_name,
+    formated_relation_name,
     i.opclasses,
-    case when fi.index_name is not null then 'Yes' else 'No' end as supports_fk
+    case when fi.index_name is not null then true else false end as supports_fk
   from indexes i
   left join fk_indexes fi on
     fi.fk_table_ref = i.table_name
@@ -99,6 +101,7 @@ never_used_indexes as (
   select
     json_object_agg(nuin.schema_name || '.' || nuin.index_name, nuin) as json
   from never_used_indexes_num nuin
+  limit 100
 ),
 -- Rarely used indexes
 rarely_used_indexes as (
@@ -147,6 +150,7 @@ rarely_used_indexes as (
   select
     json_object_agg(ruin.schema_name || '.' || ruin.index_name, ruin) as json
   from rarely_used_indexes_num ruin
+  limit 100
 ),
 -- Redundant indexes
 index_data as (
@@ -171,7 +175,8 @@ index_data as (
     s.idx_scan as index_usage,
     quote_ident(tnsp.nspname) as formated_schema_name,
     quote_ident(irel.relname) as formated_index_name,
-    coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(trel.relname) as formated_table_name,
+    quote_ident(trel.relname) AS formated_table_name,
+    coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(trel.relname) as formated_relation_name,
     i2.opclasses
   from
     index_data as i1
@@ -209,7 +214,7 @@ index_data as (
 ), redundant_indexes_fk as (
   select
     ri.*,
-    case when fi.index_name is not null then 'Yes' else 'No' end as supports_fk
+    case when fi.index_name is not null then true else false end as supports_fk
   from redundant_indexes ri
   left join fk_indexes fi on
     fi.fk_table_ref = ri.table_name
@@ -231,6 +236,7 @@ index_data as (
     formated_index_name,
     formated_schema_name,
     formated_table_name,
+    formated_relation_name,
     supports_fk
   from redundant_indexes_fk
   group by
@@ -246,6 +252,7 @@ index_data as (
     formated_index_name,
     formated_schema_name,
     formated_table_name,
+    formated_relation_name,
     supports_fk
   order by index_size_bytes desc
 ), redundant_indexes_num as (
@@ -255,6 +262,7 @@ redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
   from redundant_indexes_num rin
+  limit 100
 ), redundant_indexes_total as (
     select
       sum(index_size_bytes) as index_size_bytes_sum,
@@ -274,7 +282,8 @@ together as (
     null as main_index_def,
     formated_index_name::text,
     formated_schema_name::text,
-    formated_table_name::text
+    formated_table_name::text,
+    formated_relation_name::text
   from never_used_indexes
   union all
   select
@@ -288,7 +297,8 @@ together as (
     main_index_def::text,
     formated_index_name::text,
     formated_schema_name::text,
-    formated_table_name::text
+    formated_table_name::text,
+    formated_relation_name::text
   from redundant_indexes
 ), do_lines as (
   select format('DROP INDEX CONCURRENTLY %s; -- %s, %s, table %s', max(formated_index_name), max(index_size), string_agg(reason, ', '), table_name) as line

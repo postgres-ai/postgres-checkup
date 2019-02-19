@@ -16,12 +16,12 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "never_used_indexes") "_keys") }}
 {{- $value:=(index (index (index (index $.results $.hosts.master) "data") "never_used_indexes") $key) -}}
 {{- $value.num}}|
-{{- $value.formated_table_name}}|
+{{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
 {{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "never_used_indexes") $key).idx_scan) }}{{end}}{{ end }}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
-{{- $value.supports_fk }}
+{{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
 
 {{- if and (index (index (index .results .hosts.master) "data") "rarely_used_indexes") (index (index (index .results .hosts.master) "data") "rarely_used_indexes_total") }}
@@ -32,13 +32,13 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "rarely_used_indexes") "_keys") }}
 {{- $value:=(index (index (index (index $.results $.hosts.master) "data") "rarely_used_indexes") $key) -}}
 {{- $value.num}}|
-{{- $value.formated_table_name}}|
+{{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
 {{- "scans:" }} {{ RawIntFormat $value.idx_scan }}\/hour, writes: {{ RawIntFormat $value.writes }}\/hour{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "rarely_used_indexes") $key) }}scans: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).idx_scan) }}\/hour, writes: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).writes) }}\/hour{{end}}{{ end }}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- $value.reason}}|
-{{- $value.supports_fk }}
+{{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
 {{ end }}{{/* rarely used indexes found */}}
 
@@ -50,13 +50,13 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "redundant_indexes") "_keys") }}
 {{- $value:=(index (index (index (index $.results $.hosts.master) "data") "redundant_indexes") $key) -}}
 {{- $value.num}}|
-{{- $value.formated_table_name}}|
+{{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
 {{- $rinexes := Split $value.reason ", " -}}{{ range $r, $rto:= $rinexes }}{{$rto}}<br/>{{end}}|
 {{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "redundant_indexes") $key).idx_scan) }}{{end}}{{ end }}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
-{{- $value.supports_fk }}
+{{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
 {{ end }}{{/* redundant indexes found */}}
 

@@ -17,9 +17,10 @@ create index concurrently i_redundant_1 on t_with_redundant_index(i);
 create index concurrently i_redundant_2 on t_with_redundant_index(i);
 
 -- H001 invalid indexes
-create table t_with_invalid_index as select i from generate_series(1, 1000000) _(i);
-set statement_timeout to '10ms';
-create index concurrently i_invalid on t_with_invalid_index(i);
+create schema test_schema;
+create table test_schema.t_with_invalid_index as select i from generate_series(1, 1000000) _(i);
+set statement_timeout to '5s';
+create index concurrently test_schema.i_invalid on test_schema.t_with_invalid_index(i);
 set statement_timeout to 0;
 
 -- H003 non indexed fks 
@@ -53,4 +54,14 @@ select pg_reload_conf();
 
 --slow query
 create table t_slw_q as select id::int8 from generate_series(0, 10000000) _(id);
-select * from t_slw_q where id between 3000000 and 3001600;
+select * from t_slw_q where id between 2000000 and 6001600;
+
+-- rarely used indexes
+create table t_rar_q as select id, (random() * 1000000)::int8 as t_dat from generate_series(1, 1000000) _(id);
+create index t_rar_q_idx on t_rar_q(id);
+select * from t_rar_q where id = 23211;
+update t_rar_q set t_dat=100 where id between 553432 and 1553432;
+update t_rar_q set t_dat=200 where id between 1553432 and 2553432;
+update t_rar_q set t_dat=300 where id between 2553432 and 3553432;
+update t_rar_q set t_dat=400 where id between 3553432 and 4553432;
+update t_rar_q set t_dat=500 where id between 4553432 and 5553432;
