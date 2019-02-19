@@ -1,13 +1,3 @@
--- rarely used indexes
-create table t_rar_q as select id, (random() * 1000000)::int8 as t_dat from generate_series(1, 1000000) _(id);
-create index t_rar_q_idx on t_rar_q(id);
-select * from t_rar_q where id = 23211;
-update t_rar_q set t_dat=100 where id between 553432 and 1553432;
-update t_rar_q set t_dat=200 where id between 1553432 and 2553432;
-update t_rar_q set t_dat=300 where id between 2553432 and 3553432;
-update t_rar_q set t_dat=400 where id between 3553432 and 4553432;
-update t_rar_q set t_dat=500 where id between 4553432 and 5553432;
-
 -- G003 Table lock_timeout 
 create database checkup_test_db;
 create user checkup_test_user with encrypted password 'mypass';
@@ -15,6 +5,10 @@ grant all privileges on database checkup_test_db to checkup_test_user;
 alter user checkup_test_user set lock_timeout to '3s';
 alter database checkup_test_db set lock_timeout = '4s';
 --alter database checkup_test_db RESET configuration_parameter
+
+-- rarely used indexes
+create table t_rar_q as select id, (random() * 1000000)::int8 as t_dat from generate_series(1, 1000000) _(id);
+create index t_rar_q_idx on t_rar_q(id);
 
 -- Fillfactor
 create table t_fillfactor (i int) with (fillfactor=60);
@@ -46,7 +40,6 @@ delete from bloated where i % 2 = 0;
 
 -- F004
 create table t_with_bloat as select i from generate_series(1, 1000000) _(i);
-update t_with_bloat set i = i;
 
 -- h002 Supports fk
 create table t_red_fk_1 as select id::int8 from generate_series(0, 1000000) _(id);
@@ -64,4 +57,19 @@ select pg_reload_conf();
 
 --slow query
 create table t_slw_q as select id::int8 from generate_series(0, 10000000) _(id);
+
+VACUUM ANALYZE;
+
+-- rarely used indexes
+select * from t_rar_q where id = 23211;
+update t_rar_q set t_dat=100 where id between 553432 and 1553432;
+update t_rar_q set t_dat=200 where id between 1553432 and 2553432;
+update t_rar_q set t_dat=300 where id between 2553432 and 3553432;
+update t_rar_q set t_dat=400 where id between 3553432 and 4553432;
+update t_rar_q set t_dat=500 where id between 4553432 and 5553432;
+
+-- F004
+update t_with_bloat set i = i;
+
+-- h002 Supports fk
 select count(1) from t_slw_q where id between 2000000 and 6001600;
