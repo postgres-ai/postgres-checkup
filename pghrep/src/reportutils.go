@@ -168,3 +168,10 @@ func Int(value interface{}) int {
     }
     return 0
 }
+
+func ByteFormat(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    result := fmtutils.ByteFormat(val, int(pl));
+    return Nobr(result);
+}

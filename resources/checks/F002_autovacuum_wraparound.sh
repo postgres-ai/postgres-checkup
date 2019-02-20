@@ -1,7 +1,16 @@
 # how close to wraparound
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
-with per_instance as (
+with overrided_tables as (
+  select
+    pc.oid as table_id,
+    pn.nspname as scheme_name,
+    pc.relname as table_name,
+    pc.reloptions as options
+  from pg_class pc
+  join pg_namespace pn on pn.oid = pc.relnamespace
+  where reloptions::text ~ 'autovacuum'
+), per_instance as (
   select
     datname,
     age(datfrozenxid),
@@ -26,10 +35,12 @@ with per_instance as (
     ) as capacity_used,
     c.relfrozenxid as rel_relfrozenxid,
     t.relfrozenxid as toast_relfrozenxid,
-    (greatest(age(c.relfrozenxid), age(t.relfrozenxid)) > 1200000000)::int as warning
+    (greatest(age(c.relfrozenxid), age(t.relfrozenxid)) > 1200000000)::int as warning,
+    case when ot.table_id is not null then true else false end as overrided_settings
   from pg_class c
   join pg_namespace n on c.relnamespace = n.oid
   left join pg_class t ON c.reltoastrelid = t.oid
+  left join overrided_tables ot on ot.table_id = c.oid
   where c.relkind IN ('r', 'm') and not (n.nspname = 'pg_catalog' and c.relname <> 'pg_class')
     and n.nspname <> 'information_schema'
   order by 3 desc
