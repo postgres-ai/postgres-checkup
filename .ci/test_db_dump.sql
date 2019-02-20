@@ -37,3 +37,6 @@ delete from bloated where i % 2 = 0;
 create table t_with_bloat as select i from generate_series(1, 1000000) _(i);
 update t_with_bloat set i = i;
 
+-- Table with tuned autovacuum settings
+ALTER TABLE t_with_bloat SET (autovacuum_vacuum_scale_factor=0.01);
+
