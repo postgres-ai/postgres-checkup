@@ -4,7 +4,9 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 {{- if .hosts.master }}
-{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}  
+{{- if (index .results .hosts.master) }}
+{{- if (index (index .results .hosts.master) "data") }}
+{{- if (index (index (index .results .hosts.master) "data") "dead_tuples") }}  
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 ### Master (`{{.hosts.master}}`) ###
 
@@ -26,6 +28,12 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- NumFormat (index $value "n_dead_tup") -1 }} |
 {{- if ge (Int (index $value "dead_ratio")) 10 }} **{{ (index $value "dead_ratio")}}** {{else}} {{ (index $value "dead_ratio")}} {{end}}
 {{ end }}
+{{- else -}}{{/* dead_tuples */}}
+No data
+{{- end }}{{/* dead_tuples */}}
+{{- else -}}{{/*Master data*/}}
+No data
+{{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master data*/}}
 No data
 {{- end }}{{/*Master data*/}}
