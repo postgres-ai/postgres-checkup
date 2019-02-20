@@ -14,8 +14,8 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ end -}}
 {{ end }}{{/* range */}}
 
-{{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
 #### Tuned tables ####
+{{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
 &#9660;&nbsp;Namespace | Relation | Options
 ----------|----------|------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
