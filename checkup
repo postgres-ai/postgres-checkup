@@ -12,7 +12,7 @@
 CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
                  # TODO(vyagofarov): think about timing
                  # out commands in macOS
-FULL_REPORT_FNAME="full_report.md"
+FULL_REPORT_FNAME="Full_report.md"
 
 # GLOBALS (autoload, do not change)
 : ${DEBUG:=false} # print debug output

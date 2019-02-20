@@ -90,6 +90,7 @@ if [[ "${err_code}" -ne "0" ]]; then
       temp_blks_written,
       blk_read_time,
       blk_write_time,
+      queryid,
       /*
       save hash
       */
@@ -128,6 +129,7 @@ else
       temp_blks_written,
       blk_read_time,
       blk_write_time,
+      queryid,
 
       /* kcache part */
       k.reads as kcache_reads,
@@ -315,10 +317,11 @@ sql="
     select
       ${sub_sql}
       s1.md5 as md5,
+      s1.obj->>'queryid' as queryid,
       s1.obj->>'query' as query
     from s1
     join s2 using(md5)
-    group by s1.md5, s1.obj->>'query'
+    group by s1.md5, s1.obj->>'queryid', s1.obj->>'query'
   ), queries as (
     -- K003
     select
@@ -381,18 +384,20 @@ SQL
       )
 
 # for each query of K003 (of 50), generate file with query and link to the file
-for query_id in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
-  query_text=$(jq -r '.queries."'$query_id'".query' <<<${JSON})
+for query_num in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
+  query_text=$(jq -r '.queries."'$query_num'".query' <<<${JSON})
+  queryid=$(jq -r '.queries."'$query_num'".queryid' <<<${JSON})
 
-  # Put query into a file with name 'query_id.sql'
+  # Put query into a file with name 'query_num.sql'
   mkdir -p "${JSON_REPORTS_DIR}/K_query_groups" >/dev/null 2>&1 || true
-  echo "$query_text" > "${JSON_REPORTS_DIR}/K_query_groups/${query_id}.sql"
+  echo "-- queryid: ${queryid}" > "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
+  echo "$query_text" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
 
   # Generate link to a full text
-  link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_id}.sql"
+  link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_num}.sql"
 
   # add link into the object
-  JSON=$(jq --arg link $link -r '.queries."'$query_id'" += { "link": $link }' <<<${JSON})
+  JSON=$(jq --arg link $link -r '.queries."'$query_num'" += { "link": $link }' <<<${JSON})
 done
 
 # print resulting JSON to stdout
