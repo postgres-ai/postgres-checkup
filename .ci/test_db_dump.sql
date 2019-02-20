@@ -62,18 +62,18 @@ VACUUM ANALYZE;
 
 -- rarely used indexes
 select * from t_rar_q where id = 23211;
-update t_rar_q set t_dat=100 where t_dat between 553432 and 1553432;
-update t_rar_q set t_dat=200 where t_dat between 1553432 and 2553432;
-update t_rar_q set t_dat=300 where t_dat between 2553432 and 3553432;
-update t_rar_q set t_dat=400 where t_dat between 4553432 and 5553432;
-update t_rar_q set t_dat=500 where t_dat between 5553432 and 6553432;
-update t_rar_q set t_dat=600 where t_dat between 6553432 and 7553432;
-update t_rar_q set t_dat=700 where t_dat between 7553432 and 8553432;
-update t_rar_q set t_dat=800 where t_dat between 8553432 and 9553432;
-update t_rar_q set t_dat=900 where t_dat between 9553432 and 10553432;
+update t_rar_q set t_dat=100 where t_dat between 553432 and 155343;
+update t_rar_q set t_dat=200 where t_dat between 155343 and 255343;
+update t_rar_q set t_dat=300 where t_dat between 255343 and 355343;
+update t_rar_q set t_dat=400 where t_dat between 455343 and 555343;
+update t_rar_q set t_dat=500 where t_dat between 555343 and 655343;
+update t_rar_q set t_dat=600 where t_dat between 655343 and 755343;
+update t_rar_q set t_dat=700 where t_dat between 755343 and 855343;
+update t_rar_q set t_dat=800 where t_dat between 855343 and 955343;
+update t_rar_q set t_dat=900 where t_dat between 955343 and 1055343;
 -- F004
 update t_with_bloat set i = i;
 
 -- h002 Supports fk
-select * from t_slw_q where id = 9001600;
-explain select * from t_slw_q where id = 9001600;
+select count(*) from t_slw_q;
+explain select count(*) from t_slw_q;
