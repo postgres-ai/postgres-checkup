@@ -62,14 +62,12 @@ VACUUM ANALYZE;
 
 -- rarely used indexes
 select * from t_rar_q where id = 23211;
-update t_rar_q set t_dat=100 where id between 553432 and 1553432;
-update t_rar_q set t_dat=200 where id between 1553432 and 2553432;
-update t_rar_q set t_dat=300 where id between 2553432 and 3553432;
-update t_rar_q set t_dat=400 where id between 3553432 and 4553432;
-update t_rar_q set t_dat=500 where id between 4553432 and 5553432;
+update t_rar_q set t_dat=100 where t_dat between 553432 and 1553432;
+update t_rar_q set t_dat=200 where t_dat between 1553432 and 2553432;
+update t_rar_q set t_dat=300 where t_dat between 2553432 and 3553432;
 
 -- F004
 update t_with_bloat set i = i;
 
 -- h002 Supports fk
-select count(1) from t_slw_q where id between 2000000 and 6001600;
+select count(1) from t_slw_q where id = 9001600;
