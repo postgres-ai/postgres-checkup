@@ -24,7 +24,6 @@ import (
     "sort"
     "strconv"
     "./orderedmap"
-    "./fmtutils"
 )
 
 var DEBUG bool = false
@@ -153,7 +152,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["Code"] = Code
     tplFuncMap["Nobr"] = Nobr
     tplFuncMap["Br"] = Br
-    tplFuncMap["ByteFormat"] = fmtutils.ByteFormat
+    tplFuncMap["ByteFormat"] = ByteFormat
     tplFuncMap["UnitValue"] = UnitValue
     tplFuncMap["RawIntUnitValue"] = RawIntUnitValue
     tplFuncMap["RoundUp"] = Round
