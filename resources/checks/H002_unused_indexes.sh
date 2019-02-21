@@ -49,7 +49,9 @@ with fk_indexes as (
           on idx_stat.schemaname = indexes.schemaname
               and idx_stat.relname = indexes.tablename
               and idx_stat.indexrelname = indexes.indexname
-  where pg_index.indisunique = false
+  where
+    pg_index.indisunique = false
+    and pg_index.indisvalid = true
 ), index_ratios as (
   select
     i.indexrelid as index_id,
@@ -159,6 +161,7 @@ index_data as (
     indkey::text as columns,
     array_to_string(indclass, ', ') as opclasses
   from pg_index
+  where indisvalid = true
 ), redundant_indexes as (
   select
     i2.indexrelid as index_id,
