@@ -492,6 +492,44 @@ usage() {
   exit $exit_code
 }
 
+
+#######################################
+# Convert arbitrary text to json
+# Globals:
+#   -
+# Arguments:
+#   check_id, raw_str
+# Returns:
+#   (text) json object
+#######################################
+convert_text_to_json() {
+  local check_id="$1"
+  local raw_str="$2"
+
+  if [[ $check_id == "L003" ]] ; then
+    # echo "$input_json"
+    # Table: public.pgbench_branches, Column: bid, Type: int4, Reached value: 1 (0.00%)
+    local result=$(cat << EOF
+    {
+       "public.pgbench_branches":{
+          "Table":"public.pgbench_branches",
+          "Column":"bid",
+          "Type":"int4",
+          "Reached value":"1 (0.00%)"
+       },
+       "public.pgbench_accounts":{  
+          "Table":"public.pgbench_accounts",
+          "Column":"aid",
+          "Type":"int4",
+          "Reached value":"100 (0.01%)"
+       }
+    }
+EOF
+)
+  fi
+  echo $result
+}
+
 #######################################
 # Generate json report
 # Globals:
@@ -499,7 +537,7 @@ usage() {
 #   HOST, JSON_REPORTS_DIR, TIMESTAMP_DIR,
 #   TIMESTAMPTZ, MD_REPORTS_DIR
 # Arguments:
-#   input, check_id
+#   input_json, check_id, check_name
 # Returns:
 #   (text) stdout/stderr
 #######################################
@@ -517,6 +555,9 @@ generate_report_json() {
   local tmp_input_json_fname=$(mktemp "${SCRIPT_DIR}"/artifacts/${check_id}_tmp_XXXXXX)
 
   # save function's input as a temporary file
+  if [[ $check_id == "L003" ]] ; then
+	input_json=$(convert_text_to_json $check_id "$input_json")
+  fi
   echo "$input_json" > "$tmp_input_json_fname"
 
   # final report file name
@@ -992,7 +1033,8 @@ run_checks() {
     update_nodes_json
 
     # perform a check from file
-    output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME") || check_is_failed="true"
+    # http://linuxcommand.org/lc3_man_pages/seth.html
+    output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME" 2>&1) || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
     msg "========== End of check ==========="
