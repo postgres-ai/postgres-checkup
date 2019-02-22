@@ -27,7 +27,9 @@ Current database: {{ .database }}
 {{- "~" }}{{ ByteFormat ( index $value "Live bytes" ) 2 }} |
 {{- ( index $value "fillfactor") }}
 {{ end }}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
 <sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
+{{- end }}
 {{- else -}}{{/*Master data*/}}
 No data
 {{- end }}{{/*Master data*/}}

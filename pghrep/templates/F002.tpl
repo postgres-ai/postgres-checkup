@@ -34,8 +34,9 @@ Current database: {{ .database }}
 {{- NumFormat (index $value "toast_relfrozenxid") -1}} |
 {{ end }}{{/* range */}}
 {{/*- end -*/}}{{/* if per_instance exists */}}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
 <sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
-
+{{- end }}
 {{- else -}}{{/*Master data*/}}
 No data
 {{- end }}{{/*Master data*/}}

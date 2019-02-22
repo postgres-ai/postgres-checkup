@@ -28,7 +28,9 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- NumFormat (index $value "n_dead_tup") -1 }} |
 {{- if ge (Int (index $value "dead_ratio")) 10 }} **{{ (index $value "dead_ratio")}}** {{else}} {{ (index $value "dead_ratio")}} {{end}}
 {{ end }}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
 <sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
+{{- end }}
 {{- else -}}{{/* dead_tuples */}}
 No data
 {{- end }}{{/* dead_tuples */}}

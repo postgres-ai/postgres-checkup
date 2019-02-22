@@ -29,7 +29,9 @@ Current database: {{ .database }}
 {{- if (index $value "Last Vaccuum") }} {{ ( index $value "Last Vaccuum") }} {{ end }} |
 {{- ( index $value "Fillfactor") }}
 {{ end }} {{/*range*/}}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
 <sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
+{{- end }}
 {{- else }}{{/* if heap_bloat */}}
 No data
 {{- end -}}{{/* if heap_bloat */}}
