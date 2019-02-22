@@ -1,6 +1,4 @@
 # Collect pg cluster info
-main_sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/0_node.sql | awk '{gsub("; *$", "", $0); print $0}')
-
 pgver=$(${CHECK_HOST_CMD} "${_PSQL} -c \"SHOW server_version\"")
 
 vers=(${pgver//./ })
@@ -120,7 +118,12 @@ with data as (
   union all
   select
     'Temp Files: total number of files per day',
-    (temp_files / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
+    case
+      when (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int) <> 0 then
+        (temp_files / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
+      else
+        null
+    end
   from data
   union all
   select 'Temp Files: avg file size', pg_size_pretty(temp_bytes::numeric / nullif(temp_files, 0))::text from data
@@ -129,7 +132,12 @@ with data as (
   union all
   select
     'Deadlocks per day',
-    (deadlocks / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
+    case
+      when ((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int <> 0 then
+        (deadlocks / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
+      else
+        null
+    end
   from data
 ), general_info_json as (
   select json_object_agg(data.metric, data) as json from data where data.metric not like '------%'
