@@ -51,6 +51,8 @@ select
     'per_instance', 
     (select json_object_agg(i.datname, i) from per_instance i), 
     'per_database', 
-    (select json_object_agg(d.relation, d) from per_database d)
+    (select json_object_agg(d.relation, d) from per_database d),
+    'overrided_settings_count',
+    (select count(1) from per_database where overrided_settings = true)
   );
 SQL

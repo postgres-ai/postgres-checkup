@@ -52,6 +52,8 @@ select
     'dead_tuples',
     (select * from dead_tuples),
     'database_stat',
-    (select * from database_stat)
+    (select * from database_stat),
+    'overrided_settings_count',
+    (select count(1) from data where overrided_settings = true)
   );
 SQL

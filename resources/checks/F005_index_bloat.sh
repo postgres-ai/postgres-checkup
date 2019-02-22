@@ -166,7 +166,10 @@ select
     'index_bloat',
     (select * from limited_json_data),
     'index_bloat_total',
-    (select row_to_json(total_data) from total_data)
+    (select row_to_json(total_data) from total_data),
+    'overrided_settings_count',
+    (select count(1) from limited_data where overrided_settings = true)
+
   )
 SQL
 
