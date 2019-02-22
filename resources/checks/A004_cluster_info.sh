@@ -122,7 +122,7 @@ with data as (
       when (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int) <> 0 then
         (temp_files / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
       else
-        null
+        temp_files::text
     end
   from data
   union all
@@ -136,7 +136,7 @@ with data as (
       when ((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int <> 0 then
         (deadlocks / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
       else
-        null
+        deadlocks::text
     end
   from data
 ), general_info_json as (
