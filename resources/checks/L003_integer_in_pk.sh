@@ -37,8 +37,8 @@ begin
     end if;
     if ratio > 0.00 then -- report only if > 1% of capacity is reached
       out := out || format(
-        e'\nTable: %I.%I, Column: %I, Type: %s, Reached value: %s (%s%%)',
-        -- e'\n%I.%I, %I, %s, %s (%s%%)',
+        -- e'\nTable: %I.%I, Column: %I, Type: %s, Reached value: %s (%s%%);',
+        e'\n%I.%I,%I,%s,%s (%s%%);',
         rec.schema_name,
         rec.table_name,
         rec.attname,

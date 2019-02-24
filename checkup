@@ -492,6 +492,19 @@ usage() {
   exit $exit_code
 }
 
+#######################################
+# Get index of substring in string
+# Globals:
+#   -
+# Arguments:
+#   string, substring
+# Returns:
+#   (integer) index
+#######################################
+strindex() { 
+  x="${1%%$2*}"
+  [[ "$x" = "$1" ]] && echo -1 || echo "${#x}"
+}
 
 #######################################
 # Convert arbitrary text to json
@@ -505,29 +518,28 @@ usage() {
 convert_text_to_json() {
   local check_id="$1"
   local raw_str="$2"
-
+  local result=""
+  rows=()
+  
   if [[ $check_id == "L003" ]] ; then
-    # echo "$input_json"
-    # Table: public.pgbench_branches, Column: bid, Type: int4, Reached value: 1 (0.00%)
-    local result=$(cat << EOF
-    {
-       "public.pgbench_branches":{
-          "Table":"public.pgbench_branches",
-          "Column":"bid",
-          "Type":"int4",
-          "Reached value":"1 (0.00%)"
-       },
-       "public.pgbench_accounts":{  
-          "Table":"public.pgbench_accounts",
-          "Column":"aid",
-          "Type":"int4",
-          "Reached value":"100 (0.01%)"
-       }
-    }
-EOF
-)
+    while IFS=';' read -ra records; do
+      for record in "${records[@]}"; do
+        if [ ${#record} -le 2 ]; then
+          continue
+        fi
+        local tmp=$(jq -Rnr --arg key ${record:0:$(strindex "$record" ",")} '
+          ( "Table,Column,Type,Reached value" | split(",") ) as $keys |
+          ( inputs | split(",") ) as $vals |
+          [[$keys, $vals] | transpose[] | {key:.[0],value:.[1]}] | from_entries
+          | {($key): .}' <<< ${record})
+        rows+=($tmp)
+		#echo $tmp
+      done
+    done <<< "${raw_str:$(strindex "$raw_str" "INFO:")+5:${#raw_str}}"
+
+
   fi
-  echo $result
+  # echo $result
 }
 
 #######################################
@@ -556,7 +568,8 @@ generate_report_json() {
 
   # save function's input as a temporary file
   if [[ $check_id == "L003" ]] ; then
-	input_json=$(convert_text_to_json $check_id "$input_json")
+	# input_json=$(convert_text_to_json $check_id "$input_json")
+	convert_text_to_json $check_id "$input_json"
   fi
   echo "$input_json" > "$tmp_input_json_fname"
 
