@@ -1,7 +1,5 @@
 # Collect extensions and their settings
 
-sql=$(curl -s -L https://raw.githubusercontent.com/NikolayS/postgres_dba/5.0/sql/e1_extensions.sql | awk '{gsub("; *$", "", $0); print $0}')
-
 dbs=$(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
   select
     datname
@@ -16,7 +14,14 @@ result="{ }"
 for cur_db in ${dbs}; do
   object=$(${CHECK_HOST_CMD} "${_PSQL} -d "$cur_db" -f -" <<SQL
     with data as (
-      $sql
+      select
+        ae.name,
+        installed_version,
+        default_version,
+        case when installed_version <> default_version then 'OLD' end as is_old
+      from pg_extension e
+      join pg_available_extensions ae on extname = ae.name
+      order by ae.name
     ), withsettins as (
         select
           data.*,
