@@ -209,7 +209,7 @@ branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres
 ## H. Index Analysis
 
 - [x] H001 Indexes: invalid #192, #51  
-- [x] H002 < H001 Indexes: unused, redundant #51, #180, #170, #168  
+- [x] H002 < H001 Unused and redundant indexes #51, #180, #170, #168, #322  
 - [x] H003 < H002 Missing FK indexes #52, #142, #173  
 
 ## J.  Capacity Planning
