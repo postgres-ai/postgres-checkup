@@ -73,4 +73,3 @@ result="${host_obj}"
 
 result=$(jq -n "$result")
 echo "$result"
-
