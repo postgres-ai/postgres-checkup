@@ -63,21 +63,12 @@ function get_ctl_info() {
   CTL_INFO=$res_obj #$(jq -n "$res_obj")
 }
 
-function get_disk_info() {
-  local disk_info="$(${CHECK_HOST_CMD} "df -hT")"
-  #local disk_info="$(df -T | sed 's/"/\\"/g')"
-  res_obj="{\"cmd2check\": \"df -T\", \"raw\": \"$disk_info\"}"
-  DISK_INFO=$res_obj #$(jq -n "$res_obj")
-}
-
 not_first=false
 get_cpu_info
 get_mem_info
 get_system_info
-get_disk_info
 get_ctl_info
-host_obj="{\"cpu\": $CPU_INFO, \"ram\": $MEM_INFO, \"system\": $OS_INFO, \"disk\": $DISK_INFO}"
-host_obj="{\"cpu\": $CPU_INFO, \"ram\": $MEM_INFO, \"system\": $OS_INFO, \"disk\": $DISK_INFO, \"virtualization\": $CTL_INFO }"
+host_obj="{\"cpu\": $CPU_INFO, \"ram\": $MEM_INFO, \"system\": $OS_INFO, \"virtualization\": $CTL_INFO }"
 result="${host_obj}"
 
 result=$(jq -n "$result")

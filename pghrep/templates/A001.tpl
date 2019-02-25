@@ -2,6 +2,30 @@
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
+
+{{ if gt (len .results) 2 }} {{/* Min 2 hosts + "_keys" item */}}
+### Operating System by hosts ###
+
+Operating System | Kernel | Architecture
+-----------------|--------|--------------
+{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") (index (index (index .results .hosts.master) "data").virtualization) }}
+{{ (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }} |
+{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }} |
+{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Architecture") }}
+{{- end -}}
+{{- if gt (len .hosts.replicas) 0 -}}
+    {{- range $key, $host := .hosts.replicas -}}
+        {{- if (index $.results $host) -}}
+            {{- if and (index $.results $host) (index (index $.results $host) "data") (index (index (index $.results $host) "data").virtualization) }}
+{{ (index (index (index (index $.results $host) "data").virtualization) "Operating System") }} |
+{{- (index (index (index (index $.results $host) "data").virtualization) "Kernel") }} |
+{{- (index (index (index (index $.results $host) "data").virtualization) "Architecture") }}
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
+{{ end }}
+{{ end }}
+
 {{ if .hosts.master }}
 {{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
@@ -28,13 +52,6 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ end }}{{/* memory */}}
 {{ if (index (index .results .hosts.master) "data").disk.raw }}
 **Disk**
-
-```
-{{ (index (index .results .hosts.master) "data").disk.raw}}
-```
-{{ end }}{{/* disk */}}
-{{ if (index (index .results .hosts.master) "data").virtualization.raw }}
-**Virtualization**
 
 ```
 {{ (index (index .results .hosts.master) "data").virtualization.raw }}
@@ -71,13 +88,6 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ end }}
 {{ if (index (index $.results $value) "data").disk.raw }}
 **Disk**
-
-```
-{{ (index (index $.results $value) "data").disk.raw }}
-```
-{{ end }}
-{{ if (index (index $.results $value) "data").virtualization.raw }}
-**Virtualization**
 
 ```
 {{ (index (index $.results $value) "data").virtualization.raw }}
