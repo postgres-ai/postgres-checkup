@@ -519,8 +519,8 @@ convert_text_to_json() {
   local check_id="$1"
   local raw_str="$2"
   local result=""
-  rows=()
-  
+  tbls=()
+
   if [[ $check_id == "L003" ]] ; then
     while IFS=';' read -ra records; do
       for record in "${records[@]}"; do
@@ -532,11 +532,14 @@ convert_text_to_json() {
           ( inputs | split(",") ) as $vals |
           [[$keys, $vals] | transpose[] | {key:.[0],value:.[1]}] | from_entries
           | {($key): .}' <<< ${record})
-        rows+=($tmp)
-		#echo $tmp
+        tbls+=("$tmp")
       done
     done <<< "${raw_str:$(strindex "$raw_str" "INFO:")+5:${#raw_str}}"
 
+	for tbl in "${tbls[@]}"
+	do
+		echo $tbl
+	done
 
   fi
   # echo $result
