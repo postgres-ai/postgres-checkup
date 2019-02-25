@@ -136,7 +136,7 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 # Demo
 
 Automatically generated fresh demonstration based on the code in the master
-branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/blob/master/master/e1_full_report.md
+branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
 
 # The Full List of Checks
 

@@ -57,6 +57,7 @@ select pg_reload_conf();
 
 --slow query
 create table t_slw_q as select id::int8 from generate_series(0, 10000000) _(id);
+ALTER TABLE t_with_bloat SET (autovacuum_vacuum_scale_factor=0.01);
 
 VACUUM ANALYZE;
 
