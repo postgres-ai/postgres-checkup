@@ -6,11 +6,11 @@ Current database: {{ .database }}
 {{ if .hosts.master }}
 {{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-Table | Column | Type | &#9660;&nbsp;Reached value
+Table | PK | Type | Current max value | &#9660;&nbsp;Capacity used, %
 ------|--------|------|---------------------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-{{ index $value "Table"}} | {{ index $value "Column"}} | {{ index $value "Type"}} | {{ index $value "Reached value"}}
+{{ index $value "Table"}} | {{ index $value "PK"}} | {{ index $value "Type"}} | {{ index $value "Current max value"}} | {{ index $value "Capacity used, %"}}
 {{ end }}
 {{- else -}}{{/*Master data*/}}
 No data

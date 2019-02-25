@@ -527,19 +527,23 @@ convert_text_to_json() {
         if [ ${#record} -le 2 ]; then
           continue
         fi
-        local tmp=$(jq -Rnr --arg key ${record:0:$(strindex "$record" ",")} '
-          ( "Table,Column,Type,Reached value" | split(",") ) as $keys |
-          ( inputs | split(",") ) as $vals |
+        local tmp=$(jq -Rnr --arg key ${record:0:$(strindex "$record" "@")} '
+          ( "Table@PK@Type@Current max value@Capacity used, %" | split("@") ) as $keys |
+          ( inputs | split("@") ) as $vals |
           [[$keys, $vals] | transpose[] | {key:.[0],value:.[1]}] | from_entries
           | {($key): .}' <<< ${record})
         tbls+=("$tmp")
       done
     done <<< "${raw_str:$(strindex "$raw_str" "INFO:")+5:${#raw_str}}"
 
-	for tbl in "${tbls[@]}"
-	do
-		echo $tbl
-	done
+    local res=''
+    for tbl in "${tbls[@]}"
+    do
+      res+=$tbl
+    done
+
+    echo $res | jq -s add
+    # echo $res | jq -s add | jq -s -c 'sort_by(.[]."Capacity used, %")'
 
   fi
   # echo $result
@@ -571,8 +575,7 @@ generate_report_json() {
 
   # save function's input as a temporary file
   if [[ $check_id == "L003" ]] ; then
-	# input_json=$(convert_text_to_json $check_id "$input_json")
-	convert_text_to_json $check_id "$input_json"
+    input_json=$(convert_text_to_json $check_id "$input_json")
   fi
   echo "$input_json" > "$tmp_input_json_fname"
 
