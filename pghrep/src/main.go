@@ -149,6 +149,7 @@ func loadTemplates() *template.Template {
     tplFuncMap :=  make(template.FuncMap)
     tplFuncMap["Split"] = Split
     tplFuncMap["Trim"] = Trim
+    tplFuncMap["Replace"] = Replace
     tplFuncMap["Code"] = Code
     tplFuncMap["Nobr"] = Nobr
     tplFuncMap["Br"] = Br
