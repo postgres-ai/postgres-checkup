@@ -1,7 +1,7 @@
 # Check disk space and file system type for important Postgres-related disk partitions
 
 PG_MAJOR_VER=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
-  select setting::integer / 10000 from pg_settings where name = 'server_vers  ion_num'
+  select setting::integer / 10000 from pg_settings where name = 'server_version_num'
 EOF
 )
 
