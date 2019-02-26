@@ -6,10 +6,11 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ if gt (len .results) 2 }} {{/* Min 2 hosts + "_keys" item */}}
 ### Operating System by hosts ###
 
-Operating System | Kernel | Architecture
------------------|--------|--------------
+Host| Operating System | Kernel | Architecture
+----|------------------|--------|--------------
 {{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") (index (index (index .results .hosts.master) "data").virtualization) }}
-{{ (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }} |
+{{ .hosts.master }}|
+{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }} |
 {{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }} |
 {{- (index (index (index (index .results .hosts.master) "data").virtualization) "Architecture") }}
 {{- end -}}
@@ -17,7 +18,8 @@ Operating System | Kernel | Architecture
     {{- range $key, $host := .hosts.replicas -}}
         {{- if (index $.results $host) -}}
             {{- if and (index $.results $host) (index (index $.results $host) "data") (index (index (index $.results $host) "data").virtualization) }}
-{{ (index (index (index (index $.results $host) "data").virtualization) "Operating System") }} |
+{{ $host }} |
+{{- (index (index (index (index $.results $host) "data").virtualization) "Operating System") }} |
 {{- (index (index (index (index $.results $host) "data").virtualization) "Kernel") }} |
 {{- (index (index (index (index $.results $host) "data").virtualization) "Architecture") }}
             {{- end -}}
