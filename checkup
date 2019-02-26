@@ -542,9 +542,7 @@ convert_text_to_json() {
       res+=$tbl
     done
 
-    echo $res | jq -s add
-    # echo $res | jq -s add | jq -s -c 'sort_by(.[]."Capacity used, %")'
-
+    echo $res | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | .[]' | jq -s add
   fi
   # echo $result
 }
