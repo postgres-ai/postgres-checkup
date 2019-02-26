@@ -1,5 +1,10 @@
 # Check disk space and file system type for important Postgres-related disk partitions
 
+if [[ "${SSH_SUPPORT}" = "false" ]]; then
+  echo "SSH is not supported, skipping..." >&2
+  exit 1
+fi
+
 PG_MAJOR_VER=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
   select setting::integer / 10000 from pg_settings where name = 'server_version_num'
 EOF
