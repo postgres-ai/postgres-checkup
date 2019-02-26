@@ -4,34 +4,82 @@ Output of `df -TPh` (follows symlinks)
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+    {{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-Name | FS Type | Size | Available | Use | Used | Mount Point | Path | Device
------|---------|------|-----------|-----|------|-------------|------|-------
-{{ range $i, $name := (index (index (index .results .hosts.master) "data") "_keys") -}}
-{{ $name }} {{ range $k, $val_name := (index (index (index (index $.results $.hosts.master) "data") $name) "_keys") -}}
- | {{ (index (index (index (index $.results $.hosts.master) "data") $name) $val_name) }} {{ end }}{{/* end of range $k, $val_name */}}
+
+#### System directories ####
+Device | FS Type | Size | Available | Usage | Used | Mount Point 
+-------|---------|------|-----------|-----|------|-------------
+{{ range $i, $name := (index (index (index (index .results .hosts.master) "data") "fs_data") "_keys") -}}
+    {{- $value := (index (index (index (index $.results $.hosts.master) "data") "fs_data") $name) -}}
+    {{ $value.device}}|
+    {{- $value.fstype}}|
+    {{- $value.size}}|
+    {{- $value.avail}}|
+    {{- $value.use_percent}}|
+    {{- $value.used}}|
+    {{- $value.mount_point}}
 {{ end }}{{/* end of range $i, $name := */}}
-{{ end }}{{/* end of if .hosts.master data */}}
+
+#### Database directories ####
+Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
+-----|---------|------|-----------|-----|------|-------------|------|-------
+{{ range $i, $name := (index (index (index (index .results .hosts.master) "data") "db_data") "_keys") -}}
+    {{- $value := (index (index (index (index $.results $.hosts.master) "data") "db_data") $name) -}}
+    {{ $name }}|
+    {{- $value.fstype}}|
+    {{- $value.size}}|
+    {{- $value.avail}}|
+    {{- $value.use_percent}}|
+    {{- $value.used}}|
+    {{- $value.mount_point}}|
+    {{- $value.path}}|
+    {{- $value.device}}
+{{ end }}{{/* end of range $i, $name := */}}
+
+    {{ end }}{{/* end of if .hosts.master data */}}
 {{ end }}{{/* end of if .hosts.master */}}
 
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
-  {{ range $skey, $host := .hosts.replicas }}
+    {{ range $skey, $host := .hosts.replicas }}
+        {{- if (index $.results $host) }}
 #### Replica (`{{ $host }}`) ####
-Name | FS Type | Size | Available | Use | Used | Mount Point | Path | Device
------|---------|------|-----------|-----|------|-------------|------|-------
-{{- if (index $.results $host) }}
-{{ range $i, $name := (index (index (index $.results $host) "data") "_keys") -}}
-{{ $name }} {{ range $k, $val_name := (index (index (index (index $.results $host) "data") $name) "_keys") -}}
- | {{ (index (index (index (index $.results $host) "data") $name) $val_name) }}{{ " " }}
-{{- end }} {{/* range $k, $val_name : */}}
-{{ end }}{{/* if (index $.results $host) */}}
+
+#### System directories ####
+Device | FS Type | Size | Available | Usage | Used | Mount Point 
+-------|---------|------|-----------|-----|------|-------------
+{{ range $i, $name := (index (index (index (index $.results $host) "data") "fs_data") "_keys") -}}
+    {{- $value := (index (index (index (index $.results $host) "data") "fs_data") $name) -}}
+    {{ $value.device}}|
+    {{- $value.fstype}}|
+    {{- $value.size}}|
+    {{- $value.avail}}|
+    {{- $value.use_percent}}|
+    {{- $value.used}}|
+    {{- $value.mount_point}}
 {{ end }}{{/* range $i, $name := */}}
-{{ end }}{{/* range $skey, $host := */}}
+
+#### Database directories ####
+Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
+-----|---------|------|-----------|-----|------|-------------|------|-------
+{{ range $i, $name := (index (index (index (index $.results $host) "data") "db_data") "_keys") -}}
+    {{- $value := (index (index (index (index $.results $host) "data") "db_data") $name) -}}
+    {{ $name }}|
+    {{- $value.fstype}}|
+    {{- $value.size}}|
+    {{- $value.avail}}|
+    {{- $value.use_percent}}|
+    {{- $value.used}}|
+    {{- $value.mount_point}}|
+    {{- $value.path}}|
+    {{- $value.device}}
+{{ end }}{{/* range $i, $name := */}}
+
+        {{ end }}{{/* if (index $.results $host) */}}
+    {{ end }}{{/* if (index $.results $host) */}}
 {{ end }}{{/* if gt (len .hosts.replicas) 0 */}}
 
 ## Conclusions ##
 
 ## Recommendations ##
-
