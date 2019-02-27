@@ -44,7 +44,7 @@ begin
       i:= i+1;
       out := out || '{"' || rec.table_name || '":' || json_build_object(
             'Table',
-            rec.schema_name || '.' || rec.table_name,
+            coalesce(nullif(quote_ident(rec.schema_name), 'public') || '.', '') || quote_ident(rec.table_name),
             'PK',
             rec.attname,
             'Type',
