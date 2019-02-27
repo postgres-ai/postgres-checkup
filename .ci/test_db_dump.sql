@@ -78,3 +78,13 @@ update t_with_bloat set i = i;
 -- h002 Supports fk
 select count(*) from t_slw_q;
 explain select count(*) from t_slw_q;
+
+-- L003
+CREATE TABLE test_schema.order
+(
+    id serial,
+	cnt integer,
+    CONSTRAINT ordiadjust_pk PRIMARY KEY (id)
+);
+
+INSERT INTO test_schema.order(cnt) select id from generate_series(0, 1000000) _(id);
