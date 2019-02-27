@@ -10,14 +10,24 @@ import (
     "time"
 )
 
-func Split(s string, d string) []string {
-    arr := strings.Split(s, d)
+func Split(s interface{}, d interface{}) []string {
+    str1 := pyraconv.ToString(s)
+    str2 := pyraconv.ToString(d)
+    arr := strings.Split(str1, str2)
     return arr
 }
 
 func Trim(s string, d string) string {
     return strings.Trim(s, d)
 }
+
+func Replace(str interface{}, src interface{}, dst interface{}) string {
+    str1 := pyraconv.ToString(str)
+    src1 := pyraconv.ToString(src)
+    dst1 := pyraconv.ToString(dst)
+    return strings.Replace(str1, src1, dst1, -1)
+}
+
 
 func Nobr(s interface{}) string {
     str := pyraconv.ToString(s)
@@ -167,4 +177,11 @@ func Int(value interface{}) int {
         return int(pyraconv.ToInt64(value))
     }
     return 0
+}
+
+func ByteFormat(value interface{}, places interface{}) string {
+    val := pyraconv.ToFloat64(value)
+    pl := pyraconv.ToInt64(places)
+    result := fmtutils.ByteFormat(val, int(pl));
+    return Nobr(result);
 }

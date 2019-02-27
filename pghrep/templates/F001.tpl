@@ -14,8 +14,8 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ end -}}
 {{ end }}{{/* range */}}
 
+#### Tuned tables ####
 {{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
-#### Tables settings override ####
 &#9660;&nbsp;Namespace | Relation | Options
 ----------|----------|------
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") "_keys") }}
@@ -24,6 +24,8 @@ Data collected: {{ DtFormat .timestamptz }}
 {{- $value.relname }} |
 {{- range $j, $valopt := $value.reloptions }} {{ $valopt }}<br/>{{ end }}
 {{ end }}{{/* range */}}
+{{else}}
+No tuned tables are found
 {{- end -}}{{/* if table_settings */}}
 {{- end }}{{/*Master data*/}}
 {{ end }}{{/*Master*/}}

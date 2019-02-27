@@ -1,6 +1,15 @@
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
-  with step1 as (
+  with overrided_tables as (
+    select
+      pc.oid as table_id,
+      pn.nspname as scheme_name,
+      pc.relname as table_name,
+      pc.reloptions as options
+    from pg_class pc
+    join pg_namespace pn on pn.oid = pc.relnamespace
+    where reloptions::text ~ 'autovacuum'
+  ), step1 as (
     select
       tbl.oid tblid,
       ns.nspname as schema_name,
@@ -59,7 +68,7 @@ with data as (
   )
   select
     case is_na when true then 'TRUE' else '' end as "Is N/A",
-    coalesce(nullif(schema_name, 'public') || '.', '') || table_name as "Table",
+    coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "Table",
     pg_size_pretty(real_size::numeric) as "Size",
     case
       when extra_size::numeric >= 0
@@ -103,8 +112,10 @@ with data as (
         coalesce(substring(array_to_string(reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 100)
       from pg_class
       where oid = tblid
-    ) as "Fillfactor"
+    ) as "Fillfactor",
+    case when ot.table_id is not null then true else false end as overrided_settings
   from step4
+  left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
 ), limited_data as (
   select * from data limit 100
@@ -125,6 +136,9 @@ select
     'heap_bloat',
     (select * from limited_json_data),
     'heap_bloat_total',
-    (select row_to_json(total_data) from total_data)
+    (select row_to_json(total_data) from total_data),
+    'overrided_settings_count',
+    (select count(1) from limited_data where overrided_settings = true)
+
   )
 SQL
