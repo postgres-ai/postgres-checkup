@@ -519,7 +519,7 @@ convert_text_to_json() {
   local check_id="$1"
   local raw_str="$2"
   local result=""
-  tbls=()
+  local tbls=()
 
   if [[ $check_id == "L003" ]] ; then
     while IFS=';' read -ra records; do
