@@ -351,7 +351,8 @@ validate_args() {
   # fill default (not given) psql connection related variables
   [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
-  [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
+  [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=15 # statement timeout
+  [[ "${USERNAME}" = "None" ]] && export USERNAME=""
 
   # custom UNIX domain socket directory for PostgreSQL
   local psql_unix_socket_option=""
@@ -372,9 +373,16 @@ validate_args() {
     local pgpas_subst=""
   fi
 
-  # for usage inside the check scripts
-  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_unix_socket_option}"
-  export _PSQL="${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
+  # use default Postgres username or not
+  local user_substr=""
+  if [[ ! -z ${USERNAME+x} ]]; then
+    user_substr=" -U \"${USERNAME}\" "
+  fi
+
+  # Construct _PSQL macro for usage inside the check scripts
+  export PGOPTIONS="-c statement_timeout=${STIMEOUT}s"
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
+  export _PSQL="PGOPTIONS=\"${PGOPTIONS}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
@@ -436,6 +444,12 @@ usage() {
   echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
   echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
 
+  if [[ "$exit_code" -ne "0" ]]; then
+    exit "$exit_code"
+  fi
+
+  # Printing CLI options starts here
+
   # calc max size of FULL_NAME[] for text alignment
   local max_name_len=0
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
@@ -478,7 +492,7 @@ usage() {
       # additional info
       echo >&${out_descriptor}
       echo "Example:" >&${out_descriptor}
-      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h host_to_connect_via_ssh \\"
+      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
       echo "    --username ${USER} --dbname postgres \\"
       echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
       echo >&${out_descriptor}
