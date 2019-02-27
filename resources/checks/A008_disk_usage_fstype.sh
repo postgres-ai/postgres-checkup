@@ -1,5 +1,10 @@
 # Check disk space and file system type for important Postgres-related disk partitions
 
+if [[ "${SSH_SUPPORT}" = "false" ]]; then
+  echo "SSH is not supported, skipping..." >&2
+  exit 1
+fi
+
 PG_MAJOR_VER=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
   select setting::integer / 10000 from pg_settings where name = 'server_version_num'
 EOF
@@ -81,7 +86,7 @@ print_df() {
 }
 
 # json output starts here
-echo "{"
+echo "{\"db_data\":{"
 
 # print custom tablesapces
 ts_cnt="0"
@@ -110,5 +115,27 @@ if $(${CHECK_HOST_CMD} "sudo stat \"$PG_LOG_DIR\" >/dev/null 2>&1"); then
   print_df "$PG_LOG_DIR"
 fi
 
-echo "}"
- 
+echo "},"
+echo "\"fs_data\":{"
+
+i=0
+points=$(${CHECK_HOST_CMD} "sudo df -TPh | tail -n +2")
+while read -r line; do
+  if [[ $i -gt 0 ]]; then
+    echo ",\"$i\":{"
+  else
+    echo "\"$i\":{"
+  fi
+  let i=$i+1
+  params=($line)
+  echo "  \"fstype\": \"${params[1]}\",
+  \"size\": \"${params[2]}\",
+  \"avail\": \"${params[4]}\",
+  \"used\": \"${params[3]}\",
+  \"use_percent\": \"${params[5]}\",
+  \"mount_point\": \"${params[6]}\",
+  \"path\": \"${params[6]}\",
+  \"device\": \"${params[0]}\"
+}"
+done <<< "$points"
+echo "}}"
