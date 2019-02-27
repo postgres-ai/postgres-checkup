@@ -41,11 +41,8 @@ begin
       assert false, 'unreachable point';
     end if;
     if ratio > 0.00 then -- report only if > 1% of capacity is reached
-      if i > 0 then
-        out := out || ',';
-      end if;
       i:= i+1;
-      out := out || '"' || rec.table_name || '":' || json_build_object(
+      out := out || '{"' || rec.table_name || '":' || json_build_object(
             'Table',
             rec.schema_name || '.' || rec.table_name,
             'PK',
@@ -56,10 +53,10 @@ begin
             val,
             'Capacity used, %',
             round(100 * ratio, 2)
-        );
+        ) || '}';
     end if;
   end loop;
-  raise info '{%}', out;
+  raise info '%', out;
 end;
 \$$ language plpgsql;
 SQL
@@ -68,6 +65,6 @@ SQL
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
 
-echo "$result"
+echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | .[]' | jq -s add
 
 rm -f "$f_stderr" "$f_stdout"
