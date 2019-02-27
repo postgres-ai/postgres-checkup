@@ -1,12 +1,17 @@
-${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
+f_stdout=$(mktemp)
+f_stderr=$(mktemp)
+
+(${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 do \$$
 declare
   rec record;
   out text;
+  i numeric;
   val int8;
   ratio numeric;
 begin
   out := '';
+  i := 0;
   for rec in
     select
       c.oid,
@@ -36,19 +41,30 @@ begin
       assert false, 'unreachable point';
     end if;
     if ratio > 0.00 then -- report only if > 1% of capacity is reached
-      out := out || format(
-        -- e'\nTable: %I.%I, Column: %I, Type: %s, Reached value: %s (%s%%);',
-        e'\n%I.%I@%I@%s@%s@%s;',
-        rec.schema_name,
-        rec.table_name,
-        rec.attname,
-        rec.typname,
-        val,
-        round(100 * ratio, 2)
-      );
+      i:= i+1;
+      out := out || '{"' || rec.table_name || '":' || json_build_object(
+            'Table',
+            coalesce(nullif(quote_ident(rec.schema_name), 'public') || '.', '') || quote_ident(rec.table_name),
+            'PK',
+            rec.attname,
+            'Type',
+            rec.typname,
+            'Current max value',
+            val,
+            'Capacity used, %',
+            round(100 * ratio, 2)
+        ) || '}';
     end if;
   end loop;
   raise info '%', out;
 end;
 \$$ language plpgsql;
 SQL
+) >$f_stdout 2>$f_stderr
+
+result=$(cat $f_stderr)
+result=${result:23:$((${#result}))}
+
+echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | .[]' | jq -s add
+
+rm -f "$f_stderr" "$f_stdout"
