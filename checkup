@@ -351,11 +351,7 @@ validate_args() {
   # fill default (not given) psql connection related variables
   [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
-<<<<<<< HEAD
-=======
-  [[ "${USERNAME}" = "None" ]] && export USERNAME="${USER}"
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=15 # statement timeout
->>>>>>> master
 
   # custom UNIX domain socket directory for PostgreSQL
   local psql_unix_socket_option=""
@@ -376,9 +372,15 @@ validate_args() {
     local pgpas_subst=""
   fi
 
+  # use default Postgres username or not
+  local user_substr=""
+  if [[ ! -z ${USERNAME+x} ]]; then
+    user_substr=" -U \"${USERNAME}\" "
+  fi
+
   # Construct _PSQL macro for usage inside the check scripts
   export PGOPTIONS="-c statement_timeout=${STIMEOUT}s"
-  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} --username=${USERNAME} ${psql_unix_socket_option}"
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
   export _PSQL="PGOPTIONS=\"${PGOPTIONS}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
 
   dbg ""
