@@ -100,20 +100,19 @@ Cluster `slony` contains two servers - `db1.vpn.local` and `db1.vpn.local`.
 Postgres-checkup automatically detects which one is a master:
 
 ```bash
-./checkup -h db1.vpn.local -p 5432 --username postgres --dbname postgres --project prod1
+./checkup -h db1.vpn.local -p 5432 --username postgres --dbname postgres --project prod1 -e 1
 ```
 
 ```bash
 ./checkup -h db2.vpn.local -p 5432 --username postgres --dbname postgres --project prod1 -e 1
 ```
 
-Which literally means: "connect to the server with given credentials, save data into `prod1`
+Which literally means: connect to the server with given credentials, save data into `prod1`
 project directory as epoch of check `1`. Epoch is a numerical (**integer**) sign of current iteration.
 For example: in half a year we can switch to "epoch number `2`".
 
-At the first run we can skip `-e 1` because default epoch is `1`, but at the second argument `-e`  
-must exist: we don't want to overwrite historical results.
-
+`-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.  
+If SSH is not available, just use local `psql` command (non-psql checks will be skipped).
 
 As a result of postgres-checkup we have got two directories with .json files and .md files:
 
@@ -128,7 +127,7 @@ all instances of the postgres cluster `prod1`.
 A human-readable report can be found at:
 
 ```bash
-./artifacts/prod1/e1_full_report.md
+./artifacts/prod1/md_reports/1_2018_12_06T14_12_36_+0300/Full_report.md
 ```
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
