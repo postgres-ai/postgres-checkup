@@ -108,7 +108,7 @@ Postgres-checkup automatically detects which one is a master:
 ```
 
 Which literally means: connect to the server with given credentials, save data into `prod1`
-project directory as epoch of check `1`. Epoch is a numerical (**integer**) sign of current iteration.
+project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sign of current iteration.
 For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.  
