@@ -82,4 +82,18 @@ Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
 
 ## Conclusions ##
 
+{{- if .conclusions }}
+{{ range $conclusion := .conclusions -}}
+{{ $conclusion }}  
+{{ end }}
+{{ end }}
+
 ## Recommendations ##
+
+{{- if .recommendations }}
+{{ range $recommendation := .recommendations -}}
+{{ $recommendation }}  
+{{ end }}
+{{ end }}
+  
+  
