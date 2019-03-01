@@ -112,7 +112,7 @@ project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sig
 For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.  
-If SSH is not available, just use local `psql` command (non-psql checks will be skipped).
+If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
 
 As a result of postgres-checkup we have got two directories with .json files and .md files:
 
