@@ -392,7 +392,7 @@ for query_num in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
   # Put query into a file with name 'query_num.sql'
   mkdir -p "${JSON_REPORTS_DIR}/K_query_groups" >/dev/null 2>&1 || true
   echo "-- queryid: ${queryid}" > "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
-  echo "-- NOTICE: first left 50k characters" > "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
+  echo "-- NOTICE: first left 50k characters" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
   echo "-- NOTICE: current query size (bytes): '${current_bytes}'" > "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
   echo "$query_text" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
 
