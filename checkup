@@ -489,19 +489,20 @@ usage() {
       done
       echo -n " --help" >&${out_descriptor}
       echo    "   this help" >&${out_descriptor}
-      # additional info
-      echo >&${out_descriptor}
-      echo "Example:" >&${out_descriptor}
-      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
-      echo "    --username ${USER} --dbname postgres \\"
-      echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
-      echo >&${out_descriptor}
-      echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
-      echo >&${out_descriptor}
-      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
     fi
     prev_section=${SECTION[$i]}
   done
+
+  # Print example
+  echo >&${out_descriptor}
+  echo "Example:" >&${out_descriptor}
+  echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
+  echo "    --username ${USER} --dbname postgres \\"
+  echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
+  echo >&${out_descriptor}
+  echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
+  echo >&${out_descriptor}
+  echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
 
   exit $exit_code
 }
