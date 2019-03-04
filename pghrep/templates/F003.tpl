@@ -14,7 +14,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 ----------|------|-----------------------|-------------------|----------|---------|-----------|-----------|-----------|--------------------|------------|------------|-----------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "dead_tuples") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "dead_tuples") $key) -}}
-{{ index $value "relation"}}{{if $value.overrided_settings}}<sup>*</sup>{{ end }} |
+{{ index $value "relation"}}{{if $value.overrided_settings}} **\***{{ end }} |
 {{- index $value "relkind"}} | 
 {{- index $value "since_last_autovacuum"}} |
 {{- index $value "since_last_vacuum"}} |
@@ -29,7 +29,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- if ge (Int (index $value "dead_ratio")) 10 }} **{{ (index $value "dead_ratio")}}** {{else}} {{ (index $value "dead_ratio")}} {{end}}
 {{ end }}
 {{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
-<sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
+**\*** This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/* dead_tuples */}}
 No data

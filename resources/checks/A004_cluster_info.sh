@@ -120,7 +120,7 @@ with data as (
     'Temp Files: total number of files per day',
     case
       when (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int) <> 0 then
-        (temp_files / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
+        round((temp_files / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)))::numeric, 2)::text
       else
         temp_files::text
     end
@@ -134,7 +134,7 @@ with data as (
     'Deadlocks per day',
     case
       when ((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int <> 0 then
-        (deadlocks / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
+        round((deadlocks / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)))::numeric, 2)::text
       else
         deadlocks::text
     end

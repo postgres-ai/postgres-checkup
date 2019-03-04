@@ -17,8 +17,7 @@ Current database: {{ .database }}
 {{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat ratio" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat ratio" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat ratio" ) 2 }}{{end}}||
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
-{{- $tableIndex := Split $key "\n" -}}
-{{ $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}{{if $value.overrided_settings}}<sup>*</sup>{{ end }}) |
+{{ $value.index_name }} ({{ $value.table_name }}{{if $value.overrided_settings}} **\***{{ end }}) |
 {{- ByteFormat ( index $value "Real size bytes") 2 }} |
 {{- if ( index $value "Extra size bytes")}}{{- "~" }}{{ ByteFormat ( index $value "Extra size bytes" ) 2 }} ({{- NumFormat ( index $value "Extra_ratio" ) 2 }}%){{end}} |
 {{- if ( index $value "Bloat size bytes")}}{{ ByteFormat ( index $value "Bloat size bytes") 2 }}{{end}} |
@@ -28,7 +27,7 @@ Current database: {{ .database }}
 {{- ( index $value "fillfactor") }}
 {{ end }}
 {{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
-<sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
+**\*** This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/*Master data*/}}
 No data
@@ -39,6 +38,18 @@ No data
 
 ## Conclusions ##
 
+{{- if .conclusions }}
+{{ range $conclusion := .conclusions -}}
+{{ $conclusion }}  
+{{ end }}
+{{ end }}
 
 ## Recommendations ##
 
+{{- if .recommendations }}
+{{ range $recommendation := .recommendations -}}
+{{ $recommendation }}  
+{{ end }}
+{{ end }}
+  
+  

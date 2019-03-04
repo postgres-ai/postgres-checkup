@@ -13,7 +13,7 @@ import (
 	"../src/pyraconv"
 )
 
-var CRITICAL_USAGE int = 45 //90
+var CRITICAL_USAGE int = 90
 
 var Data map[string]interface{}
 
