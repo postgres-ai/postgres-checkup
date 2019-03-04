@@ -32,7 +32,8 @@ func Replace(str interface{}, src interface{}, dst interface{}) string {
 func Nobr(s interface{}) string {
     str := pyraconv.ToString(s)
     str = strings.Join(strings.Split(str, "\n"), " ")
-    // str = strings.Join(strings.Split(str, " "), "&nbsp;")
+    str = strings.Join(strings.Split(str, " "), "&nbsp;")
+    str = strings.Join(strings.Split(str, "'"), "&backtick;")
     return str
 }
 
