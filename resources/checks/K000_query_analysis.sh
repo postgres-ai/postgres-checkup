@@ -398,7 +398,7 @@ for query_num in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
   echo "$query_text" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
 
   # Generate link to a full text
-  link="../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_num}.sql"
+  link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_num}.sql"
 
   # add link into the object
   JSON=$(jq --arg link $link -r '.queries."'$query_num'" += { "link": $link }' <<<${JSON})
