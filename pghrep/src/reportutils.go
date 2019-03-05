@@ -33,13 +33,28 @@ func Nobr(s interface{}) string {
     str := pyraconv.ToString(s)
     str = strings.Join(strings.Split(str, "\n"), " ")
     str = strings.Join(strings.Split(str, " "), "&nbsp;")
-    str = strings.Join(strings.Split(str, "'"), "&backtick;")
     return str
 }
 
 func Br(s interface{}) string {
     str := pyraconv.ToString(s)
     return strings.Join(strings.Split(str, ","), ", ")
+}
+
+
+/* Escape Markdown symbols in a SQL query,
+*  convert to a single line
+*/
+func EscapeQuery(s interface{}) string {
+    str := pyraconv.ToString(s)
+    str = strings.Join(strings.Split(str, "\n"), " ")
+    str = strings.Join(strings.Split(str, " "), "&nbsp;")
+    str = strings.Join(strings.Split(str, "*"), "\\*")
+    str = strings.Join(strings.Split(str, "_"), "\\_")
+    str = strings.Join(strings.Split(str, "-"), "\\-")
+    str = strings.Join(strings.Split(str, "`"), "\\`")
+    str = strings.Join(strings.Split(str, "|"), "\\|")
+    return str
 }
 
 /* Add \t before every row in text to preview block as code block
