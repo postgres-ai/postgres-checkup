@@ -24,6 +24,7 @@ with overrided_tables as (
     (age(datfrozenxid) > 1200000000)::int as warning
   from pg_database
   order by 3 desc
+  limit 50
 ), per_database as (
   select
     coalesce(nullif(n.nspname || '.', 'public.'), '') || c.relname as relation,

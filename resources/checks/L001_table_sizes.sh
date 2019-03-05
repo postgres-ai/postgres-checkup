@@ -75,5 +75,9 @@ with data as (
   where schema_name is distinct from 'information_schema'
   order by oid is null desc, total_bytes desc nulls last
 )
-select json_object_agg(data."Table", data) as json from data where data."Table" not like ' '
+select
+  json_object_agg(data."Table", data) as json
+from data
+where data."Table" not like ' '
+limit 50
 SQL

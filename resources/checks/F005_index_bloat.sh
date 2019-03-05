@@ -148,7 +148,7 @@ with data as (
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by real_size desc nulls last
 ), limited_data as (
-  select * from data limit 100
+  select * from data limit 50
 ), limited_json_data as (
   select json_object_agg(ld."Index (Table)", ld) as json from limited_data ld
 ), total_data as (

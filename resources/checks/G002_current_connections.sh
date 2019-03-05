@@ -18,7 +18,10 @@ with data as (
     count(*) desc
 ),
 num_data as (
-  select row_number() over () num, data.* from data
+  select
+    row_number() over () num, data.*
+  from data
+  limit 50
 )
 select json_object_agg(num_data.num, num_data) from num_data
 SQL

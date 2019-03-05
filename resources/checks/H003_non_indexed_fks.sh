@@ -119,7 +119,7 @@ with data as (
   order by issue_sort, table_mb desc, table_name, fk_name
 ),
 num_data as (
-  select row_number() over () num, data.* from data
+  select row_number() over () num, data.* from data limit 50
 )
 select json_object_agg(num_data.num, num_data) from num_data
 SQL

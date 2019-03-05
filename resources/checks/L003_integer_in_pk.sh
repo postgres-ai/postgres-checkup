@@ -41,8 +41,9 @@ begin
       assert false, 'unreachable point';
     end if;
     if ratio > 0.00 then -- report only if > 1% of capacity is reached
-      i:= i+1;
-      out := out || '{"' || rec.table_name || '":' || json_build_object(
+      i := i + 1;
+      if i < 51 then --limit 50 items
+        out := out || '{"' || rec.table_name || '":' || json_build_object(
             'Table',
             coalesce(nullif(quote_ident(rec.schema_name), 'public') || '.', '') || quote_ident(rec.table_name),
             'PK',
@@ -54,6 +55,7 @@ begin
             'Capacity used, %',
             round(100 * ratio, 2)
         ) || '}';
+      end if;
     end if;
   end loop;
   raise info '%', out;

@@ -768,6 +768,7 @@ glue_md_reports() {
   #generate table of contents and glue reports together
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
     [[ -e "${cur_report}" ]] || continue
+    [[ "${cur_report}" != "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]] || continue
     title=$(head -n 1 ${cur_report})
     title="${title/\#/}"
     title="${title/\#/}"
@@ -1077,7 +1078,7 @@ run_checks() {
   msg
   if [[ "${FILE}" = "None" ]]; then
     msg "Final .md report is ready at:"
-    echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
+    echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
 }
