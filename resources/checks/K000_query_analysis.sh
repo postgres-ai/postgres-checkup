@@ -142,7 +142,7 @@ else
     from pg_stat_statements s
     join pg_stat_kcache() k using(queryid, dbid, userid)
     order by total_time desc
-    limit 50
+    limit ${ROWS_LIMIT}
   "
 fi
 

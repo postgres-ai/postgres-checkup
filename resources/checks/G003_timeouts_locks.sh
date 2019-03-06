@@ -22,7 +22,7 @@ with timeouts as (
         where
             setconfig::text ~ '(lock_timeout|deadlock_timeout)'
             and setdatabase is not null and setdatabase <> 0) dbs
-    limit 50
+    limit ${ROWS_LIMIT}
 ), user_specified_settings as (
     select json_object_agg(pr.rolname, pr) from pg_roles pr where rolconfig::text ~ '(lock_timeout|deadlock_timeout)'
 )

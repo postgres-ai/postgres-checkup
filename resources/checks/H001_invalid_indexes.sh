@@ -60,7 +60,7 @@ with fk_indexes as (
   select
     json_object_agg(d.schema_name || '.' || d.index_name, d) as json
   from num_data d
-  limit 50
+  limit ${ROWS_LIMIT}
 )
 select
   json_build_object(

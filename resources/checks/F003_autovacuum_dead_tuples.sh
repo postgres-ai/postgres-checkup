@@ -30,7 +30,8 @@ with overrided_tables as (
   join pg_class c on c.oid = relid
   left join overrided_tables ot on ot.table_id = c.oid
   where reltuples > 10000
-  order by 13 desc limit 50
+  order by 13 desc
+  limit ${ROWS_LIMIT}
 ), dead_tuples as (
   select json_object_agg(data."relation", data) as json from data
 ), database_stat as (

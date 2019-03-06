@@ -103,7 +103,7 @@ never_used_indexes as (
   select
     json_object_agg(nuin.schema_name || '.' || nuin.index_name, nuin) as json
   from never_used_indexes_num nuin
-  limit 50
+  limit ${ROWS_LIMIT}
 ),
 -- Rarely used indexes
 rarely_used_indexes as (
@@ -152,7 +152,7 @@ rarely_used_indexes as (
   select
     json_object_agg(ruin.schema_name || '.' || ruin.index_name, ruin) as json
   from rarely_used_indexes_num ruin
-  limit 50
+  limit ${ROWS_LIMIT}
 ),
 -- Redundant indexes
 index_data as (
@@ -265,7 +265,7 @@ redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
   from redundant_indexes_num rin
-  limit 50
+  limit ${ROWS_LIMIT}
 ), redundant_indexes_total as (
     select
       sum(index_size_bytes) as index_size_bytes_sum,

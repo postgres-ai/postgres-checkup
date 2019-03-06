@@ -118,7 +118,7 @@ with data as (
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
 ), limited_data as (
-  select * from data limit 50
+  select * from data limit ${ROWS_LIMIT}
 ), limited_json_data as (
   select json_object_agg(ld."Table", ld) as json from limited_data ld
 ), total_data as (

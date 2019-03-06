@@ -76,8 +76,7 @@ with data as (
   order by oid is null desc, total_bytes desc nulls last
 )
 select json_object_agg(data."Table", data) as json
-  json_object_agg(data."Table", data) as json
 from data
 where data."Table" not like ' '
-limit 50
+limit ${ROWS_LIMIT}
 SQL
