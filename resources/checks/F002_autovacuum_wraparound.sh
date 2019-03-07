@@ -25,6 +25,12 @@ with overrided_tables as (
   from pg_database
   order by 3 desc
   limit ${ROWS_LIMIT}
+), num_per_instance as (
+  select
+    row_number() over () num,
+    per_instance.*
+  from per_instance
+  limit ${ROWS_LIMIT}
 ), per_database as (
   select
     coalesce(nullif(n.nspname || '.', 'public.'), '') || c.relname as relation,
@@ -45,14 +51,19 @@ with overrided_tables as (
   where c.relkind IN ('r', 'm') and not (n.nspname = 'pg_catalog' and c.relname <> 'pg_class')
     and n.nspname <> 'information_schema'
   order by 3 desc
-  limit 50
+  limit ${ROWS_LIMIT}
+), num_per_database as (
+  select
+    row_number() over () num,
+    per_database.*
+  from per_database
 )
 select 
   json_build_object(
     'per_instance', 
-    (select json_object_agg(i.datname, i) from per_instance i), 
+    (select json_object_agg(i.datname, i) from num_per_instance i),
     'per_database', 
-    (select json_object_agg(d.relation, d) from per_database d),
+    (select json_object_agg(d.relation, d) from num_per_database d),
     'overrided_settings_count',
     (select count(1) from per_database where overrided_settings = true)
   );

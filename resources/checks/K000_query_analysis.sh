@@ -97,7 +97,7 @@ if [[ "${err_code}" -ne "0" ]]; then
       md5( queryid::text || dbid::text || userid::text ) as md5
     from pg_stat_statements s
     order by total_time desc
-    limit 50
+    limit ${ROWS_LIMIT}
   "
 else
   # WITH pg_stat_kcache

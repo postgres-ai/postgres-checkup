@@ -6,6 +6,8 @@ Current database: {{ .database }}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
+{{ if gt (len (index (index (index .results .hosts.master) "data") "invalid_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+
 {{ if (index (index .results .hosts.master) "data") }}
 {{ if (index (index (index .results .hosts.master) "data") "invalid_indexes") }}
 \# | Table | Index name | Index size | Supports FK

@@ -56,11 +56,11 @@ with fk_indexes as (
     row_number() over () num,
     data.*
   from data
+  limit ${ROWS_LIMIT}
 ), data_json as (
   select
     json_object_agg(d.schema_name || '.' || d.index_name, d) as json
   from num_data d
-  limit ${ROWS_LIMIT}
 )
 select
   json_build_object(

@@ -11,8 +11,14 @@ with timeouts as (
   from pg_stat_database sd
   where datname in (SELECT datname FROM pg_database WHERE datistemplate = false)
   order by deadlocks desc
+  limit ${ROWS_LIMIT}
+), num_dbs_data as (
+  select
+    row_number() over () num,
+    ds.*
+  from databases_stat ds
 ), dbs_data as (
-  select json_object_agg(sd.datname, sd) from databases_stat sd
+  select json_object_agg(sd.datname, sd) from num_dbs_data sd
 ), db_specified_settings as (
     select json_object_agg(dbs.database, dbs) from
         (select
@@ -21,8 +27,8 @@ with timeouts as (
         from pg_db_role_setting pd
         where
             setconfig::text ~ '(lock_timeout|deadlock_timeout)'
-            and setdatabase is not null and setdatabase <> 0) dbs
-    limit ${ROWS_LIMIT}
+            and setdatabase is not null and setdatabase <> 0
+        ) dbs
 ), user_specified_settings as (
     select json_object_agg(pr.rolname, pr) from pg_roles pr where rolconfig::text ~ '(lock_timeout|deadlock_timeout)'
 )
