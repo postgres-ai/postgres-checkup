@@ -3,7 +3,8 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###  
 &#9660;&nbsp;Category | Setting | Value | Unit | Pretty value
 ---------|---------|-------|------|--------------
@@ -14,6 +15,9 @@ Data collected: {{ DtFormat .timestamptz }}
 {{- else -}}{{/*Master data*/}}
 No data  
 {{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master results*/}}
+No data  
+{{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
 No data  
 {{ end }}{{/*Master*/}}

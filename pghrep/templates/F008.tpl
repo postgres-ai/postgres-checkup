@@ -5,7 +5,8 @@ Data collected: {{ DtFormat .timestamptz }}
 ### Settings ###
 
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master)}}
+{{ if (index (index .results .hosts.master) "data") }}
 Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
@@ -38,6 +39,9 @@ Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $autovacuum_max_wor
 {{- else -}}{{/*Master data*/}}
 No data
 {{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master results*/}}
+No data
+{{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
 No data
 {{ end }}{{/*Master*/}}

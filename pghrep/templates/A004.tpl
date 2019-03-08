@@ -3,7 +3,8 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index (index .results .hosts.master) "data") "general_info") }}
  Indicator | Value
@@ -21,6 +22,7 @@ Database | &#9660;&nbsp;Size
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "database_sizes") $key) -}}
 {{ $key }} | {{ ByteFormat $value 2 }}
 {{ end }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

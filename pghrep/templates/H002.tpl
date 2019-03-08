@@ -9,6 +9,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- if le (Int (index (index (index .results .hosts.master) "data") "database_stat").days) 30 }}  
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
 {{- end }}
+{{- if and (index (index (index .results .hosts.master) "data") "never_used_indexes") (index (index (index .results .hosts.master) "data") "never_used_indexes_total") }}
 ### Never Used Indexes ###
 \#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK
 --|-------|-------|----{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----|-----
@@ -23,7 +24,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
-
+{{ end }}{{/* if never_used_indexes */}}
 {{- if and (index (index (index .results .hosts.master) "data") "rarely_used_indexes") (index (index (index .results .hosts.master) "data") "rarely_used_indexes_total") }}
 ### Rarely Used Indexes ###
 \#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Comment | Supports FK

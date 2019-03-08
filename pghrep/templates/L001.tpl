@@ -4,7 +4,8 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 Table | Rows | &#9660;&nbsp;Total size | Table size | Index(es) Size | TOAST Size
 ------|------|------------|------------|----------------|------------
@@ -15,6 +16,9 @@ Table | Rows | &#9660;&nbsp;Total size | Table size | Index(es) Size | TOAST Siz
 {{- else -}}{{/*Master data*/}}
 No data
 {{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master results*/}}
+No data
+{{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
 No data
 {{ end }}{{/*Master*/}}
