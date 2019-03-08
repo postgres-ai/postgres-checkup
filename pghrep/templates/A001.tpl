@@ -8,10 +8,14 @@ Data collected: {{ DtFormat .timestamptz }}
 
 Host| Operating System | Kernel 
 ----|------------------|--------
-{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") (index (index (index .results .hosts.master) "data").virtualization) }}
+{{- if (index .results .hosts.master) }}
+{{- if (index (index .results .hosts.master) "data") }}
+{{- if (index (index (index .results .hosts.master) "data").virtualization) }}
 {{ .hosts.master }}|
 {{- (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }} |
 {{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 {{- if gt (len .hosts.replicas) 0 -}}
     {{- range $key, $host := .hosts.replicas -}}
@@ -27,7 +31,8 @@ Host| Operating System | Kernel
 {{ end }}
 
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data").system.raw}}
 **System**
@@ -58,6 +63,7 @@ Host| Operating System | Kernel
 ```
 {{ end }}{{/* virtualization */}}
 {{ end }}{{/* master data */}}
+{{ end }}{{/* master results */}}
 {{ end }}{{/* master */}}
 
 {{ if gt (len .hosts.replicas) 0 }}

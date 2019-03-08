@@ -2,7 +2,8 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
@@ -13,7 +14,8 @@ Utility | Availability
 {{ $util_name }} | {{ (index (index $value) $util_name) }}
 {{- end }}{{/* range values */}}
 {{ end }}{{/* range data */}}
-{{ end }}{{/* if master data*/}}
+{{ end }}{{/* if master host data*/}}
+{{ end }}{{/* if master results*/}}
 {{ end }}{{/* if master*/}}
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers:  
