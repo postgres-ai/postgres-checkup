@@ -21,7 +21,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
-{{ if gt (len (index (index $.results $host) "data")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index $.results $host) "data")) $.ROWS_LIMIT }}The list is limited to {{ $.ROWS_LIMIT }} items.{{ end }}  
 
 \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago
 ----|------|----|---------------|-------|-----------------------|-----------------------

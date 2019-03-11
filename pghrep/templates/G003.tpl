@@ -90,7 +90,7 @@ User | Setting
 {{- end -}}
 {{ if (index (index (index $.results $host) "data") "databases_stat") }}
 #### Databases data ####
-{{ if gt (len (index (index (index $.results $host) "data") "databases_stat")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index $.results $host) "data") "databases_stat")) $.ROWS_LIMIT }}The list is limited to {{$.ROWS_LIMIT}} items.{{ end }}  
 
 Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset
 -------------|-------|-----------|----------------|------------
