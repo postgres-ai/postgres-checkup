@@ -83,7 +83,7 @@ explain select count(*) from t_slw_q;
 CREATE TABLE test_schema.orders
 (
     id serial,
-	cnt integer,
+    cnt integer,
     CONSTRAINT orders_pk PRIMARY KEY (id)
 );
 
@@ -93,7 +93,7 @@ SELECT setval('test_schema.orders_id_seq'::regclass, 800000000, false);
 CREATE TABLE test_schema."orders_A"
 (
     id serial,
-	cnt integer,
+    cnt integer,
     CONSTRAINT "orders_A_pk" PRIMARY KEY (id)
 );
 
