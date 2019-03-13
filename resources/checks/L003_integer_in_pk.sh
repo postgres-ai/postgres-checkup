@@ -71,6 +71,6 @@ SQL
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
 
-echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | .[]' | jq -s add
+echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | limit(100;.[])' | jq -s add
 
 rm -f "$f_stderr" "$f_stdout"
