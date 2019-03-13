@@ -80,11 +80,22 @@ select count(*) from t_slw_q;
 explain select count(*) from t_slw_q;
 
 -- L003
-CREATE TABLE test_schema.order
+CREATE TABLE test_schema.orders
 (
     id serial,
 	cnt integer,
-    CONSTRAINT ordiadjust_pk PRIMARY KEY (id)
+    CONSTRAINT orders_pk PRIMARY KEY (id)
 );
 
-INSERT INTO test_schema.order(cnt) select id from generate_series(0, 1000000) _(id);
+INSERT INTO test_schema.orders(cnt) select id from generate_series(0, 100) _(id);
+SELECT setval('test_schema.orders_id_seq'::regclass, 800000000, false);
+
+CREATE TABLE test_schema."orders_A"
+(
+    id serial,
+	cnt integer,
+    CONSTRAINT "orders_A_pk" PRIMARY KEY (id)
+);
+
+INSERT INTO test_schema."orders_A"(cnt) select id from generate_series(0, 100) _(id);
+SELECT setval('test_schema."orders_A_id_seq"'::regclass, 300000000, false);
