@@ -3,7 +3,8 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 &#9660;&nbsp;Setting name | Value | Unit | Pretty value
 -------------|-------|------|--------------
@@ -28,6 +29,7 @@ Data collected: {{ DtFormat .timestamptz }}
 No tuned tables are found
 {{- end -}}{{/* if table_settings */}}
 {{- end }}{{/*Master data*/}}
+{{- end }}{{/*Master results*/}}
 {{ end }}{{/*Master*/}}
 
 {{ if gt (len .hosts.replicas) 0 }}

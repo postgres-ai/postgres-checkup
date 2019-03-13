@@ -3,7 +3,8 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 
 Setting name | Value | Unit | Pretty value
@@ -13,6 +14,7 @@ Setting name | Value | Unit | Pretty value
     [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }}) | {{ $value.setting }}| {{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
 {{ end -}}
 {{ end }}{{/* master data */}}
+{{ end }}{{/* master results */}}
 {{ end }}{{/* master */}}
 
 {{ if gt (len .hosts.replicas) 0 }}

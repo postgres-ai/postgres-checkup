@@ -3,13 +3,15 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 
 ```
 {{ (index (index .results .hosts.master) "data").version }}
 ```
 {{ end }}{{/*master data*/}}
+{{ end }}{{/*master results*/}}
 {{ end }}{{/*master*/}}
 
 {{ if gt (len .hosts.replicas) 0 }}

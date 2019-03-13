@@ -768,6 +768,7 @@ glue_md_reports() {
   #generate table of contents and glue reports together
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
     [[ -e "${cur_report}" ]] || continue
+    [[ "${cur_report}" != "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]] || continue
     title=$(head -n 1 ${cur_report})
     title="${title/\#/}"
     title="${title/\#/}"
@@ -991,8 +992,7 @@ run_checks() {
         err "Can't open file: '${CURRENT_CHECK_FNAME}'"
       fi
     fi
-    msg "========== Perform check: =========="
-    msg "${CURRENT_CHECK_FNAME}"
+    msg "=== Run on '${NATIVE_HOSTNAME}': ${CURRENT_CHECK_FNAME} ==="
 
     local check_is_failed="false"
 
@@ -1007,7 +1007,7 @@ run_checks() {
     output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME") || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
-    msg "========== End of check ==========="
+    msg "=== End of running ==="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK_FNAME"
     local check_id_tmp_a=${check_path_name%%_*.sh}
@@ -1025,8 +1025,6 @@ run_checks() {
       else
         continue
       fi
-    else
-      msg "check '$check_id' is finished"
     fi
 
     # generate/extend report
@@ -1077,7 +1075,7 @@ run_checks() {
   msg
   if [[ "${FILE}" = "None" ]]; then
     msg "Final .md report is ready at:"
-    echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
+    echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
 }
