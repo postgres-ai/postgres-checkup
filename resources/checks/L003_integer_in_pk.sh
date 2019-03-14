@@ -19,7 +19,8 @@ begin
       nspname as schema_name,
       relname as table_name,
       t.typname,
-      attname
+      attname,
+      (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) as seq
     from pg_index i
     join pg_class c on c.oid = i.indrelid
     left join pg_namespace n on n.oid = c.relnamespace
@@ -29,10 +30,15 @@ begin
     join pg_type t on t.oid = atttypid 
     where
       i.indisprimary
+      and (c.relpages > 1000 or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)
       and t.typname in ('int2', 'int4')
       and nspname <> 'pg_toast'
   loop
-    execute format('select max(%I) from %I.%I;', rec.attname, rec.schema_name, rec.table_name) into val;
+    if rec.seq is null then
+        execute format('select max(%I) from %I.%I;', rec.attname, rec.schema_name, rec.table_name) into val;
+    else
+        execute format('SELECT last_value FROM %s;', rec.seq) into val;
+    end if;
     if rec.typname = 'int4' then
       ratio := (val::numeric / 2^31)::numeric;
     elsif rec.typname = 'int2' then
@@ -40,7 +46,7 @@ begin
     else
       assert false, 'unreachable point';
     end if;
-    if ratio > 0.00 then -- report only if > 1% of capacity is reached
+    if ratio > 0.1 then -- report only if > 10% of capacity is reached
       i := i + 1;
       out := out || '{"' || rec.table_name || '":' || json_build_object(
           'Table',
@@ -65,6 +71,6 @@ SQL
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
 
-echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | .[]' | jq -s add
+echo "$result" | jq -cs --argjson ROWS_LIMIT "$ROWS_LIMIT" 'sort_by(-(.[]."Capacity used, %"|tonumber)) | limit($ROWS_LIMIT;.[])' | jq -s add
 
 rm -f "$f_stderr" "$f_stdout"
