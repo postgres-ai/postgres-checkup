@@ -21,6 +21,7 @@ SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
+export ROWS_LIMIT=100
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -489,19 +490,20 @@ usage() {
       done
       echo -n " --help" >&${out_descriptor}
       echo    "   this help" >&${out_descriptor}
-      # additional info
-      echo >&${out_descriptor}
-      echo "Example:" >&${out_descriptor}
-      echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
-      echo "    --username ${USER} --dbname postgres \\"
-      echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
-      echo >&${out_descriptor}
-      echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
-      echo >&${out_descriptor}
-      echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
     fi
     prev_section=${SECTION[$i]}
   done
+
+  # Print example
+  echo >&${out_descriptor}
+  echo "Example:" >&${out_descriptor}
+  echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
+  echo "    --username ${USER} --dbname postgres \\"
+  echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
+  echo >&${out_descriptor}
+  echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
+  echo >&${out_descriptor}
+  echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
 
   exit $exit_code
 }
@@ -767,6 +769,7 @@ glue_md_reports() {
   #generate table of contents and glue reports together
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
     [[ -e "${cur_report}" ]] || continue
+    [[ "${cur_report}" != "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]] || continue
     title=$(head -n 1 ${cur_report})
     title="${title/\#/}"
     title="${title/\#/}"
@@ -990,8 +993,7 @@ run_checks() {
         err "Can't open file: '${CURRENT_CHECK_FNAME}'"
       fi
     fi
-    msg "========== Perform check: =========="
-    msg "${CURRENT_CHECK_FNAME}"
+    msg "=== Run on '${NATIVE_HOSTNAME}': ${CURRENT_CHECK_FNAME} ==="
 
     local check_is_failed="false"
 
@@ -1006,7 +1008,7 @@ run_checks() {
     output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME") || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
-    msg "========== End of check ==========="
+    msg "=== End of running ==="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK_FNAME"
     local check_id_tmp_a=${check_path_name%%_*.sh}
@@ -1024,8 +1026,6 @@ run_checks() {
       else
         continue
       fi
-    else
-      msg "check '$check_id' is finished"
     fi
 
     # generate/extend report
@@ -1076,7 +1076,7 @@ run_checks() {
   msg
   if [[ "${FILE}" = "None" ]]; then
     msg "Final .md report is ready at:"
-    echo "        '${PROJECT_DIR}/e${EPOCH}_${FULL_REPORT_FNAME}'"
+    echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
 }

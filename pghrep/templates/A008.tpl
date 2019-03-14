@@ -4,7 +4,8 @@ Output of `df -TPh` (follows symlinks)
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-    {{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+    {{ if (index .results .hosts.master) }}
+        {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 
 #### System directories ####
@@ -37,7 +38,8 @@ Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
     {{- $value.device}}
 {{ end }}{{/* end of range $i, $name := */}}
 
-    {{ end }}{{/* end of if .hosts.master data */}}
+        {{ end }}{{/* end of if .hosts.master data */}}
+    {{ end }}{{/* end of if .results .hosts.master */}}
 {{ end }}{{/* end of if .hosts.master */}}
 
 {{ if gt (len .hosts.replicas) 0 }}

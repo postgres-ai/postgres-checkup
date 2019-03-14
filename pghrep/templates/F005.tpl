@@ -6,11 +6,14 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master)}}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
- Index (Table) | &#9660;&nbsp;Size | Extra | Estimated bloat | Est. bloat, bytes | Est. bloat ratio, % | Live | Fill factor
----------------|-------------------|-------|-------|-------------|-------------|------|-------------
-===== TOTAL ===== |
+{{ if gt (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+
+\# | Index (Table) | &#9660;&nbsp;Size | Extra | Estimated bloat | Est. bloat, bytes | Est. bloat ratio, % | Live | Fill factor
+---|------------|-------------------|-------|-------|-------------|-------------|------|-------------
+&nbsp;|===== TOTAL ===== |
 {{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Real size bytes sum" ) 2 }} ||
 {{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat size bytes sum" ) 2 }} |
 {{- RawIntFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "Bloat size bytes sum" ) }}|
@@ -18,7 +21,8 @@ Current database: {{ .database }}
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
 {{- $tableIndex := Split $key "\n" -}}
-{{ $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}{{if $value.overrided_settings}}<sup>*</sup>{{ end }}) |
+{{ $value.num }} |
+{{- $table := Trim (index $tableIndex 1) " ()"}}{{ (index $tableIndex 0) }} ({{ $table }}{{if $value.overrided_settings}}<sup>*</sup>{{ end }}) |
 {{- ByteFormat ( index $value "Real size bytes") 2 }} |
 {{- if ( index $value "Extra size bytes")}}{{- "~" }}{{ ByteFormat ( index $value "Extra size bytes" ) 2 }} ({{- NumFormat ( index $value "Extra_ratio" ) 2 }}%){{end}} |
 {{- if ( index $value "Bloat size bytes")}}{{ ByteFormat ( index $value "Bloat size bytes") 2 }}{{end}} |
@@ -33,6 +37,9 @@ Current database: {{ .database }}
 {{- else -}}{{/*Master data*/}}
 No data
 {{- end }}{{/*Master data*/}}
+{{- else -}}{{/*Master results*/}}
+No data
+{{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
 No data
 {{ end }}{{/*Master*/}}
