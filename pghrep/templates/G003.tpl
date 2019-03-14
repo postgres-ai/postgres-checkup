@@ -40,11 +40,13 @@ User | Setting
 {{- end -}}
 {{ if (index (index (index .results .hosts.master) "data") "databases_stat") }}
 #### Databases data ####
-Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset
--------------|-------|-----------|----------------|------------
+{{ if gt (len (index (index (index $.results $.hosts.master) "data") "databases_stat")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+
+\# | Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset
+--|-----------|-------|-----------|----------------|------------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "databases_stat") "_keys") }}
 {{- $value:= (index (index (index (index $.results $.hosts.master) "data") "databases_stat") $key) -}}
-{{$key}}|{{ $value.conflicts}}|{{ $value.deadlocks }}|{{ $value.stats_reset }}|{{ $value.stats_reset_age }}
+{{ $value.num }}|{{- $key }}|{{ $value.conflicts}}|{{ $value.deadlocks }}|{{ $value.stats_reset }}|{{ $value.stats_reset_age }}
 {{ end }}
 {{ end }}
 {{- end -}}
@@ -89,6 +91,8 @@ User | Setting
 {{- end -}}
 {{ if (index (index (index $.results $host) "data") "databases_stat") }}
 #### Databases data ####
+{{ if gt (len (index (index (index $.results $host) "data") "databases_stat")) $.ROWS_LIMIT }}The list is limited to {{$.ROWS_LIMIT}} items.{{ end }}  
+
 Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset
 -------------|-------|-----------|----------------|------------
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "databases_stat") "_keys") }}

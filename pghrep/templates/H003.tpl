@@ -7,6 +7,8 @@ Current database: {{ .database }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index .results .hosts.master) }}
 {{ if (index (index .results .hosts.master) "data") }}
+{{ if gt (len (index (index .results .hosts.master) "data")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
@@ -38,6 +40,8 @@ No data
 {{- if (index $.results $host) }}
 {{ if (index (index $.results $host) "data")}}
 {{ if gt (len (index (index $.results $host) "data")) 0 }}
+{{ if gt (len (index (index $.results $host) "data")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}

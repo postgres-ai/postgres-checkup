@@ -93,17 +93,19 @@ never_used_indexes as (
     and idx_is_btree
   order by index_size_bytes desc
 ), never_used_indexes_num as (
-  select row_number() over () num, nui.* from never_used_indexes nui
+  select row_number() over () num, nui.* 
+  from never_used_indexes nui
+  limit ${ROWS_LIMIT}
 ), never_used_indexes_total as (
-    select
-      sum(index_size_bytes) as index_size_bytes_sum,
-      sum(table_size_bytes) as table_size_bytes_sum
-    from never_used_indexes
+  select
+    sum(index_size_bytes) as index_size_bytes_sum,
+    sum(table_size_bytes) as table_size_bytes_sum
+  from never_used_indexes
+
 ), never_used_indexes_json as (
   select
     json_object_agg(nuin.schema_name || '.' || nuin.index_name, nuin) as json
   from never_used_indexes_num nuin
-  limit 100
 ),
 -- Rarely used indexes
 rarely_used_indexes as (
@@ -142,17 +144,18 @@ rarely_used_indexes as (
       and index_size_bytes > 100000000
   order by grp, index_size_bytes desc
 ), rarely_used_indexes_num as (
-  select row_number() over () num, rui.* from rarely_used_indexes rui
+  select row_number() over () num, rui.*
+  from rarely_used_indexes rui
+  limit ${ROWS_LIMIT}
 ), rarely_used_indexes_total as (
-    select
-      sum(index_size_bytes) as index_size_bytes_sum,
-      sum(table_size_bytes) as table_size_bytes_sum
-    from rarely_used_indexes
+  select
+    sum(index_size_bytes) as index_size_bytes_sum,
+    sum(table_size_bytes) as table_size_bytes_sum
+  from rarely_used_indexes
 ), rarely_used_indexes_json as (
   select
     json_object_agg(ruin.schema_name || '.' || ruin.index_name, ruin) as json
   from rarely_used_indexes_num ruin
-  limit 100
 ),
 -- Redundant indexes
 index_data as (
@@ -259,13 +262,14 @@ index_data as (
     supports_fk
   order by index_size_bytes desc
 ), redundant_indexes_num as (
-  select row_number() over () num, rig.* from redundant_indexes_grouped rig
+  select row_number() over () num, rig.*
+  from redundant_indexes_grouped rig
+  limit ${ROWS_LIMIT}
 ),
 redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
   from redundant_indexes_num rin
-  limit 100
 ), redundant_indexes_total as (
     select
       sum(index_size_bytes) as index_size_bytes_sum,
