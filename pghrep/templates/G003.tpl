@@ -3,7 +3,8 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 #### Timeouts ####
 Setting name | Value | Unit | Pretty value
@@ -97,6 +98,7 @@ Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "databases_stat") "_keys") }}
 {{- $value:= (index (index (index (index $.results $host) "data") "databases_stat") $key) -}}
 {{$key}}|{{ $value.conflicts}}|{{ $value.deadlocks }}|{{ $value.stats_reset }}|{{ $value.stats_reset_age }}
+{{ end }}
 {{ end }}
 {{ end }}
 {{ else }}

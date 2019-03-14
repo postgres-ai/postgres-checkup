@@ -993,8 +993,7 @@ run_checks() {
         err "Can't open file: '${CURRENT_CHECK_FNAME}'"
       fi
     fi
-    msg "========== Perform check: =========="
-    msg "${CURRENT_CHECK_FNAME}"
+    msg "=== Run on '${NATIVE_HOSTNAME}': ${CURRENT_CHECK_FNAME} ==="
 
     local check_is_failed="false"
 
@@ -1009,7 +1008,7 @@ run_checks() {
     output=$(set -euo pipefail ; source "$CURRENT_CHECK_FNAME") || check_is_failed="true"
 
     dbg "is check failed?: $check_is_failed"
-    msg "========== End of check ==========="
+    msg "=== End of running ==="
     # extract checkId from check script path
     local check_path_name="$CURRENT_CHECK_FNAME"
     local check_id_tmp_a=${check_path_name%%_*.sh}
@@ -1027,8 +1026,6 @@ run_checks() {
       else
         continue
       fi
-    else
-      msg "check '$check_id' is finished"
     fi
 
     # generate/extend report
