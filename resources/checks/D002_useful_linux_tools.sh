@@ -33,7 +33,7 @@ check_list() {
   for util in $list ; do
     [[ "$cnt" -eq "0" ]] && comma="" || comma=","
     IFS="$SAVE_IFS" # non-standart IFS ruins ${CHECK_HOST_CMD}
-    if $(${CHECK_HOST_CMD} "which $util >/dev/null 2>&1"); then
+    if $(${CHECK_HOST_CMD} "sudo which $util >/dev/null 2>&1"); then
       json="${json}${comma} \"$util\": \"yes\""
     else
       json="${json}${comma} \"$util\": \"\""
