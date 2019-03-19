@@ -1,3 +1,8 @@
+# Demo
+
+Automatically generated fresh demonstration based on the code in the master
+branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
+
 # About
 
 Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
@@ -132,10 +137,6 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
-# Demo
-
-Automatically generated fresh demonstration based on the code in the master
-branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
 
 # The Full List of Checks
 
