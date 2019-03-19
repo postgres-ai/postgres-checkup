@@ -390,15 +390,15 @@ for query_num in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
   current_bytes=$(echo "$query_text" | wc -c | awk '{ print $1 }')
   queryid=$(jq -r '.queries."'$query_num'".queryid' <<<${JSON})
 
-  # Put query into a file with name 'query_num.sql'
+  # Put query into a file
   mkdir -p "${JSON_REPORTS_DIR}/K_query_groups" >/dev/null 2>&1 || true
-  echo "-- queryid: ${queryid}" > "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
-  echo "-- NOTICE: the first 50k characters" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
-  echo "-- NOTICE: current query size (bytes): '${current_bytes}'" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
-  echo "$query_text" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}.sql"
+  echo "-- queryid: ${queryid}" > "${JSON_REPORTS_DIR}/K_query_groups/${query_num}_${ALIAS_INDEX}.sql"
+  echo "-- NOTICE: the first 50k characters" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}_${ALIAS_INDEX}.sql"
+  echo "-- NOTICE: current query size (bytes): '${current_bytes}'" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}_${ALIAS_INDEX}.sql"
+  echo "$query_text" >> "${JSON_REPORTS_DIR}/K_query_groups/${query_num}_${ALIAS_INDEX}.sql"
 
   # Generate link to a full text
-  link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_num}.sql"
+  link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_num}_${ALIAS_INDEX}.sql"
 
   # add link into the object
   JSON=$(jq --arg link $link -r '.queries."'$query_num'" += { "link": $link }' <<<${JSON})
