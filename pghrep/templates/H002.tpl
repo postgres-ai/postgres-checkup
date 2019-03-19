@@ -3,7 +3,8 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 
-{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}  
+{{- if (index .results .hosts.master)}}
+{{- if (index (index .results .hosts.master) "data") }}  
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 {{- if le (Int (index (index (index .results .hosts.master) "data") "database_stat").days) 30 }}  
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
@@ -65,7 +66,10 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{ end }}{{/* range */}}
 {{ end }}{{/* redundant indexes found */}}
 
-{{- else -}}
+{{- else -}}{{/* end if master*/}}
+No data
+{{end}}{{/* end if master*/}}
+{{- else -}}{{/* end if master data*/}}
 No data
 {{end}}{{/* end if master data*/}}
 
@@ -73,16 +77,21 @@ No data
 
 
 ## Recommendations ##
-{{ if and (index (index .results .hosts.master) "data") (index (index (index .results .hosts.master) "data") "do") (index (index (index .results .hosts.master) "data") "undo") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
+{{ if (index (index (index .results .hosts.master) "data") "do")}}
 #### "DO" database migration code ####
 ```
 {{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "do") }}{{ $drop_code }}
 {{ end }}
 ```
-
+{{end}}
+{{ if (index (index (index .results .hosts.master) "data") "undo") }}
 #### "UNDO" database migration code ####
 ```
 {{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "undo") }}{{ $revert_code }}
 {{ end }}
 ```
-{{ end }}{{/* do and undo found */}}
+{{end}}
+{{ end }}{{/* data found */}}
+{{ end }}{{/* master */}}
