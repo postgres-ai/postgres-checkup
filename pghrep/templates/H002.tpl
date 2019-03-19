@@ -19,7 +19,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.num}}|
 {{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
-{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "never_used_indexes") $key).idx_scan) }}{{end}}{{ end }}|
+{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index $.results $host) }}{{- if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "never_used_indexes") $key).idx_scan) }}{{end}}{{ end }}{{end}}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
@@ -37,7 +37,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.num}}|
 {{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
-{{- "scans:" }} {{ RawIntFormat $value.idx_scan }}\/hour, writes: {{ RawIntFormat $value.writes }}\/hour{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "rarely_used_indexes") $key) }}scans: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).idx_scan) }}\/hour, writes: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).writes) }}\/hour{{end}}{{ end }}|
+{{- "scans:" }} {{ RawIntFormat $value.idx_scan }}\/hour, writes: {{ RawIntFormat $value.writes }}\/hour{{ range $skey, $host := $.hosts.replicas }}|{{ if (index $.results $host) }}{{ if (index (index (index (index $.results $host) "data") "rarely_used_indexes") $key) }}scans: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).idx_scan) }}\/hour, writes: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).writes) }}\/hour{{end}}{{ end }}{{end}}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- $value.reason}}|
@@ -58,7 +58,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
 {{- $rinexes := Split $value.reason ", " -}}{{ range $r, $rto:= $rinexes }}{{$rto}}<br/>{{end}}|
-{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "redundant_indexes") $key).idx_scan) }}{{end}}{{ end }}|
+{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index $.results $host) }}{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "redundant_indexes") $key).idx_scan) }}{{end}}{{ end }}{{end}}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
