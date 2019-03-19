@@ -1039,7 +1039,14 @@ run_checks() {
       msg "WARNING: ${pghrep_output}"
       pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}_${check_name}.md"
     else
-      msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}_${check_name}.md'"
+      if [[ "${check_id}" == "K000" ]]; then
+        msg "Markdown reports saved at:"
+        msg "'${MD_REPORTS_DIR}/K001.md'"
+        msg "'${MD_REPORTS_DIR}/K002.md'"
+        msg "'${MD_REPORTS_DIR}/K003.md'"
+      else
+        msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
+      fi
     fi
 
     # if check name file given by CLI run only single check
