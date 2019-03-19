@@ -1,5 +1,4 @@
 # {{ .checkId }} Unused and redundant indexes #
-{{.ROWS_LIMIT}}
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
