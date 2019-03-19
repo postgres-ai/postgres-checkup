@@ -3,7 +3,8 @@
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
 
-{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}  
+{{- if (index .results .hosts.master)}}
+{{- if (index (index .results .hosts.master) "data") }}  
 Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .hosts.master) "data") "database_stat").stats_reset }})  
 {{- if le (Int (index (index (index .results .hosts.master) "data") "database_stat").days) 30 }}  
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
@@ -19,7 +20,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.num}}|
 {{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
-{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "never_used_indexes") $key).idx_scan) }}{{end}}{{ end }}|
+{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index $.results $host) }}{{- if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "never_used_indexes") $key).idx_scan) }}{{end}}{{ end }}{{end}}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
@@ -37,7 +38,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.num}}|
 {{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
-{{- "scans:" }} {{ RawIntFormat $value.idx_scan }}\/hour, writes: {{ RawIntFormat $value.writes }}\/hour{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "rarely_used_indexes") $key) }}scans: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).idx_scan) }}\/hour, writes: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).writes) }}\/hour{{end}}{{ end }}|
+{{- "scans:" }} {{ RawIntFormat $value.idx_scan }}\/hour, writes: {{ RawIntFormat $value.writes }}\/hour{{ range $skey, $host := $.hosts.replicas }}|{{ if (index $.results $host) }}{{ if (index (index (index (index $.results $host) "data") "rarely_used_indexes") $key) }}scans: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).idx_scan) }}\/hour, writes: {{ RawIntFormat ((index (index (index (index $.results $host) "data") "rarely_used_indexes") $key).writes) }}\/hour{{end}}{{ end }}{{end}}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- $value.reason}}|
@@ -58,14 +59,17 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.formated_relation_name}}|
 {{- $value.formated_index_name}}|
 {{- $rinexes := Split $value.reason ", " -}}{{ range $r, $rto:= $rinexes }}{{$rto}}<br/>{{end}}|
-{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "redundant_indexes") $key).idx_scan) }}{{end}}{{ end }}|
+{{- RawIntFormat $value.idx_scan }}{{ range $skey, $host := $.hosts.replicas }}|{{ if (index $.results $host) }}{{ if (index (index (index (index $.results $host) "data") "never_used_indexes") $key) }}{{ RawIntFormat ((index (index (index (index $.results $host) "data") "redundant_indexes") $key).idx_scan) }}{{end}}{{ end }}{{end}}|
 {{- ByteFormat $value.index_size_bytes 2}}|
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
 {{ end }}{{/* redundant indexes found */}}
 
-{{- else -}}
+{{- else -}}{{/* end if master*/}}
+No data
+{{end}}{{/* end if master*/}}
+{{- else -}}{{/* end if master data*/}}
 No data
 {{end}}{{/* end if master data*/}}
 
@@ -73,16 +77,21 @@ No data
 
 
 ## Recommendations ##
-{{ if and (index (index .results .hosts.master) "data") (index (index (index .results .hosts.master) "data") "do") (index (index (index .results .hosts.master) "data") "undo") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
+{{ if (index (index (index .results .hosts.master) "data") "do")}}
 #### "DO" database migration code ####
 ```
 {{ range $i, $drop_code := (index (index (index .results .hosts.master) "data") "do") }}{{ $drop_code }}
 {{ end }}
 ```
-
+{{end}}
+{{ if (index (index (index .results .hosts.master) "data") "undo") }}
 #### "UNDO" database migration code ####
 ```
 {{ range $i, $revert_code := (index (index (index .results .hosts.master) "data") "undo") }}{{ $revert_code }}
 {{ end }}
 ```
-{{ end }}{{/* do and undo found */}}
+{{end}}
+{{ end }}{{/* data found */}}
+{{ end }}{{/* master */}}
