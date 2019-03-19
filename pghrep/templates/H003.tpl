@@ -40,7 +40,7 @@ No data
 {{- if (index $.results $host) }}
 {{ if (index (index $.results $host) "data")}}
 {{ if gt (len (index (index $.results $host) "data")) 0 }}
-{{ if gt (len (index (index $.results $host) "data")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index $.results $host) "data")) $.ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
 Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
 ----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
