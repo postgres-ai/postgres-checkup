@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: Dead tuples #
+# {{ .checkId }} Autovacuum: Dead Tuples #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

@@ -1,4 +1,4 @@
-# {{ .checkId }} Unused and redundant indexes #
+# {{ .checkId }} Unused and Redundant Indexes #
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  

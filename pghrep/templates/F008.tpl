@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: Resource usage #
+# {{ .checkId }} Autovacuum: Resource Usage #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: Index bloat #
+# {{ .checkId }} Autovacuum: Index Bloat #
 :warning: This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and even more). Use it only as an indicator of potential issues.
 {{- $minRatioWarning:=40 }}
 

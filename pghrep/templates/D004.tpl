@@ -1,4 +1,4 @@
-# {{ .checkId }} pg_stat_statements and kcache settings #
+# {{ .checkId }} pg_stat_statements and kcache Settings #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

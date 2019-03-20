@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: Current settings #
+# {{ .checkId }} Autovacuum: Current Settings #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

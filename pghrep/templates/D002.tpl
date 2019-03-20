@@ -1,4 +1,4 @@
-# {{ .checkId }} Useful Linux tools
+# {{ .checkId }} Useful Linux Tools
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .hosts.master }}

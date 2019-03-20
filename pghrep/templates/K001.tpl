@@ -1,4 +1,4 @@
-# {{ .checkId }} Globally aggregated query metrics
+# {{ .checkId }} Globally Aggregated Query Metrics
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
