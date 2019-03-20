@@ -1,6 +1,6 @@
 # Demo
 
-Automatically generated fresh demonstration based on the code in the master
+An automatically generated fresh demonstration based on the code in the master
 branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
 
 # About
@@ -84,7 +84,7 @@ The following programs must be installed on the observer machine:
 * psql
 * coreutils
 * jq >= 1.5
-* golang >= 1.8
+* golang >= 1.8 (no binaries are shipped at the moment)
 * awk
 * sed
 
@@ -143,16 +143,16 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 ## А. General  / Infrastructural
 
 - [x] A001 System, CPU, RAM, disks, virtualization #6 , #56 , #57 , #86 
-- [x] A002 PostgreSQL Versions (Simple) #68, #21, #86
+- [x] A002 PostgreSQL versions (Simple) #68, #21, #86
 - [x] A003 Collect pg_settings  #15, #167, #86 
 - [x] A004 General cluster info  #7, #58, #59, #86, #162  
 - [x] A005 Extensions #8, #60, #61, #86, #167   
 - [x] A006 Config diff  #9, #62, #63, #86  
-- [x] A007 Alter system vs postgresql.conf #18, #86  
+- [x] A007 ALTER SYSTEM vs postgresql.conf #18, #86  
 - [x] A008 Disk usage and file system type #19, #20  
-- [ ] A010 Data checksums are not enabled + wal_log_hints #22  
-- [ ] A011 Connection pooling. PgBouncer #23  
-- [ ] A012 Anti crash checks #177  
+- [ ] A010 Data checksums, wal_log_hints #22  
+- [ ] A011 Connection pooling. pgbouncer #23  
+- [ ] A012 Anti-crash checks #177  
 
 ## B. Backups and DR  
 
@@ -178,20 +178,20 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 - [ ] D003 List of monitoring metrics #37  
 - [x] D004 pg_stat_statements, tuning opts, pg_stat_kcache #38  
 - [ ] D005 track_io_timing, …, auto_explain  #39  
-- [ ] D006 Postgres_dba / other toolset - recommend  #40  
+- [ ] D006 Recommended DBA toolsets: postgres_dba, pgCenter, pgHeroother  #40  
 - [ ] D007 Postgres-specific tools for troubleshooting  #137  
 
 ## E. WAL, Checkpoints
 
 - [ ] E001 WAL/checkpoint settings, IO  #41   
-- [ ] E002 Bgwriter, IO  #42  
+- [ ] E002 Checkpoints, bgwriter, IO  #42  
 
 ## F. Autovacuum, Bloat
 
 - [x] F001 < F003 Current autovacuum-related settings  #108, #164    
 - [x] F002 < F007 Transaction wraparound check  #16, #171  
-- [x] F003 < F006 Autovacuum dead tuples  #164   
-- [x] F004 < F001 Heap Bloat estimation #87, #122  
+- [x] F003 < F006 Dead tuples  #164   
+- [x] F004 < F001 Heap bloat estimation #87, #122  
 - [x] F005 < F002 Index bloat estimation #88  
 - [ ] F006 < F004 Precise heap bloat analysis 
 - [ ] F007 < F005 Precise index bloat analysis 
@@ -209,8 +209,8 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 ## H. Index Analysis
 
 - [x] H001 Indexes: invalid #192, #51  
-- [x] H002 < H001 Unused and redundant indexes #51, #180, #170, #168, #322  
-- [x] H003 < H002 Missing FK indexes #52, #142, #173  
+- [x] H002 Unused and redundant indexes #51, #180, #170, #168, #322  
+- [x] H003 Missing FK indexes #52, #142, #173  
 
 ## J.  Capacity Planning
 
@@ -225,7 +225,7 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 ## L. DB Schema Analysis
 - [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163  
 - [ ] L002 (was: H004) Data types being used #53  
-- [ ] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
+- [x] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
 
 ## TODO:
 
