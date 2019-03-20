@@ -3,7 +3,7 @@
 Auto-generated demonstration based on the code in the master
 branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
 
-# Disclaimer: This Tools is for DBA Experts
+# Disclaimer: This Tool is Designed for DBA Experts
 
 Each report consists of 3 sections: Observations, Conclusions, and Recommendations.
 As of March 2019, only Observations are filled automatically. To treat the data
