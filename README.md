@@ -1,7 +1,17 @@
 # Demo
 
-An automatically generated fresh demonstration based on the code in the master
+Auto-generated demonstration based on the code in the master
 branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
+
+# Disclaimer: This Tools is for DBA Experts
+
+Each report consists of 3 sections: Observations, Conclusions, and Recommendations.
+As of March 2019, only Observations are filled automatically. To treat the data
+correctly, you need deep Postgres knowledge.
+
+You can get Conclusions, and Recommendations from the Postgres.ai team for free,
+send us your .json and .md with filled Observations sections: checkup@postgres.ai.
+Limited time only. We're a small team, so "restrictions apply".
 
 # About
 
