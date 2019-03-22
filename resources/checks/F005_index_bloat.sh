@@ -9,6 +9,21 @@ with data as (
     from pg_class pc
     join pg_namespace pn on pn.oid = pc.relnamespace
     where reloptions::text ~ 'autovacuum'
+  ), step0 as (
+      select
+        tbl.oid tblid, nspname, tbl.relname AS tblname, idx.relname AS idxname, idx.reltuples, idx.relpages, idx.relam,
+        indrelid, indexrelid, regexp_split_to_table(indkey::text, ' ')::smallint AS attnum, --indkey::smallint[] AS attnum,
+        coalesce(substring(array_to_string(idx.reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 90) as fillfactor
+      from pg_index
+      join pg_class idx on idx.oid = pg_index.indexrelid
+      join pg_class tbl on tbl.oid = pg_index.indrelid
+      join pg_namespace on pg_namespace.oid = idx.relnamespace
+      join pg_am a ON idx.relam = a.oid
+      where a.amname = 'btree'
+        AND pg_index.indisvalid
+        AND tbl.relkind = 'r'
+        AND idx.relpages > 10
+        AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
   ), step1 as (
     select
       i.tblid,
@@ -36,17 +51,7 @@ with data as (
       sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) as nulldatawidth,
       max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na
     from pg_attribute as a
-    join (
-      select
-        tbl.oid tblid, nspname, tbl.relname AS tblname, idx.relname AS idxname, idx.reltuples, idx.relpages, idx.relam,
-        indrelid, indexrelid, indkey::smallint[] AS attnum,
-        coalesce(substring(array_to_string(idx.reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 90) as fillfactor
-      from pg_index
-      join pg_class idx on idx.oid = pg_index.indexrelid
-      join pg_class tbl on tbl.oid = pg_index.indrelid
-      join pg_namespace on pg_namespace.oid = idx.relnamespace
-      where pg_index.indisvalid AND tbl.relkind = 'r' AND idx.relpages > 0
-    ) as i on a.attrelid = i.indexrelid
+    join step0 as i on a.attrelid = i.indexrelid AND a.attnum = i.attnum
     join pg_stats as s on
       s.schemaname = i.nspname
       and (
