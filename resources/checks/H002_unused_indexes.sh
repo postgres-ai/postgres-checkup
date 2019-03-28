@@ -1,57 +1,61 @@
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with fk_indexes as (
   select
-    schemaname as schema_name,
-    (indexrelid::regclass)::text as index_name,
-    (relid::regclass)::text as table_name,
+    n.nspname as schema_name,
+    ci.relname as index_name,
+    cr.relname as table_name,
     (confrelid::regclass)::text as fk_table_ref,
     array_to_string(indclass, ', ') as opclasses
-  from
-    pg_stat_user_indexes
-  join pg_index using (indexrelid)
-  left join pg_constraint
-    on array_to_string(indkey, ',') = array_to_string(conkey, ',')
-      and schemaname = (connamespace::regnamespace)::text
-      and conrelid = relid
-      and contype = 'f'
-  where idx_scan = 0
-     and indisunique is false
-     and conkey is not null --conkey is not null then true else false end as is_fk_idx
+  from pg_index i
+  join pg_class ci on ci.oid = i.indexrelid and ci.relkind = 'i'
+  join pg_class cr on cr.oid = i.indrelid and cr.relkind = 'r'
+  join pg_namespace n on n.oid = ci.relnamespace
+  join pg_constraint cn on cn.conrelid = cr.oid
+  left join pg_stat_user_indexes si on si.indexrelid = i.indexrelid
+  where
+     contype = 'f'
+     and i.indisunique is false
+     and conkey is not null
+     and ci.relpages > 100
+     and si.idx_scan < 10
 ), table_scans as (
   select relid,
       tables.idx_scan + tables.seq_scan as all_scans,
       ( tables.n_tup_ins + tables.n_tup_upd + tables.n_tup_del ) as writes,
     pg_relation_size(relid) as table_size
       from pg_stat_user_tables as tables
+      join pg_class c on c.oid = relid
+      where c.relpages > 100
 ), all_writes as (
   select sum(writes) as total_writes
   from table_scans
 ), indexes as (
   select
-    idx_stat.relid,
-    idx_stat.indexrelid,
-    idx_stat.schemaname as schema_name,
-    idx_stat.relname as table_name,
-    idx_stat.indexrelname as index_name,
-    quote_ident(idx_stat.schemaname) as formated_schema_name,
-    quote_ident(idx_stat.indexrelname) as formated_index_name,
-    quote_ident(idx_stat.relname) as formated_table_name,
-    coalesce(nullif(quote_ident(idx_stat.schemaname), 'public') || '.', '') || quote_ident(idx_stat.relname) as formated_relation_name,
-    idx_stat.idx_scan,
-    pg_relation_size(idx_stat.indexrelid) as index_bytes,
-    indexdef ~* 'using btree' as idx_is_btree,
-    pg_get_indexdef(pg_index.indexrelid) as index_def,
-    array_to_string(pg_index.indclass, ', ') as opclasses
-  from pg_stat_user_indexes as idx_stat
-      join pg_index
-          using (indexrelid)
-      join pg_indexes as indexes
-          on idx_stat.schemaname = indexes.schemaname
-              and idx_stat.relname = indexes.tablename
-              and idx_stat.indexrelname = indexes.indexname
+    i.indrelid,
+    i.indexrelid,
+    n.nspname as schema_name,
+    cr.relname as table_name,
+    ci.relname as index_name,
+    quote_ident(n.nspname) as formated_schema_name,
+    quote_ident(ci.relname) as formated_index_name,
+    quote_ident(cr.relname) as formated_table_name,
+    coalesce(nullif(quote_ident(n.nspname), 'public') || '.', '') || quote_ident(cr.relname) as formated_relation_name,
+    si.idx_scan,
+    pg_relation_size(i.indexrelid) as index_bytes,
+    ci.relpages,
+    (case when a.amname = 'btree' then true else false end) as idx_is_btree,
+    pg_get_indexdef(i.indexrelid) as index_def,
+    array_to_string(i.indclass, ', ') as opclasses
+  from pg_index i
+     join pg_class ci on ci.oid = i.indexrelid and ci.relkind = 'i'
+     join pg_class cr on cr.oid = i.indrelid and cr.relkind = 'r'
+     join pg_namespace n on n.oid = ci.relnamespace
+     join pg_am a ON ci.relam = a.oid
+     left join pg_stat_user_indexes si on si.indexrelid = i.indexrelid
   where
-    pg_index.indisunique = false
-    and pg_index.indisvalid = true
+    i.indisunique = false
+    and i.indisvalid = true
+    and ci.relpages > 100
 ), index_ratios as (
   select
     i.indexrelid as index_id,
@@ -67,6 +71,7 @@ with fk_indexes as (
       as scans_per_write,
     index_bytes as index_size_bytes,
     table_size as table_size_bytes,
+    i.relpages,
     idx_is_btree,
     index_def,
     formated_index_name,
@@ -78,9 +83,9 @@ with fk_indexes as (
   from indexes i
   left join fk_indexes fi on
     fi.fk_table_ref = i.table_name
+    and fi.schema_name = i.schema_name 
     and fi.opclasses like (i.opclasses || '%')
-  join table_scans
-  using (relid)
+  join table_scans ts on ts.relid = i.indrelid
 ),
 -- Never used indexes
 never_used_indexes as (
@@ -163,8 +168,9 @@ index_data as (
     *,
     indkey::text as columns,
     array_to_string(indclass, ', ') as opclasses
-  from pg_index
-  where indisvalid = true
+  from pg_index i
+  join pg_class ci on ci.oid = i.indexrelid and ci.relkind = 'i'
+  where indisvalid = true and ci.relpages > 100
 ), redundant_indexes as (
   select
     i2.indexrelid as index_id,
