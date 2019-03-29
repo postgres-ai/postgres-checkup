@@ -1,4 +1,4 @@
-# {{ .checkId }} Timeouts, locks, deadlocks #
+# {{ .checkId }} Timeouts, Locks, Deadlocks #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

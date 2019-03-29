@@ -1,4 +1,4 @@
-# {{ .checkId }} Invalid indexes #
+# {{ .checkId }} Invalid Indexes #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

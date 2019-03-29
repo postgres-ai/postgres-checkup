@@ -1,4 +1,4 @@
-# {{ .checkId }} Integer (int2, int4) out-of-range risks in PKs #
+# {{ .checkId }} Integer (int2, int4) Out-of-range Risks in PKs #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

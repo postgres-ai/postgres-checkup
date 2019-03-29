@@ -1,4 +1,4 @@
-# {{ .checkId }} Connections and current activity #
+# {{ .checkId }} Connections and Current Activity #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

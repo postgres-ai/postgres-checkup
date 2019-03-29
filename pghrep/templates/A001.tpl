@@ -1,4 +1,4 @@
-# {{ .checkId }} System information #
+# {{ .checkId }} System Information #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

@@ -1,4 +1,4 @@
-# {{ .checkId }} Version information #
+# {{ .checkId }} Version Information #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
