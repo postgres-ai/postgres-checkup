@@ -1,4 +1,4 @@
-# {{ .checkId }} Memory-related settings #
+# {{ .checkId }} Memory-related Settings #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

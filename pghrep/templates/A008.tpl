@@ -1,4 +1,4 @@
-# {{ .checkId }} Disk usage and file system type
+# {{ .checkId }} Disk Usage and File System Type
 Output of `df -TPh` (follows symlinks)
 
 ## Observations ##

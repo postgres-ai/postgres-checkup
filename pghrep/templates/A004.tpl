@@ -1,4 +1,4 @@
-# {{ .checkId }} Cluster information #
+# {{ .checkId }} Cluster Information #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

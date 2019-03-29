@@ -1,4 +1,4 @@
-# {{ .checkId }} Non indexed foreign keys (or with bad indexes) #
+# {{ .checkId }} Non-indexed Foreign Keys #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

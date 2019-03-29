@@ -1,4 +1,4 @@
-# {{ .checkId }} Table sizes #
+# {{ .checkId }} Table Sizes #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
