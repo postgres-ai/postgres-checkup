@@ -24,14 +24,23 @@ before_script:
 .test-check:
   script:
     - psql -h postgres -d dbname -U username -c "SELECT version();"
-    - psql -h postgres -d dbname -U username -f .ci/h002.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 101
-    - psql -h postgres -d dbname -U username -f .ci/h002_step2.sql
+    - echo "Test H003 Non indexed FKs"
+    - psql -h postgres -d dbname -U username -f .ci/h003.sql
+    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
+    - psql -h postgres -d dbname -U username -f .ci/h003_step2.sql
     - rm -Rf ./artifacts/
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H002_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 102
-    - echo "Passed"
+    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 302
+    - echo "H003 Passed"
+    - echo "Test H002 redundant indexes"
+    - psql -h postgres -d dbname -U username -f .ci/test_db_dump.sql
+    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_pkey"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 204
+    - echo "H002 Passed"
   
 test-general:
   stage: test
