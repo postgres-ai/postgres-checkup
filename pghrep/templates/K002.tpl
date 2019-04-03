@@ -1,4 +1,4 @@
-# {{ .checkId }} Workload type ("first word" analysis)
+# {{ .checkId }} Workload Type ("First Word" Analysis)
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

@@ -1,9 +1,9 @@
-# {{ .checkId }} Postgres setting deviations #
+# {{ .checkId }} Postgres Setting Deviations #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 {{ if .diffData }}
-### Settings (pg_settings) that differ ###
+### Settings (pg_settings) that Differ ###
 {{ if (index .diffData "pg_settings") }}
 &#9660;&nbsp;Setting | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}
 --------|-------{{ range $skey, $host := .hosts.replicas }}|-------- {{ end }}

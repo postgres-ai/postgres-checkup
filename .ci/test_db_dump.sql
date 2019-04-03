@@ -19,6 +19,17 @@ create index concurrently i_unused on t_with_unused_index(i);
 create table t_with_redundant_index as select i from generate_series(1, 1000000) _(i);
 create index concurrently i_redundant_1 on t_with_redundant_index(i);
 create index concurrently i_redundant_2 on t_with_redundant_index(i);
+-- redundant for uniq, primary keys
+create table t_with_redundant_idx as select id, id as f1, id as f2, id as f3, id as f4 from generate_series(1, 1000000) _(id);
+alter table t_with_redundant_idx add primary key (id);
+create index concurrently t_with_redundant_idx_id on t_with_redundant_idx(id);
+create unique index t_with_redundant_idx_f1_uniq on t_with_redundant_idx (f1);
+create index concurrently t_with_redundant_idx_f1 on t_with_redundant_idx(f1);
+create index concurrently t_with_redundant_idx_f1_2 on t_with_redundant_idx(f1);
+create index concurrently t_with_redundant_idx_f1_f2 on t_with_redundant_idx(f1,f2);
+create index concurrently t_with_redundant_idx_f2 on t_with_redundant_idx(f2);
+create index concurrently t_with_redundant_idx_f3_1 on t_with_redundant_idx(f3);
+create index concurrently t_with_redundant_idx_f3_2 on t_with_redundant_idx(f3);
 
 -- H001 invalid indexes
 create schema test_schema;

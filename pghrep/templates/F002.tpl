@@ -1,4 +1,4 @@
-# {{ .checkId }} Autovacuum: Transaction wraparound check #
+# {{ .checkId }} Autovacuum: Transaction Wraparound Check #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

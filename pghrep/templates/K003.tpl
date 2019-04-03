@@ -1,4 +1,4 @@
-# {{ .checkId }} Top-50 queries by total_time
+# {{ .checkId }} Top-50 Queries by total_time
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

@@ -1,4 +1,4 @@
-# {{ .checkId }} Postgres settings #
+# {{ .checkId }} Postgres Settings #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  

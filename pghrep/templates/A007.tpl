@@ -1,4 +1,4 @@
-# {{ .checkId }} Altered settings #
+# {{ .checkId }} Altered Settings #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
