@@ -22,7 +22,7 @@ with data as (
     join pg_namespace on pg_class.relnamespace = pg_namespace.oid
     join fk_actions as fk_actions_update on confupdtype = fk_actions_update.code
     join fk_actions as fk_actions_delete on confdeltype = fk_actions_delete.code
-    where contype = 'f' -- and pg_class.relpages > 10
+    where contype = 'f' and pg_class.relpages > 10
   ), fk_attributes as (
     select fkoid, conrelid, attname, attnum
     from fk_list
