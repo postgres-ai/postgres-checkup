@@ -27,8 +27,6 @@ before_script:
     - echo "Test H003 Non indexed FKs"
     - psql -h postgres -d dbname -U username -f .ci/h003.sql
     - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data')
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
     - psql -h postgres -d dbname -U username -f .ci/h003_step2.sql
     - rm -Rf ./artifacts/
