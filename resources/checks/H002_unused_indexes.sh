@@ -229,12 +229,12 @@ redundant_indexes_tmp_num as (
      ri2.num as r_num
     from redundant_indexes_tmp_num ri1
     left join redundant_indexes_tmp_num ri2 on ri2.reason = ri1.index_name and ri1.reason = ri2.index_name
-),redundant_indexes_tmp_cutted as (
+), redundant_indexes_tmp_cut as (
     select
      *
     from redundant_indexes_tmp_links
     where num < r_num or r_num is null
-),redundant_indexes_cutted_grouped as (
+), redundant_indexes_cut_grouped as (
   select
     index_id,
     schema_name,
@@ -253,7 +253,7 @@ redundant_indexes_tmp_num as (
     formated_table_name,
     formated_relation_name,
     supports_fk
-  from redundant_indexes_tmp_cutted
+  from redundant_indexes_tmp_cut
   group by
     index_id,
     table_size_bytes,
@@ -273,7 +273,7 @@ redundant_indexes_tmp_num as (
     formated_relation_name,
     supports_fk
   order by index_size_bytes desc
-),redundant_indexes_grouped as (
+), redundant_indexes_grouped as (
   select
     index_id,
     schema_name,
@@ -292,7 +292,7 @@ redundant_indexes_tmp_num as (
     formated_table_name,
     formated_relation_name,
     supports_fk
-  from redundant_indexes_cutted_grouped
+  from redundant_indexes_cut_grouped
   group by
     index_id,
     table_size_bytes,
@@ -313,8 +313,7 @@ redundant_indexes_tmp_num as (
   select row_number() over () num, rig.*
   from redundant_indexes_grouped rig
   limit ${ROWS_LIMIT}
-),
-redundant_indexes_json as (
+), redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
   from redundant_indexes_num rin
