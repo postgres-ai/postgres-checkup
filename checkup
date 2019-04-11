@@ -777,7 +777,7 @@ glue_md_reports() {
     title="${title%"${title##*[![:space:]]}"}"
     checkId=$(echo $title | cut -c 1-4)
     tableOfContents="$tableOfContents\n[$title](#postgres-checkup_$checkId)  "
-    content="$content\n---\n<a name=\"postgres-checkup_$checkId\"></a>\n[Table of contents](#postgres-checkup_top)"
+    content="$content\n\n\n---\n<a name=\"postgres-checkup_$checkId\"></a>\n[Table of contents](#postgres-checkup_top)"
     report=$(cat "${cur_report}")
     content="$content\n$report"
   done

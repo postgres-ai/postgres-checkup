@@ -7,11 +7,11 @@ Current database: {{ .database }}
 {{ if (index .results .hosts.master)}}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-Table | PK | Type | Current max value | &#9660;&nbsp;Capacity used, %
-------|----|------|-------------------|-------------------------------
+| Table | PK | Type | Current max value | &#9660;&nbsp;Capacity used, % |
+|------|----|------|-------------------|-------------------------------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-{{ index $value "Table"}} | {{ index $value "PK"}} | {{ index $value "Type"}} | {{- RawIntFormat (index $value "Current max value")}} | {{ index $value "Capacity used, %"}}
+|{{ index $value "Table"}} | {{ index $value "PK"}} | {{ index $value "Type"}} | {{- RawIntFormat (index $value "Current max value")}} | {{ index $value "Capacity used, %"}}|
 {{ end }}
 {{- else -}}{{/*Master data*/}}
 No data

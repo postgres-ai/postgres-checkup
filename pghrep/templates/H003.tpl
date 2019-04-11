@@ -9,11 +9,11 @@ Current database: {{ .database }}
 {{ if (index (index .results .hosts.master) "data") }}
 {{ if gt (len (index (index .results .hosts.master) "data")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
-Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
+| Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef |
+|----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-    {{ $key }} |
+    |{{ $key }} |
     {{- $value.schema_name }} |
     {{- $value.table_name }} |
     {{- $value.fk_name }} |
@@ -25,7 +25,7 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.parent_mb}} |
     {{- NumFormat $value.parent_writes -1 }} |
     {{- $value.cols_list }} |
-    {{- $value.indexdef }}
+    {{- $value.indexdef }}|
 {{ end }}{{/* range */}}
 {{ else }}
 No data
@@ -42,11 +42,11 @@ No data
 {{ if gt (len (index (index $.results $host) "data")) 0 }}
 {{ if gt (len (index (index $.results $host) "data")) $.ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
-Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef
-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------
+| Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef |
+|-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------|
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
     {{- $value := (index (index (index $.results $host) "data") $key) -}}
-    {{ $key }} |
+    | {{ $key }} |
     {{- $value.schema_name }} |
     {{- $value.table_name }} |
     {{- $value.fk_name }} |
@@ -58,7 +58,7 @@ Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table sca
     {{- $value.parent_mb}} |
     {{- $value.parent_writes}} |
     {{- $value.cols_list }} |
-    {{- $value.indexdef }}
+    {{- $value.indexdef }} |
 {{ end }}{{/* range */}}
 {{- else -}}{{/* if data > 0*/}} 
 No data

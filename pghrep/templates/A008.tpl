@@ -9,33 +9,33 @@ Data collected: {{ DtFormat .timestamptz }}
 ### Master (`{{.hosts.master}}`) ###
 
 #### System directories ####
-Device | FS Type | Size | Available | Usage | Used | Mount Point 
--------|---------|------|-----------|-----|------|-------------
+| Device | FS Type | Size | Available | Usage | Used | Mount Point |
+|-------|---------|------|-----------|-----|------|-------------|
 {{ range $i, $name := (index (index (index (index .results .hosts.master) "data") "fs_data") "_keys") -}}
     {{- $value := (index (index (index (index $.results $.hosts.master) "data") "fs_data") $name) -}}
-    {{ $value.device}}|
+    | {{ $value.device}}|
     {{- $value.fstype}}|
     {{- $value.size}}|
     {{- $value.avail}}|
     {{- $value.use_percent}}|
     {{- $value.used}}|
-    {{- $value.mount_point}}
+    {{- $value.mount_point}} |
 {{ end }}{{/* end of range $i, $name := */}}
 
 #### Database directories ####
-Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
------|---------|------|-----------|-----|------|-------------|------|-------
+| Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device |
+|-----|---------|------|-----------|-----|------|-------------|------|-------|
 {{ range $i, $name := (index (index (index (index .results .hosts.master) "data") "db_data") "_keys") -}}
     {{- $value := (index (index (index (index $.results $.hosts.master) "data") "db_data") $name) -}}
-    {{ $name }}|
-    {{- $value.fstype}}|
-    {{- $value.size}}|
-    {{- $value.avail}}|
-    {{- $value.use_percent}}|
-    {{- $value.used}}|
-    {{- $value.mount_point}}|
-    {{- $value.path}}|
-    {{- $value.device}}
+    | {{ $name }} |
+    {{- $value.fstype}} |
+    {{- $value.size}} |
+    {{- $value.avail}} |
+    {{- $value.use_percent}} |
+    {{- $value.used}} |
+    {{- $value.mount_point}} |
+    {{- $value.path}} |
+    {{- $value.device}} |
 {{ end }}{{/* end of range $i, $name := */}}
 
         {{ end }}{{/* end of if .hosts.master data */}}
@@ -49,33 +49,33 @@ Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
 #### Replica (`{{ $host }}`) ####
 
 #### System directories ####
-Device | FS Type | Size | Available | Usage | Used | Mount Point 
--------|---------|------|-----------|-----|------|-------------
+| Device | FS Type | Size | Available | Usage | Used | Mount Point |
+|-------|---------|------|-----------|-----|------|-------------|
 {{ range $i, $name := (index (index (index (index $.results $host) "data") "fs_data") "_keys") -}}
     {{- $value := (index (index (index (index $.results $host) "data") "fs_data") $name) -}}
-    {{ $value.device}}|
-    {{- $value.fstype}}|
-    {{- $value.size}}|
-    {{- $value.avail}}|
-    {{- $value.use_percent}}|
-    {{- $value.used}}|
-    {{- $value.mount_point}}
+    | {{ $value.device}} |
+    {{- $value.fstype}} |
+    {{- $value.size}} |
+    {{- $value.avail}} |
+    {{- $value.use_percent}} |
+    {{- $value.used}} |
+    {{- $value.mount_point}} |
 {{ end }}{{/* range $i, $name := */}}
 
 #### Database directories ####
-Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device
------|---------|------|-----------|-----|------|-------------|------|-------
+| Name | FS Type | Size | Available | Usage | Used | Mount Point | Path | Device |
+|-----|---------|------|-----------|-----|------|-------------|------|-------|
 {{ range $i, $name := (index (index (index (index $.results $host) "data") "db_data") "_keys") -}}
     {{- $value := (index (index (index (index $.results $host) "data") "db_data") $name) -}}
-    {{ $name }}|
-    {{- $value.fstype}}|
-    {{- $value.size}}|
-    {{- $value.avail}}|
-    {{- $value.use_percent}}|
-    {{- $value.used}}|
-    {{- $value.mount_point}}|
-    {{- $value.path}}|
-    {{- $value.device}}
+    | {{ $name }} |
+    {{- $value.fstype}} |
+    {{- $value.size}} |
+    {{- $value.avail}} |
+    {{- $value.use_percent}} |
+    {{- $value.used}} |
+    {{- $value.mount_point}} |
+    {{- $value.path}} |
+    {{- $value.device}} |
 {{ end }}{{/* range $i, $name := */}}
 
         {{ end }}{{/* if (index $.results $host) */}}

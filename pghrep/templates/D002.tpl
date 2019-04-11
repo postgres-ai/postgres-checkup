@@ -7,12 +7,13 @@ Data collected: {{ DtFormat .timestamptz }}
 ### Master (`{{.hosts.master}}`) ###
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-### {{ $key }}
-Utility | Availability
---------|--------------
+### {{ $key }} ###
+| Utility | Availability |
+|--------|--------------|
 {{- range $k, $util_name := (index (index $value) "_keys") }}
-{{ $util_name }} | {{ (index (index $value) $util_name) }}
-{{- end }}{{/* range values */}}
+| {{ $util_name }} | {{ (index (index $value) $util_name) }} |
+{{- end }}{{/* range values */}}  
+
 {{ end }}{{/* range data */}}
 {{ end }}{{/* if master host data*/}}
 {{ end }}{{/* if master results*/}}
@@ -25,11 +26,12 @@ Utility | Availability
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}
 ### {{ $key }}
-Utility | Availability
---------|--------------
+| Utility | Availability |
+|--------|--------------|
 {{- range $k, $util_name := (index (index $value) "_keys") }}
-{{ $util_name }} | {{ (index (index $value) $util_name) }}
-{{- end }}{{/* range values */}}
+| {{ $util_name }} | {{ (index (index $value) $util_name) }} |
+{{- end }}{{/* range values */}}  
+
 {{ end }}{{/* range data */}}
 {{ end }}{{/* if host data*/}}
 {{ end }}{{/* range replicas*/}}
