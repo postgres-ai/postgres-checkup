@@ -20,7 +20,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |---------|------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "database_sizes") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "database_sizes") $key) -}}
-| {{ $key }} | {{ ByteFormat $value 2 }} |
+| `{{ $key }}` | {{ ByteFormat $value 2 }} |
 {{ end }}
 {{- end -}}
 {{- end -}}

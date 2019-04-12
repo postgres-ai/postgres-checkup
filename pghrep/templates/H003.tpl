@@ -13,10 +13,7 @@ Current database: {{ .database }}
 |----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-    |{{ $key }} |
-    {{- $value.schema_name }} |
-    {{- $value.table_name }} |
-    {{- $value.fk_name }} |
+    |{{ $key }} | `{{ $value.schema_name }}` | `{{ $value.table_name }}` | `{{- $value.fk_name }}` |
     {{- $value.issue }} |
     {{- $value.table_mb }} |
     {{- NumFormat $value.writes -1 }} |
@@ -46,10 +43,7 @@ No data
 |-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------|
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
     {{- $value := (index (index (index $.results $host) "data") $key) -}}
-    | {{ $key }} |
-    {{- $value.schema_name }} |
-    {{- $value.table_name }} |
-    {{- $value.fk_name }} |
+    | {{ $key }} | `{{ $value.schema_name }}` | `{{ $value.table_name }}` | `{{ $value.fk_name }}` |
     {{- $value.issue }} |
     {{- $value.table_mb }} |
     {{- $value.writes }} |

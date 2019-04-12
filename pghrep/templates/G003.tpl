@@ -26,7 +26,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |---------|---------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "db_specified_settings") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "db_specified_settings") $key) -}}
-| {{ $value.database }} | {{ $value.setconfig }} 
+| `{{ $value.database }}` | {{ $value.setconfig }} 
 {{ end }}
 {{- end -}}
 {{ if (index (index (index .results .hosts.master) "data") "user_specified_settings") }}
@@ -35,7 +35,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |------|---------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "user_specified_settings") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "user_specified_settings") $key) -}}
-| {{ $value.rolname }} | {{ $value.rolconfig }} 
+| `{{ $value.rolname }}` | {{ $value.rolconfig }} 
 {{ end }}
 {{- end -}}
 {{ if (index (index (index .results .hosts.master) "data") "databases_stat") }}
@@ -46,7 +46,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |--|-----------|-------|-----------|----------------|------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "databases_stat") "_keys") }}
 {{- $value:= (index (index (index (index $.results $.hosts.master) "data") "databases_stat") $key) -}}
-| {{ $value.num }}| {{- $key }} | {{ $value.conflicts}} | {{ $value.deadlocks }} | {{ $value.stats_reset }}|{{ $value.stats_reset_age }} |
+| {{ $value.num }}| `{{- $key }}` | {{ $value.conflicts}} | {{ $value.deadlocks }} | {{ $value.stats_reset }}|{{ $value.stats_reset_age }} |
 {{ end }}
 {{ end }}
 {{- end -}}
@@ -77,7 +77,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |---------|---------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "db_specified_settings") "_keys") }}
 {{- $value := (index (index (index (index $.results $host) "data") "db_specified_settings") $key) -}}
-| {{ $value.database }} | {{ $value.setconfig }} |
+| `{{ $value.database }}` | {{ $value.setconfig }} |
 {{ end }}
 {{- end -}}
 {{ if (index (index (index $.results $host) "data") "user_specified_settings") }}
@@ -86,7 +86,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |---------|---------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "user_specified_settings") "_keys") }}
 {{- $value := (index (index (index (index $.results $host) "data") "user_specified_settings") $key) -}}
-| {{ $value.rolname }} | {{ $value.rolconfig }} |
+| `{{ $value.rolname }}` | {{ $value.rolconfig }} |
 {{ end }}
 {{- end -}}
 {{ if (index (index (index $.results $host) "data") "databases_stat") }}
@@ -97,7 +97,7 @@ Data collected: {{ DtFormat .timestamptz }}
 |----------|-----------|------------------------|----------------|------------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "databases_stat") "_keys") }}
 {{- $value:= (index (index (index (index $.results $host) "data") "databases_stat") $key) -}}
-| {{$key}}|{{ $value.conflicts}}|{{ $value.deadlocks }}|{{ $value.stats_reset }}|{{ $value.stats_reset_age }} |
+| `{{$key}}` | {{ $value.conflicts}} | {{ $value.deadlocks }} | {{ $value.stats_reset }} | {{ $value.stats_reset_age }} |
 {{ end }}
 {{ end }}
 {{ end }}

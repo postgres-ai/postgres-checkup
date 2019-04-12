@@ -13,7 +13,7 @@ Current database: {{ .database }}
 |---|---|------|------------|------------|----------------|------------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-|{{ $value.num}} | {{ index $value "Table"}} | {{ index $value "Rows"}} | {{ index $value "Total Size"}} | {{ index $value "Table Size"}} | {{ index $value "Index(es) Size"}} | {{ index $value "TOAST Size"}}|
+|{{ $value.num}} | {{if eq (index $value "Table") "=====TOTAL=====" }}{{ index $value "Table" }}{{else}}`{{ index $value "Table" }}`{{end}} | {{ index $value "Rows"}} | {{ index $value "Total Size"}} | {{ index $value "Table Size"}} | {{ index $value "Index(es) Size"}} | {{ index $value "TOAST Size"}}|
 {{ end }}
 {{- else -}}{{/*Master data*/}}
 No data

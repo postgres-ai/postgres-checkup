@@ -15,8 +15,7 @@ Current database: {{ .database }}
 |--|--------|-----|------------------|---------|--------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_instance") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_instance") $key) -}}
-| {{ $value.num }} |
- {{- index $value "datname"}} | 
+| {{ $value.num }} |`{{- index $value "datname"}}`| 
 {{- NumFormat (index $value "age") -1 }} |
 {{- index $value "capacity_used"}} |
 {{- if (index $value "warning") }} &#9888; {{ else }} {{ end }} |
@@ -32,8 +31,7 @@ Current database: {{ .database }}
 |---|-------|-----|------------------|---------|-----------------|--------------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_database") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_database") $key) -}}
-| {{ $value.num }} |
-{{- index $value "relation"}}{{if $value.overrided_settings}}<sup>*</sup>{{ end }} |
+| {{ $value.num }} |`{{ index $value "relation"}}`{{if $value.overrided_settings}}<sup>*</sup>{{ end }} |
 {{- NumFormat (index $value "age") -1 }} |
 {{- index $value "capacity_used"}} |
 {{- if (index $value "warning") }} &#9888; {{ else }} {{ end }} |
