@@ -352,7 +352,7 @@ validate_args() {
   # fill default (not given) psql connection related variables
   [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
-  [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=15 # statement timeout
+  [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
 
   # custom UNIX domain socket directory for PostgreSQL

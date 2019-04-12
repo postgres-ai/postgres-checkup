@@ -14,6 +14,8 @@ with data as (
   from pg_class c
   left join pg_namespace n on n.oid = c.relnamespace
   where relkind = 'r' and nspname <> 'pg_catalog'
+  order by c.relpages desc
+  limit ${ROWS_LIMIT}
 ), data2 as (
   select
     null::oid as oid,
@@ -83,7 +85,6 @@ with data as (
     ts.*
   from tables ts
   where "Table" <> '=====TOTAL====='
-  limit ${ROWS_LIMIT}
 ), together as (
   select * from total
   union all
