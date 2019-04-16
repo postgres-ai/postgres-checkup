@@ -1,7 +1,9 @@
+Pghrep used by `checkup` during database analysis to create markdown reports from JSON reports.
+
 To build report generator use:
 
 `cd /pghrep`
-make all`
+`make all`
 
 To generate report use:
 
