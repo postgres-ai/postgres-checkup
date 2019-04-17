@@ -236,42 +236,9 @@ redundant_indexes_tmp_num as (
     where num < r_num or r_num is null
 ), redundant_indexes_cut_grouped as (
   select
-    index_id,
-    schema_name,
-    table_name,
-    table_size_bytes,
-    index_name,
-    access_method,
-    reason,
-    main_index_def,
-    main_index_size,
-    index_def,
-    index_size_bytes,
-    index_usage,
-    formated_index_name,
-    formated_schema_name,
-    formated_table_name,
-    formated_relation_name,
-    supports_fk
+    distinct(num),
+    *
   from redundant_indexes_tmp_cut
-  group by
-    index_id,
-    table_size_bytes,
-    schema_name,
-    table_name,
-    index_name,
-    access_method,
-    reason,
-    main_index_def,
-    main_index_size,
-    index_def,
-    index_size_bytes,
-    index_usage,
-    formated_index_name,
-    formated_schema_name,
-    formated_table_name,
-    formated_relation_name,
-    supports_fk
   order by index_size_bytes desc
 ), redundant_indexes_grouped as (
   select
