@@ -12,9 +12,8 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ else }}
 No differences in `pg_settings` are found.
 {{end}}
-{{ if (index .diffData "pg_configs") }}
-Configs(pg_config) that differ
 ### Configs(pg_config) that differ ###
+{{ if (index .diffData "pg_configs") }}
 {{ range $key, $value := (index .diffData "pg_configs") }}
 Config {{ $key }}: {{ range $key, $value := $value }} On {{ $key }}: {{ if (index $value "unit") }}{{ UnitValue (index $value "value") (index $value "unit") }}{{else}}{{ index $value "value" }}{{ end  }}{{ end }}
 {{ end }}
