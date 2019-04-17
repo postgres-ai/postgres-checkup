@@ -174,13 +174,14 @@ index_data as (
     irel.relname AS index_name,
     am1.amname as access_method,
     (i1.indexrelid::regclass)::text as reason,
+    i1.indexrelid as reason_index_id,
     pg_get_indexdef(i1.indexrelid) main_index_def,
     pg_size_pretty(pg_relation_size(i1.indexrelid)) main_index_size,
     pg_get_indexdef(i2.indexrelid) index_def,
     pg_relation_size(i2.indexrelid) index_size_bytes,
     s.idx_scan as index_usage,
     quote_ident(tnsp.nspname) as formated_schema_name,
-    quote_ident(irel.relname) as formated_index_name,
+    coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(irel.relname) as formated_index_name,
     quote_ident(trel.relname) AS formated_table_name,
     coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(trel.relname) as formated_relation_name,
     i2.opclasses
@@ -228,7 +229,7 @@ redundant_indexes_tmp_num as (
      ri1.*,
      ri2.num as r_num
     from redundant_indexes_tmp_num ri1
-    left join redundant_indexes_tmp_num ri2 on ri2.reason = ri1.index_name and ri1.reason = ri2.index_name
+    left join redundant_indexes_tmp_num ri2 on ri2.reason_index_id = ri1.index_id and ri1.reason_index_id = ri2.index_id
 ), redundant_indexes_tmp_cut as (
     select
      *
