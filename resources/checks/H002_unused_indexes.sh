@@ -218,61 +218,6 @@ index_data as (
   left join fk_indexes fi on
     fi.fk_table_ref = ri.table_name
     and fi.opclasses like (ri.opclasses || '%')
-),
--- Cut recursive links
-redundant_indexes_tmp_num as (
-  select row_number() over () num, rig.*
-  from redundant_indexes_fk rig
-), redundant_indexes_tmp_links as (
-    select
-     ri1.*,
-     ri2.num as r_num
-    from redundant_indexes_tmp_num ri1
-    left join redundant_indexes_tmp_num ri2 on ri2.reason = ri1.index_name and ri1.reason = ri2.index_name
-), redundant_indexes_tmp_cut as (
-    select
-     *
-    from redundant_indexes_tmp_links
-    where num < r_num or r_num is null
-), redundant_indexes_cut_grouped as (
-  select
-    index_id,
-    schema_name,
-    table_name,
-    table_size_bytes,
-    index_name,
-    access_method,
-    reason,
-    main_index_def,
-    main_index_size,
-    index_def,
-    index_size_bytes,
-    index_usage,
-    formated_index_name,
-    formated_schema_name,
-    formated_table_name,
-    formated_relation_name,
-    supports_fk
-  from redundant_indexes_tmp_cut
-  group by
-    index_id,
-    table_size_bytes,
-    schema_name,
-    table_name,
-    index_name,
-    access_method,
-    reason,
-    main_index_def,
-    main_index_size,
-    index_def,
-    index_size_bytes,
-    index_usage,
-    formated_index_name,
-    formated_schema_name,
-    formated_table_name,
-    formated_relation_name,
-    supports_fk
-  order by index_size_bytes desc
 ), redundant_indexes_grouped as (
   select
     index_id,
@@ -292,7 +237,7 @@ redundant_indexes_tmp_num as (
     formated_table_name,
     formated_relation_name,
     supports_fk
-  from redundant_indexes_cut_grouped
+  from redundant_indexes_fk
   group by
     index_id,
     table_size_bytes,
@@ -313,7 +258,8 @@ redundant_indexes_tmp_num as (
   select row_number() over () num, rig.*
   from redundant_indexes_grouped rig
   limit ${ROWS_LIMIT}
-), redundant_indexes_json as (
+),
+redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
   from redundant_indexes_num rin
