@@ -31,6 +31,11 @@ create index concurrently t_with_redundant_idx_f2 on t_with_redundant_idx(f2);
 create index concurrently t_with_redundant_idx_f3_1 on t_with_redundant_idx(f3);
 create index concurrently t_with_redundant_idx_f3_2 on t_with_redundant_idx(f3);
 
+drop table if exists public.t_with_redundant_ref_idx;
+create table public.t_with_redundant_ref_idx as select i from generate_series(1, 1000000) _(i);
+create index t_with_redundant_ref_idx_1 on public.t_with_redundant_ref_idx using btree (i);
+create index t_with_redundant_ref_idx_2 on public.t_with_redundant_ref_idx using btree (i);
+
 -- H001 invalid indexes
 create schema test_schema;
 create table test_schema.t_with_invalid_index as select i from generate_series(1, 1000000) _(i);
