@@ -35,6 +35,14 @@ drop table if exists public.t_with_redundant_ref_idx;
 create table public.t_with_redundant_ref_idx as select i from generate_series(1, 1000000) _(i);
 create index t_with_redundant_ref_idx_1 on public.t_with_redundant_ref_idx using btree (i);
 create index t_with_redundant_ref_idx_2 on public.t_with_redundant_ref_idx using btree (i);
+create index t_with_redundant_ref_idx_3 on public.t_with_redundant_ref_idx using btree (i);
+
+create schema exp_redundant;
+drop table if exists exp_redundant.t_with_redundant_ref_idx;
+create table exp_redundant.t_with_redundant_ref_idx as select i from generate_series(1, 1000000) _(i);
+create index t_with_redundant_ref_idx_1 on exp_redundant.t_with_redundant_ref_idx using btree (i);
+create index t_with_redundant_ref_idx_2 on exp_redundant.t_with_redundant_ref_idx using btree (i);
+create index t_with_redundant_ref_idx_3 on exp_redundant.t_with_redundant_ref_idx using btree (i);
 
 -- H001 invalid indexes
 create schema test_schema;
