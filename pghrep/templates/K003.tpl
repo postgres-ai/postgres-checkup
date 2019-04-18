@@ -17,11 +17,12 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 
 {{ if gt (len (index (index (index .results .hosts.master) "data") "queries")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
-| \# | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time | Query |
-|----|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|-------|
+| \# | Query Id | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
+|----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "queries") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "queries") $key) -}}
 | {{- $key}} |
+{{- $value.readable_queryid}}<br/>[Full query]({{ $value.link }}) |
 {{- RawIntFormat $value.diff_calls }}<br/>{{ NumFormat $value.per_sec_calls 2 }}/sec<br/>{{ NumFormat $value.per_call_calls 2 }}/call<br/>{{ NumFormat $value.ratio_calls 2 }}% |
 {{- RawFloatFormat $value.diff_total_time 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_total_time }}/sec<br/>{{ MsFormat $value.per_call_total_time }}/call<br/>{{ NumFormat $value.ratio_total_time 2 }}% |
 {{- RawIntFormat $value.diff_rows }}<br/>{{ NumFormat $value.per_sec_rows 2 }}/sec<br/>{{ NumFormat $value.per_call_rows 2 }}/call<br/>{{ NumFormat $value.ratio_rows 2 }}% |
@@ -34,8 +35,18 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 {{- NumFormat $value.diff_kcache_reads 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_reads 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_reads 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_reads 2 }}% |
 {{- NumFormat $value.diff_kcache_writes 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_writes 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_writes 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_writes 2 }}% |
 {{- RawFloatFormat $value.diff_kcache_user_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_user_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_user_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_user_time_ms 2 }}% |
-{{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% | `{{ EscapeQuery (LimitStr $value.query 2000 ) }}`<br/><br/>[Full query]({{ $value.link }}) |
+{{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
 {{ end }}{{/* range */}}
+  
+  
+#### Queries ####
+| \# | Query Id |  Query |
+|----|----------|--------|
+{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "queries") "_keys") }}
+{{- $value := (index (index (index (index $.results $.hosts.master) "data") "queries") $key) -}}
+| {{- $key}} | {{$value.readable_queryid}} |{{ EscapeQuery (LimitStr $value.query 2000 ) }}<br/>[Full query]({{ $value.link }}) |
+{{ end }}
+
 {{- end }}{{/*Master data*/}}
 {{- end }}{{/*Master data*/}}
 {{ end }}{{/*Master*/}}
@@ -52,11 +63,12 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 
 {{ if gt (len (index (index (index $.results $host) "data") "queries")) $.ROWS_LIMIT }}Top {{$.ROWS_LIMIT}} rows{{ end }}  
 
-| \# | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time | Query |
-|----|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|-------|
+| \# | Query Id | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
+|----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "queries") "_keys") }}
 {{- $value := (index (index (index (index $.results $host) "data") "queries") $key) -}}
 |{{- $key}} |
+{{- $value.readable_queryid}}<br/>[Full query]({{ $value.link }}) |
 {{- RawIntFormat $value.diff_calls }}<br/>{{ NumFormat $value.per_sec_calls 2 }}/sec<br/>{{ NumFormat $value.per_call_calls 2 }}/call<br/>{{ NumFormat $value.ratio_calls 2 }}% |
 {{- RawFloatFormat $value.diff_total_time 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_total_time }}/sec<br/>{{ MsFormat $value.per_call_total_time }}/call<br/>{{ NumFormat $value.ratio_total_time 2 }}% |
 {{- RawIntFormat $value.diff_rows }}<br/>{{ NumFormat $value.per_sec_rows 2 }}/sec<br/>{{ NumFormat $value.per_call_rows 2 }}/call<br/>{{ NumFormat $value.ratio_rows 2 }}% |
@@ -69,8 +81,16 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 {{- NumFormat $value.diff_kcache_reads 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_reads 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_reads 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_reads 2 }}% |
 {{- NumFormat $value.diff_kcache_writes 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_writes 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_writes 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_writes 2 }}% |
 {{- RawFloatFormat $value.diff_kcache_user_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_user_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_user_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_user_time_ms 2 }}% |
-{{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% | `{{ EscapeQuery (LimitStr $value.query 2000 ) }}`<br/><br/>[Full query link]({{ $value.link }}) |
+{{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
 {{ end }}{{/* range */}}
+  
+#### Queries ####
+| \# | Query Id |  Query |
+|----|----------|--------|
+{{ range $i, $key := (index (index (index (index .results $host) "data") "queries") "_keys") }}
+{{- $value := (index (index (index (index $.results $.host) "data") "queries") $key) -}}
+| {{- $key}} | {{$value.readable_queryid}} | {{ EscapeQuery (LimitStr $value.query 2000 ) }}<br/>[Full query]({{ $value.link }}) |
+{{ end }}
 {{- else -}}{{/* if host data */}}
 No data
 {{- end -}}{{/* if host data */}}

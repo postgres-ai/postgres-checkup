@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# require  
+# require
 # pandoc: `sudo apt install pandoc`
-# wkhtmltopdf: 
+# wkhtmltopdf:
 #    Ubuntu: `sudo apt-get install xvfb libfontconfig wkhtmltopdf`
 #    iOS: `brew install wkhtmltopdf`
 
@@ -14,22 +14,42 @@ tmp2_html_filename=${md_filename%.*}".tmp2.html"
 tmp3_html_filename=${md_filename%.*}".tmp3.html"
 pdf_filename=${md_filename%.*}".pdf"
 
-awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
-pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
---to=html -V -H md.style --output=$tmp1_html_filename $tmp1_md_filename
+if PANDOC_VER=$(pandoc --version); then
+  awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
-pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
---to=html -V -H pdf.style --output=$tmp2_html_filename $tmp1_md_filename
+  pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
+  --to=html -V -H md.style --output=$tmp1_html_filename $tmp1_md_filename
 
+  pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
+  --to=html -V -H pdf.style --output=$tmp2_html_filename $tmp1_md_filename
 
-awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
-awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
-rm $tmp1_html_filename
-rm $tmp2_html_filename
-rm $tmp1_md_filename
+  # replace :warninig: image
+  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
+  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
 
-wkhtmltopdf -s A4 $tmp3_html_filename $pdf_filename
-rm $tmp3_html_filename
+  if WKHTMLTOPDF_VER=$(wkhtmltopdf --version); then
+    wkhtmltopdf -q -s A4 $tmp3_html_filename $pdf_filename
+  else
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'wkhtmltopdf' not found. Generating of html report skipped."
+  fi
 
-ls ${md_filename%.*}*
+  rm $tmp1_html_filename
+  rm $tmp2_html_filename
+  rm $tmp1_md_filename
+  rm $tmp3_html_filename
+
+  if [[ -f $html_filename ]]; then
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] Final .html report is ready at:"
+    echo "        '$html_filename'"
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]"
+  fi
+
+  if [[ -f $pdf_filename ]]; then
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] Final .pdf report is ready at:"
+    echo "        '$pdf_filename'"
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]"
+  fi
+else
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'pandoc' not found. Generating of html report skipped."
+fi

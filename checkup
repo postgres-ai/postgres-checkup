@@ -1086,6 +1086,7 @@ run_checks() {
     echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
+  ./md2pdf.sh ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
 }
 
 ######### COMMANDS WRAPPERS ###########

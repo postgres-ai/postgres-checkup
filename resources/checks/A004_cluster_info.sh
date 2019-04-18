@@ -96,7 +96,7 @@ with data as (
   select 'Stats Since', stats_reset::timestamptz(0)::text from data
   union all
   select 'Stats Age', (now() - stats_reset)::interval(0)::text from data
-  union all
+/*  union all
   select 'Installed Extensions', (
     with exts as (
       select extname || ' ' || extversion e, (-1 + row_number() over (order by extname)) / 5 i from pg_extension
@@ -104,7 +104,7 @@ with data as (
       select string_agg(e, ', ' order by i) l from exts group by i
     )
     select string_agg(l, e'\n') from lines
-  )
+  )*/
   union all
   select 'Cache Effectiveness', (round(blks_hit * 100::numeric / (blks_hit + blks_read), 2))::text || '%' from data -- no "/0" because we already work!
   union all
