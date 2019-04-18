@@ -14,8 +14,7 @@ tmp2_html_filename=${md_filename%.*}".tmp2.html"
 tmp3_html_filename=${md_filename%.*}".tmp3.html"
 pdf_filename=${md_filename%.*}".pdf"
 
-
-if PANDOC_VER=$(pandoc --version); then
+if PANDOC=$(which pandoc); then
   awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
   pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
@@ -28,7 +27,7 @@ if PANDOC_VER=$(pandoc --version); then
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
 
-  if WKHTMLTOPDF_VER=$(wkhtmltopdf --version); then
+  if WKHTMLTOPDF=$(which wkhtmltopdf); then
     wkhtmltopdf -q -s A4 $tmp3_html_filename $pdf_filename
   else
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'wkhtmltopdf' not found. Generating of html report skipped."
