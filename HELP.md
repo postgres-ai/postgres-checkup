@@ -176,48 +176,60 @@ Shows a table with Postgres settings related to autovacuum resource usage.
 
 ### G001 Memory-related Settings
 
-Shows Postgres settings related to memory usage. Memory management in PostgreSQL is important for improving the performance of the database server. We can suggest changing these parameters values to achieve better performance. This report answer  the questions:  
-- Are the Resource Consumption parameters tuned? 
-- Is the level of OOM risks low or high?  
-- Is memory usage correct?  
+Shows Postgres settings related to memory usage.
+
+> Insights:
+> - Memory management in PostgreSQL is important for good database performance.
+> - Questions worth answering:
+>     - Are the Resource Consumption parameters tuned?
+>     - Is the level of OOM risks low or high?
+>     - Can any signs of sub-optimal behaviour be observed from memory usage?
 
 ### G002 Connections and Current Activity
 
-A detailed snapshot of all connections, grouped by users, databases and state type.
-Helps to detect the count of not good conditions like:
- 
-- idle in the transaction. Are there any "idle in transaction" connections with state changed more than 1 hour ago, or with transaction age more than 1 hour?
-- long active connections. Are there any  "actives"  > 1 hour?
-- reaching to `max_connections`
+A detailed snapshot report of all connections, grouped by users, databases and state type.
+
+> Insights:
+> - The report helps to detect the count of potentially bad conditions like:
+>     - Many "idle in the transaction" sessions. Are there any "idle in transaction" connections with state changed more than 1 minute / 1 hour ago, or with transaction age more than 1 minute / hour?
+>     - Long active connections. Are there any  "active" connections with state changed more than 1 minute / 1 hour ago?
+>     - How close is `max_connections`?
 
 ### G003 Timeouts, Locks, Deadlocks
 
-Provides information about how "timeouts" and "locks" are tuned, shows deadlocks counter for every database since statistics reset.
+Provides information about how "timeout" and locking-related settings are tuned, shows deadlocks counter for every database since statistics reset.
 
-Answers the questions:  
-- Is statement_timeout not 0 and <= 30 seconds (best choice for an OLTP system)?
-- Is idle_in_transaction_session_timeout < 20 minutes (autovacuum and locking issues)?
-- Is max_locks_per_transaction not default (for example, low value may interrupt pg_dump)?
+> Insights:
+> - Questions worth answering:  
+>     - Is `statement_timeout` > 0 and <= 30 seconds (good choice for an OLTP system)?
+>     - Is `idle_in_transaction_session_timeout` >0 and < 20 minutes (preventing autovacuum and locking issues)?
+>     - Is `max_locks_per_transaction` not default (for example, low value may interrupt pg_dump)?
 
 # K. SQL Query Analysis
 
-This group of checks provides you with the analysis of all the most frequent queries within `pg_stat_statements.max.
+This is important group of reports providing deep SQL query analysis, based on pg_stat_statements and (optional) pg_stat_kcache.
 
 ### K001 Globally Aggregated Query Metrics
 
 Aggregated statistics about all queries performed during the observation period.
-The most interesting metric is `s/sec` ("seconds per second") in the "Total time" column - it shows roughly how many CPU cores are utilized by queries. `30s/sec` means "30 CPUs were processed queries". May help with capacity planning.
+
+> Insights:
+> - One of the most interesting metrics is `s/sec` ("seconds per second") in the "Total time" column. It signals roughly how many CPU cores should be present to execute queries. `3s/sec` would mean "3 CPUs are needed to process these queries" (w/o considering context switches). This might be very helpful for capacity planning.
 
 ### K002 Workload type ("First-word" Analysis)
 
 Helps to understand which type of workload is the most frequent (selects, inserts, updates, etc.) during the observation period.
-Only analyses the first word of a query.
+The grouping is based on the first word of eveyr query.
 
 ### K003 Top-50 Queries by total_time
 
-One of the most interesting reports. Shows TOP-50 query groups ordered by total execution time during the observation period. Good start for query optimization.  
-It answers the question: Do we have any query groups which total_time is >50% of overall total_time? If we have this type of query - it is time to optimize.
-Full query text is available by the link above each query group.
+One of the most comprehensive and deep reports. Shows Top-100 query groups
+ordered by total execution time during the observation period (`total_time` in
+pg_stat_statements). Good start for query optimization. 
+
+> Insights:
+> - The first question to answer: Are there any query groups with `total_time` ratio >50% of overall `total_time`?  If we have this type of query, it is definitely worth optimizing it.
+> - Full query text is available by the link below each query group.
 
 # H. Index Analysis
 
@@ -227,13 +239,14 @@ The list of broken indexes (invalid state) to be removed or reindexed.
 
 ### H002 Unused and Redundant Indexes
 
-Shows never used, rarely used and redundant indexes.
+Shows the list of never used, rarely used and redundant indexes.
 Helps to understand how much space they occupy.
-Notices about statistics age (we can't rely on short lifetime).
 
-It's good to check:
-- Is the total size of unused indexes less than 10% of the DB size (only if statistics is older than 1 week)
-- Is statistics saved across restarts?
+> Insights:
+> - Questions worth answering:  
+>     - Is the total size of unused indexes less than 10% of the DB size (only if statistics is older than 1 week)?
+>     - Is statistics saved across restarts?
+> - If statistics age is low, the report should be used with caution.
 
 ### H003 Non-indexed Foreign Keys
 
@@ -241,18 +254,23 @@ Checks if all foreign keys have indexes in referencing tables.
 
 # L. DB Schema Analysis
 
-The reports of this group are designed for architectural checks, which are crucial for making decisions on changing the structure of the database in the face of a growing amount of data.
+The reports of this group are designed for architectural checks, which are
+crucial for making decisions on changing the structure of the database in the
+face of a growing amount of data.
 
 ### L001 Table Sizes
 
-Displays the size of tables and their components (indexes, toast, the table itself).  
+Displays the size of tables and their components (indexes, TOAST, the table itself).  
 
-Answers the questions:
-- Does the size of indexes for each table not exceed heap (with toast) size? 
-- Are there any non-indexes tables which size is > 10 MiB?  
-- Are there any non-partitioned tables of size > 100 GiB?
+> - Questions worth answering:  
+>     - Does the size of indexes for each table not exceed heap (with toast) size? 
+>     - Are there any non-indexes tables which size is > 10 MiB?  
+>     - Are there any non-partitioned tables of size > 100 GiB?
 
 ### L003 Integer (int2, int4) Out-of-range Risks in PKs
 
-Shows primary keys with risks of integer capacity overflow (reached above 10%). If the capacity of the primary key is exhausted, this will most likely lead to the shutdown of the service.
+Shows primary keys with risks of integer capacity overflow (reached above 10%).
+If the capacity of the primary key is exhausted, this will most likely lead to
+the shutdown of the service.
+
 This report helps to protect the database from disaster on integer overflow.
