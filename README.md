@@ -148,7 +148,7 @@ A human-readable report can be found at:
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
 
-# The Full List of Checks
+# The Full List of Reports
 
 ## А. General  / Infrastructural
 
