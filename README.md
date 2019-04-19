@@ -263,3 +263,4 @@ Open it with your favorite Markdown files viewer or just upload to a service suc
 - NUMA enabled?
 - Huge pages?
 - Transparent huge pages?
+
