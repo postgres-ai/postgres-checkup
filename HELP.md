@@ -103,8 +103,12 @@ Reports of this group help to understand if the database configuration settings 
 
 ### D002 Useful Linux Tools
 
-Helps to check, if there are any tools which you can use by database performance diagnosis.
-This check shows which helpful troubleshooting utilities are installed on the host. It is better to have at least one or two utilities in every category (memory, CPU, network, I/O, etc.). Such tools should be installed in advance to resolve incidents more quickly.
+Checks if some common diagnostics Linux tools are installed on the system.
+
+> Insights:
+> This check shows which helpful troubleshooting utilities are installed on the host.
+> It is worth having at least one or two utilities in every category (memory, CPU, network, I/O, etc.).
+> Such tools should be installed in advance to diagnose incidents in a timed fashion.
 
 
 ### D004 pg_stat_statements, Tuning opts, pg_stat_kcache
