@@ -48,7 +48,8 @@ The following is included:
 > Insight: if it is not more than 95% on all nodes, it might be a good sign that the buffer pool size needs to be increased.   
 - Successful Commits: percentage of successfully committed transactions. 
 > Insight: if the value is not more than 99%, it might be a sign of logic issues with application code leading to high rates of ROLLBACK events. 
-- Temp Files per day: how many temporary files were generated per day in average, since last statistics reset time. Insight: if this value is high (thousands), it is a signal that work_mem should be increased.
+- Temp Files per day: how many temporary files were generated per day in average, since last statistics reset time. 
+> Insight: if this value is high (thousands), it is a signal that work_mem should be increased. 
 - Deadlocks per day. 
 > Insight: significant (dozens) daily number of deadlocks is a sign of issues with application logic that needs redesign. 
 
@@ -75,10 +76,10 @@ This report checks if there are settings which were set by implicit (ALTER SYSTE
 
 Possible sources of configuration settings (presented in the first column of the report’s table):
 
-* `postgresql.auto.conf`: Changed via 'ALTER SYSTEM' command.
-* `%any other file pattern%`: Changed in additional config included to the main one.
-* `postgresql.conf`: Non-default values are set in postgresql.conf.  
-* 
+* `postgresql.auto.conf`: changed via 'ALTER SYSTEM' command.
+* `%any other file pattern%`: changed in additional config included to the main one.
+* `postgresql.conf`: non-default values are set in postgresql.conf.  
+
 ### A008 Disk Usage and File System Type
 
 Shows detailed file systems information related to Postgres database.
@@ -117,7 +118,7 @@ current database: pg_stat_statements and pg_stat_kcache.
 If extenstions are available, their settings will be shown.
 
 > Insights:
-> - Query analysis reports (section K) require at least pg_stat_statements be installed.
+> - Query analysis reports (section K) require at least pg_stat_statements to be installed.
 > - In addition, pg_stat_statements are used by most monitoring systems.
 > - Inspection of pg_stat_statements is essential for correct query analysis.
 > - For example, `pg_stat_statements.track = all` might double some SQL queries if stored procedures are used (to avoid duplicates and understand workload correctly, `top` should be used; however, it will exclude in-function SQL statements).
@@ -131,14 +132,14 @@ Shows global and per-table (if any) autovacuum-related Postgres settings.
 
 > Insights:
 > - Is any tuning applied (values are not default)?
-> - Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow understand the nature of the functioning of autovacuum workers. Such tables are marked with asterisk (*) in the following reports.
+> - Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow you to understand the nature of the functioning of autovacuum workers. Such tables are marked with asterisk (*) in the following reports.
 
 ### F002 Autovacuum: Transaction Wraparound Check
 
 Shows a distance in % to transaction wraparound disaster for every database.
 
 > Insights:
-> If % is higher than 50%, autovacuum tuning should be consdered as soon as possible.
+> If % is higher than 50%, autovacuum tuning should be considered as soon as possible.
 > By identifying objects that are older than the specified threshold, settings for adjusting the autovacuum settings may be suggested.
 
 
@@ -159,15 +160,15 @@ Estimated table and index bloat is presented in this report.
 > - Objects with a high percentage of bloat lead to wasted disk space, degradation in query performance, additional CPU costs, and excessive read load on the disk.
 > This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and event more). Use it only as an indicator of potential issues.
 > - Checks the following things:
->     - Extreme (>90%) level of heap or index bloat estimated 
->     - Significant (>40%) level of heap or index bloat estimated 
+>     - Extreme (>90%) level of heap or index bloat estimated. 
+>     - Significant (>40%) level of heap or index bloat estimated. 
 
 ### F008 Autovacuum: Resource Usage
 
 Shows a table with Postgres settings related to autovacuum resource usage.  
 
 > Insights:  
-> - Is  `autovacuum_max_workers`  not default? (when CPU cores or vCPUs >= 10)
+> - Is  `autovacuum_max_workers`  not default? (When CPU cores or vCPUs >= 10).
 > - Is `autovacuum_vacuum_cost_limit` / `vacuum_cost_limit` not default?
 > - Isn't `maintenance_work_mem` / `autovacuum_work_mem` too low compared to table sizes and RAM?
 
@@ -219,7 +220,7 @@ Aggregated statistics about all queries performed during the observation period.
 ### K002 Workload type ("First-word" Analysis)
 
 Helps to understand which type of workload is the most frequent (selects, inserts, updates, etc.) during the observation period.
-The grouping is based on the first word of eveyr query.
+The grouping is based on the first word of every query.
 
 ### K003 Top-50 Queries by total_time
 
