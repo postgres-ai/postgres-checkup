@@ -206,6 +206,27 @@ Provides information about how "timeout" and locking-related settings are tuned,
 >     - Is `idle_in_transaction_session_timeout` >0 and < 20 minutes (preventing autovacuum and locking issues)?
 >     - Is `max_locks_per_transaction` not default (for example, low value may interrupt pg_dump)?
 
+# H. Index Analysis
+
+### H001 Invalid Indexes
+
+The list of broken indexes (invalid state) to be removed or reindexed.
+
+### H002 Unused and Redundant Indexes
+
+Shows the list of never used, rarely used and redundant indexes.
+Helps to understand how much space they occupy.
+
+> Insights:
+> - Questions worth answering:  
+>     - Is the total size of unused indexes less than 10% of the DB size (only if statistics is older than 1 week)?
+>     - Is statistics saved across restarts?
+> - If statistics age is low, the report should be used with caution.
+
+### H003 Non-indexed Foreign Keys
+
+Checks if all foreign keys have indexes in referencing tables.  
+
 # K. SQL Query Analysis
 
 This is important group of reports providing deep SQL query analysis, based on pg_stat_statements and (optional) pg_stat_kcache.
@@ -232,26 +253,6 @@ pg_stat_statements). Good start for query optimization.
 > - The first question to answer: Are there any query groups with `total_time` ratio >50% of overall `total_time`?  If we have this type of query, it is definitely worth optimizing it.
 > - Full query text is available by the link below each query group.
 
-# H. Index Analysis
-
-### H001 Invalid Indexes
-
-The list of broken indexes (invalid state) to be removed or reindexed.
-
-### H002 Unused and Redundant Indexes
-
-Shows the list of never used, rarely used and redundant indexes.
-Helps to understand how much space they occupy.
-
-> Insights:
-> - Questions worth answering:  
->     - Is the total size of unused indexes less than 10% of the DB size (only if statistics is older than 1 week)?
->     - Is statistics saved across restarts?
-> - If statistics age is low, the report should be used with caution.
-
-### H003 Non-indexed Foreign Keys
-
-Checks if all foreign keys have indexes in referencing tables.  
 
 # L. DB Schema Analysis
 
