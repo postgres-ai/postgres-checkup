@@ -128,7 +128,6 @@ Shows autovacuum-related Postgres settings and per-table autovacuum tuning (if a
 Answers the following questions: 
 - Is any tuning applied (values are not default)?
 - Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow you to better understand the nature of the functioning of autovacuum workers.
- 
 ### F002 Autovacuum: Transaction Wraparound check
 
 Shows a distance in % to transaction wraparound disaster for each database.
@@ -245,6 +244,3 @@ Answers the questions:
 
 Shows primary keys with risks of integer capacity overflow (reached above 10%). If the capacity of the primary key is exhausted, this will most likely lead to the shutdown of the service.
 This report helps to protect the database from disaster on integer overflow.
-
-
-
