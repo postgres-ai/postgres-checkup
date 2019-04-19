@@ -113,9 +113,15 @@ Checks if some common diagnostics Linux tools are installed on the system.
 
 ### D004 pg_stat_statements, Tuning opts, pg_stat_kcache
 
-Checks if there are of extensions for collecting statistics on requests. A number of important reports of Postgres-checkup use these extensions. In addition, pg_stat_statements are used by most monitoring systems.
-This report shows settings of extensions for query analysis purposes. Helps to find wrong query tracking settings.
-For example, `pg_stat_statements.track = all` doubles query calls if we use stored procedures (it's better to use value `top`).
+Checks if the extensions for SQL query analysis are available and installed in the
+current database: pg_stat_statements and pg_stat_kcache.
+If extenstions are available, their settings will be shown.
+
+> Insights:
+> - Query analysis reports (section K) require at least pg_stat_statements be installed.
+> - In addition, pg_stat_statements are used by most monitoring systems.
+> - Inspection of pg_stat_statements is essential for correct query analysis.
+> - For example, `pg_stat_statements.track = all` might double some SQL queries if stored procedures are used (to avoid duplicates and understand workload correctly, `top` should be used; however, it will exclude in-function SQL statements).
 
 
 # F. Autovacuum, Bloat
