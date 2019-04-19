@@ -106,7 +106,6 @@ Reports of this group help to understand if the database configuration settings 
 Checks if some common diagnostics Linux tools are installed on the system.
 
 > Insights:
-> This check shows which helpful troubleshooting utilities are installed on the host.
 > It is worth having at least one or two utilities in every category (memory, CPU, network, I/O, etc.).
 > Such tools should be installed in advance to diagnose incidents in a timed fashion.
 
@@ -126,44 +125,51 @@ If extenstions are available, their settings will be shown.
 
 # F. Autovacuum, Bloat
 
-For the effective work of the database we need up-to-date statistics and no index- and tables bloat. In this case, the autovacuum must have the correct settings. It is also important to understand if autovacuum functions well or not and if more or less aggressive tuning is required.
-
 ### F001 Autovacuum: Current Settings
 
-Shows autovacuum-related Postgres settings and per-table autovacuum tuning (if applied).  
-Answers the following questions: 
-- Is any tuning applied (values are not default)?
-- Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow you to better understand the nature of the functioning of autovacuum workers.
-### F002 Autovacuum: Transaction Wraparound check
+Shows global and per-table (if any) autovacuum-related Postgres settings.
 
-Shows a distance in % to transaction wraparound disaster for each database.
-If % is higher than 50%, you must consider tuning autovacuum settings as soon as possible. By identifying objects that are older than the set threshold, settings for adjusting the auto-vacuum settings will be suggested.
+> Insights:
+> - Is any tuning applied (values are not default)?
+> - Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow understand the nature of the functioning of autovacuum workers. Such tables are marked with asterisk (*) in the following reports.
+
+### F002 Autovacuum: Transaction Wraparound Check
+
+Shows a distance in % to transaction wraparound disaster for every database.
+
+> Insights:
+> If % is higher than 50%, autovacuum tuning should be consdered as soon as possible.
+> By identifying objects that are older than the specified threshold, settings for adjusting the autovacuum settings may be suggested.
+
 
 ### F003 Autovacuum: Dead Tuples
 
-The main metric in a table is "Dead Tuples Ratio, %" shows the percentage of dead tuples in the tables.  
-The column "Since the last autovacuum" gives understanding about the effectiveness of the autovacuum tuning.
+Current levels of dead tuples in tables in the observed database.
+
+> Insights:
+> The report's key metric, "Dead Tuples Ratio, %", shows the percentage of dead tuples in the tables.
+> The column "Since the last autovacuum" gives understanding about the effectiveness of the autovacuum tuning.
 
 
 ### F004, F005 Autovacuum: Heap Bloat, Index Bloat (Estimated)
 
-Shows total estimated tables bloat for observed database and percentage per table. 
-Objects with a high percentage of bloat lead to a decrease in query performance, additional CPU costs, and excessive read load on the disk. The same applies to indexes.
+Estimated table and index bloat is presented in this report.
 
-Checks the following things:
-- If there is no extreme (>90%) level of heap bloat estimated 
-- If there is no significant (>40%) level of heap bloat estimated 
-
-This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and event more). Use it only as an indicator of potential issues.
+> Insights:
+> - Objects with a high percentage of bloat lead to wasted disk space, degradation in query performance, additional CPU costs, and excessive read load on the disk.
+> This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and event more). Use it only as an indicator of potential issues.
+> - Checks the following things:
+>     - Extreme (>90%) level of heap or index bloat estimated 
+>     - Significant (>40%) level of heap or index bloat estimated 
 
 ### F008 Autovacuum: Resource Usage
 
 Shows a table with Postgres settings related to autovacuum resource usage.  
 
-Answers the following questions:   
-- Is  `autovacuum_max_workers`  not default? (when CPU cores >= 16)
-- Is `autovacuum_vacuum_cost_limit` / `vacuum_cost_limit` not default?
-- Isn't `maintenance_work_mem` / `autovacuum_work_mem` too low?
+> Insights:  
+> - Is  `autovacuum_max_workers`  not default? (when CPU cores or vCPUs >= 10)
+> - Is `autovacuum_vacuum_cost_limit` / `vacuum_cost_limit` not default?
+> - Isn't `maintenance_work_mem` / `autovacuum_work_mem` too low compared to table sizes and RAM?
 
 
 # G. Performance / Connections / Memory-related Settings
