@@ -255,7 +255,7 @@ redundant_indexes_tmp_num as (
     table_size_bytes,
     index_name,
     access_method,
-    string_agg(reason, ', ') as reason,
+    string_agg(distinct reason, ', ') as reason,
     string_agg(main_index_def, ', ') as main_index_def,
     string_agg(main_index_size, ', ') as main_index_size,
     index_def,
