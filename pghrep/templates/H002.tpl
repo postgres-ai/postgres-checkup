@@ -9,8 +9,8 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- if le (Int (index (index (index .results .hosts.master) "data") "database_stat").days) 30 }}  
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
 {{- end }}
-{{ if (index (index (index .results .hosts.master) "data") "never_used_indexes") }}
 ### Never Used Indexes ###
+{{ if (index (index (index .results .hosts.master) "data") "never_used_indexes") }}
 {{ if gt (len (index (index (index .results .hosts.master) "data") "never_used_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
 \#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK
@@ -26,10 +26,12 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
+{{else}}
+Nothing found.
 {{ end }}{{/*never used indexes found*/}}
 
-{{ if (index (index (index .results .hosts.master) "data") "rarely_used_indexes") }}
 ### Rarely Used Indexes ###
+{{ if (index (index (index .results .hosts.master) "data") "rarely_used_indexes") }}
 {{ if gt (len (index (index (index .results .hosts.master) "data") "rarely_used_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
 \#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Comment | Supports FK
@@ -46,10 +48,12 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- $value.reason}}|
 {{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
+{{else}}
+Nothing found.
 {{ end }}{{/* rarely used indexes found */}}
 
+### Redundant Indexes ###
 {{ if (index (index (index .results .hosts.master) "data") "redundant_indexes") }}
-### Redundant indexes ###
 {{ if gt (len (index (index (index .results .hosts.master) "data") "redundant_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
 \#| Table | Index | Redundant to |{{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK
@@ -65,6 +69,8 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- ByteFormat $value.table_size_bytes 2}}|
 {{- if $value.supports_fk }}Yes{{end}}
 {{ end }}{{/* range */}}
+{{else}}
+Nothing found.
 {{ end }}{{/* redundant indexes found */}}
 
 {{- else -}}{{/* end if master*/}}
