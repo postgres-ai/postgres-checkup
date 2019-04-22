@@ -1013,7 +1013,7 @@ run_checks() {
     done
 
     if [[ $skip_report == "1" ]]; then
-        msg 'Report' $CHECK_NAME ': skip on standby'
+        msg 'Report' $CHECK_NAME ': skip on standby.'
         continue
     fi
 
