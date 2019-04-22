@@ -183,7 +183,7 @@ select
   )
 SQL
 
-# enhanced version of https://github.com/ioguix/pgsql-bloat-estimation/blob/master/btree/btree_bloat.sql
+# An enhanced version of https://github.com/ioguix/pgsql-bloat-estimation/blob/master/btree/btree_bloat.sql
 
 # Copyright (c) 2015, Jehan-Guillaume (ioguix) de Rorthais
 #All rights reserved.
