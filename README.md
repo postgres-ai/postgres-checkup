@@ -147,6 +147,13 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
+## Credits
+
+Some reports are based on or inspired by useful queries created and improved by
+various developers, including but not limited to:
+ * Jehan-Guillaume (ioguix) de Rorthais https://github.com/ioguix/pgsql-bloat-estimation
+ * Alexey Lesovsky, Alexey Ermakov, Maxim Boguk, Ilya Kosmodemiansky et al. from Data Egret (aka PostgreSQL-Consulting) https://github.com/dataegret/pg-utils
+ * Josh Berkus, Quinn Weaver et al. from PostgreSQL Experts, Inc. https://github.com/pgexperts/pgx_scripts
 
 # The Full List of Reports
 
