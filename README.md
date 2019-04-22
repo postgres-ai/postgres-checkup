@@ -1,7 +1,8 @@
 # Demo
 
 Auto-generated demonstration based on the code in the master
-branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
+branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master.
+Go to `md_reports/TIMESTAMP` and then open `0_Full_report.md`.
 
 # Disclaimer: This Tool is Designed for DBA Experts
 
