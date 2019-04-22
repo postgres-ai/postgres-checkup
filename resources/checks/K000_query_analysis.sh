@@ -407,7 +407,7 @@ done
 # print resulting JSON to stdout
 echo "${JSON}"
 
-# Inspired by DetaEgret's https://github.com/dataegret/pg-utils/blob/master/sql/global_reports/query_stat_total.sql
+# Inspired by DataEgret's https://github.com/dataegret/pg-utils/blob/master/sql/global_reports/query_stat_total.sql
 
 # Useful PostgreSQL utilities.
 #
