@@ -41,19 +41,43 @@ func Br(s interface{}) string {
     return strings.Join(strings.Split(str, ","), ", ")
 }
 
+/* Divide text to rows by given row length
+*/
+func WordWrap(s string, limit int) string {
+    srcStr := s //strings.Join(strings.Split(s, "\n"), " ")
+	str := ""
+	pos := 0
+	for _, c := range srcStr {
+		if pos > limit && (c == ' ' || c == ',' || c == '(') {
+			pos = 0
+			str = str + string(c) + "\n"
+		} else {
+			str = str + string(c)
+		}
+		pos++
+	}
+	return str
+}
 
 /* Escape Markdown symbols in a SQL query,
 *  convert to a single line
 */
 func EscapeQuery(s interface{}) string {
     str := pyraconv.ToString(s)
-    str = strings.Join(strings.Split(str, "\n"), " ")
+
+    str = strings.Join(strings.Split(str, "\n \n"), "<br/>")
     str = strings.Join(strings.Split(str, " "), "&nbsp;")
     str = strings.Join(strings.Split(str, "*"), "\\*")
     str = strings.Join(strings.Split(str, "_"), "\\_")
     str = strings.Join(strings.Split(str, "-"), "\\-")
+    str = strings.Join(strings.Split(str, "~"), "\\~")
     str = strings.Join(strings.Split(str, "`"), "\\`")
-    str = strings.Join(strings.Split(str, "|"), "\\|")
+//    str = strings.Join(strings.Split(str, "\""), "&#34;")
+    str = strings.Join(strings.Split(str, "|"), "&#448;")
+    str = strings.Join(strings.Split(str, "\n\n"), "<br/>")
+    str = strings.Join(strings.Split(str, "\n\r"), "<br/>")
+    str = strings.Join(strings.Split(str, "\n"), "<br/>")
+    str = strings.Join(strings.Split(str, "<br/><br/>"), "<br/>")
     return str
 }
 

@@ -17,18 +17,27 @@ pdf_filename=${md_filename%.*}".pdf"
 if PANDOC=$(which pandoc); then
   awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
-  pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
+  pandoc --from=markdown_github-yaml_metadata_block --standalone \
   --to=html -V -H md.style --output=$tmp1_html_filename $tmp1_md_filename
 
-  pandoc --from=markdown_github-yaml_metadata_block --smart --standalone \
+  pandoc --from=markdown_github-yaml_metadata_block --standalone \
   --to=html -V -H pdf.style --output=$tmp2_html_filename $tmp1_md_filename
 
   # replace :warninig: image
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
 
+#  rm $tmp1_html_filename
+#  rm $tmp2_html_filename
+#  awk '{ gsub(/“/, "&#34;"); print }' $html_filename > $tmp1_html_filename
+#  awk '{ gsub(/“/, "&#34;"); print }' $tmp3_html_filename > $tmp2_html_filename
+#  rm $html_filename
+#  rm $tmp3_html_filename
+#  awk '{ gsub(/”/, "&#34;"); print }' $tmp1_html_filename > $html_filename
+#  awk '{ gsub(/”/, "&#34;"); print }' $tmp2_html_filename > $tmp3_html_filename
+
   if WKHTMLTOPDF=$(which wkhtmltopdf); then
-    wkhtmltopdf -q -s A4 $tmp3_html_filename $pdf_filename
+    wkhtmltopdf --orientation landscape -q -s A4 $tmp3_html_filename $pdf_filename
   else
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'wkhtmltopdf' not found. Generating of html report skipped."
   fi

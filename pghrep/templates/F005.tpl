@@ -22,7 +22,7 @@ Current database: {{ .database }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
 {{- $tableIndex := Split $key "\n" -}}
 | {{ $value.num }} |
-{{- $table := Trim (index $tableIndex 1) " ()"}}`{{ (index $tableIndex 0) }}` (`{{ $table }}`{{if $value.overrided_settings}}<sup>*</sup>{{ end }}) |
+{{- $table := Trim (index $tableIndex 1) " ()"}}`{{ (index $tableIndex 0) }}` (`{{ $table }}`{{if $value.overrided_settings}}\*{{ end }}) |
 {{- ByteFormat ( index $value "Real size bytes") 2 }} |
 {{- if ( index $value "Extra size bytes")}}{{- "~" }}{{ ByteFormat ( index $value "Extra size bytes" ) 2 }} ({{- NumFormat ( index $value "Extra_ratio" ) 2 }}%){{end}} |
 {{- if ( index $value "Bloat size bytes")}}{{ ByteFormat ( index $value "Bloat size bytes") 2 }}{{end}} |
@@ -32,7 +32,7 @@ Current database: {{ .database }}
 {{- ( index $value "fillfactor") }} |
 {{ end }}
 {{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
-<sup>*</sup> This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
+\* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/*Master data*/}}
 No data

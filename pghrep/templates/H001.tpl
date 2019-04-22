@@ -12,7 +12,7 @@ Current database: {{ .database }}
 
 | \# | Table | Index name | Index size | Supports FK |
 |---|-------|------------|------------|----------|
-&nbsp;|=====TOTAL=====||{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "invalid_indexes_total") "index_size_bytes_sum") 2 }} |
+&nbsp;|=====TOTAL=====||{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "invalid_indexes_total") "index_size_bytes_sum") 2 }} ||
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "invalid_indexes") "_keys") }}
     {{- $value := (index (index (index (index $.results $.hosts.master) "data") "invalid_indexes") $key) -}}
     | {{ $value.num }} |`{{ $value.formated_relation_name }}` | `{{ $value.formated_index_name }}` |
