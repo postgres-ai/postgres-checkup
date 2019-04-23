@@ -27,17 +27,8 @@ if PANDOC=$(which pandoc); then
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
 
-#  rm $tmp1_html_filename
-#  rm $tmp2_html_filename
-#  awk '{ gsub(/“/, "&#34;"); print }' $html_filename > $tmp1_html_filename
-#  awk '{ gsub(/“/, "&#34;"); print }' $tmp3_html_filename > $tmp2_html_filename
-#  rm $html_filename
-#  rm $tmp3_html_filename
-#  awk '{ gsub(/”/, "&#34;"); print }' $tmp1_html_filename > $html_filename
-#  awk '{ gsub(/”/, "&#34;"); print }' $tmp2_html_filename > $tmp3_html_filename
-
   if WKHTMLTOPDF=$(which wkhtmltopdf); then
-    wkhtmltopdf --orientation landscape -q -s A4 $tmp3_html_filename $pdf_filename
+    wkhtmltopdf --orientation landscape -q -s A4 --enable-internal-links --dpi 300 $tmp3_html_filename $pdf_filename
   else
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'wkhtmltopdf' not found. Generating of html report skipped."
   fi
