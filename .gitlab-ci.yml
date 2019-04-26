@@ -102,9 +102,9 @@ test-general:
     - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts || true
     - ssh -T git@gitlab.com || true
     - (cd ~/ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git) || true
-    - (mkdir -p ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME) || true
+    - (mkdir -p ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME && [[ "$CI_COMMIT_REF_NAME" -ne "master" ]] && rm -Rf ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/*) || true
     - (cp -Rf $ARTIFACTS_PATH/test/* ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/) || true
-    - (cd ~/postgres-checkup-tests && git add ./$CI_COMMIT_REF_NAME && git commit -m "$CI_COMMIT_REF_NAME artifacts" && git push) || true
+    - (cd ~/postgres-checkup-tests && git add ./$CI_COMMIT_REF_NAME/* && git commit -m "$CI_COMMIT_REF_NAME artifacts" && git push) || true
     - exit $TEST_RESULT
 
   artifacts:
