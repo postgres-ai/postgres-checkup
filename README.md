@@ -166,7 +166,8 @@ for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
 done
 ```
 
-As a result of postgres-checkup we have got two directories with .json files and .md files:
+As a result of execution, two directories containing .json and .md files will
+be created:
 
 ```bash
 ./artifacts/prod1/json_reports/1_2018_12_06T14_12_36_+0300/
