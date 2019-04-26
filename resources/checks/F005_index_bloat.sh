@@ -151,7 +151,7 @@ with data as (
     case when ot.table_id is not null then true else false end as overrided_settings
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
-  order by real_size desc nulls last
+  order by bloat_size desc nulls last
 ), limited_data as (
   select * from data limit ${ROWS_LIMIT}
 ), num_limited_data as (
