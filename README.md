@@ -130,6 +130,42 @@ For example: in half a year we can switch to "epoch number `2`".
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.  
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
 
+For comprehensive analysis, it is recommended to run the tool on the master and
+all its replicas – postgres-checkup is able to combine all the information from
+multiple nodes to a single report.
+
+Some reports (such as K003) require two snapshots, to calculate "deltas" of
+metrics. So, for better results, use the following example, executing it during peak working
+hours, with `$DISTANCE` values from 10 min to a few hours:
+
+```bash
+$DISTANCE="1800" # 30 minutes
+
+# Assuming that db2 is the master, db3 and db4 are its replicas
+for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
+  ./checkup \
+    -h "$host" \
+    -p 5432 \
+    --username postgres \
+    --dbname postgres \
+    --project prod1 \
+    -e 1 \
+    --file resources/checks/K000_query_analysis.sh # the first snapshot is needed only for reports K***
+done
+  
+sleep "$DISTANCE"
+
+for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
+  ./checkup \
+    -h "$host" \
+    -p 5432 \
+    --username postgres \
+    --dbname postgres \
+    --project prod1 \
+    -e 1
+done
+```
+
 As a result of postgres-checkup we have got two directories with .json files and .md files:
 
 ```bash
