@@ -21,7 +21,7 @@ SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
-export ROWS_LIMIT=3
+export ROWS_LIMIT=100
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
