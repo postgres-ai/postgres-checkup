@@ -93,8 +93,9 @@ test-general:
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - grep -v "Failed to create bus connection" err.log > err1.log || true
-    - cat err1.log
-    - export TEST_RESULT=$(stat --format="%s" err1.log) && echo $TEST_RESULT
+    - grep -v "SSH is not supported, skipping..." err1.log > err2.log || true
+    - cat err2.log
+    - export TEST_RESULT=$(stat --format="%s" err2.log) && echo $TEST_RESULT
     - ([[ $TEST_RESULT -ne 0 ]]) && exit 1
     - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai" && git config --global push.default simple) || true
     - eval $(ssh-agent -s) || true

@@ -185,6 +185,78 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
+## Docker 🐳
+
+It's possible to use the `postgres-checkup` from a docker container.
+The container will run, execute all checks and stop itself.
+The check result can be found inside the `artifacts` folder in current directory (pwd).
+
+### Usage with `docker run`
+
+First of all we need a postgres. You can use any local or remote running instance.
+For this example we run postgres in a separate docker container:
+
+```bash
+docker run \
+    --name postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -d postgres
+```
+
+We need to know a hostname or an ip address of target database to be used with `-h` parameter:
+
+```bash
+PG_HOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' postgres)
+```
+
+You can use official images or build an image yourself. 
+Run this command to build an image:
+
+```bash
+docker build -t postgres-checkup .
+```
+
+Then run a container with `postgres-checkup`. 
+This command run the tool with access via `psql`:
+
+```bash
+docker run --rm \
+    --name postgres-checkup \
+    -e PGPASSWORD="postgres" \
+    -v `pwd`/artifacts:/artifacts \
+    postgres-checkup \
+    ./checkup -h $PG_HOST -p 5432 --username postgres --dbname postgres --project docker -e 1
+```
+
+If you want to execute all supported checks you have to use `ssh` access to target host with postgres.
+With docker container it's possible by mounting the ssh key file and specify the username in `-h` parameter:
+
+```bash
+docker run --rm \
+    --name postgres-checkup \
+    -e PGPASSWORD="postgres" \
+    -v `pwd`/artifacts:/artifacts \
+    -v `pwd`/ssh/key:/root/.ssh/id_rsa:ro \
+    postgres-checkup \
+    ./checkup -h $SSH_USER@$PG_HOST -p 5432 --username postgres --dbname postgres --project docker -e 1
+```
+
+If you try to check the local instance of postgres on your host from a container, you can't use `localhost` in `-h` parameter.
+You have to use `bridge` between host OS and Docker Engine. By default host IP is `172.17.0.1` in `docker0` network, but it can be different.
+More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
+
+### Usage with `docker-compose`
+
+It will run an empty `postgres` database and `postgres-checkup` application that will stop when it's done.
+Local folder `artifacts` will contain `docker` subfolder with check result.
+
+```bash
+docker-compose build
+docker-compose up -d
+
+docker-compose down
+```
+
 ## Credits
 
 Some reports are based on or inspired by useful queries created and improved by
@@ -308,4 +380,3 @@ various developers, including but not limited to:
 - NUMA enabled?
 - Huge pages?
 - Transparent huge pages?
-
