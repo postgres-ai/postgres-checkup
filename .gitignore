@@ -23,4 +23,7 @@ reports/
 *.tmp
 tmp_*
 
+# IDEs
+.idea/
+
 .DS_Store

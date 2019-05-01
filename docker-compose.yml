@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./docker/pg_stat_statements.sh:/docker-entrypoint-initdb.d/pg_stat_statements.sh
+    networks:
+      - overlay
+
+  postgres-checkup:
+    build: .
+    environment:
+      PGPASSWORD: postgres
+    volumes:
+      - ./artifacts:/artifacts
+    networks:
+      - overlay
+    depends_on:
+      - postgres
+    command: ./checkup -h postgres -p 5432 --username postgres --dbname postgres --project docker -e 1
+
+networks:
+  overlay:
