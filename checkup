@@ -1086,7 +1086,13 @@ run_checks() {
     echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
-  ./md2pdf.sh ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+
+  if [[ "$PDF" == "true" ]]; then
+    ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
+  if [[ "$HTML" == "true" ]]; then
+    ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
 }
 
 ######### COMMANDS WRAPPERS ###########
