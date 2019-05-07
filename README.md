@@ -97,6 +97,11 @@ The following programs must be installed on the observer machine:
 * golang >= 1.8 (no binaries are shipped at the moment)
 * awk
 * sed
+* pandoc *
+* wkhtmltopdf *
+
+Pandoc and wkhtmltopdf optional, they need for generating HTML and PDF versions
+of report (see `--pdf` and `--html`).
 
 Nothing special has to be installed on the observed machines. However, these
 machines must run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others
