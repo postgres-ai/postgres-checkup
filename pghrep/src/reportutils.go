@@ -151,12 +151,13 @@ func Sub(a int, b int) int {
 }
 
 func MsFormat(value interface{}) string {
-	val := pyraconv.ToInt64(value)
-	if val != 0 {
-		tm, _ := time.ParseDuration(strconv.FormatInt(val, 10) + "ms")
+	val := pyraconv.ToString(value)
+	floatVal := pyraconv.ToFloat64(value)
+	tm, terr := time.ParseDuration(val + "ms")
+	if tm > time.Second && terr == nil {
 		return tm.String()
 	} else {
-		return strconv.FormatInt(val, 10) + "µs"
+		return strconv.FormatFloat(floatVal, 'f', 3, 64) + "ms"
 	}
 }
 
