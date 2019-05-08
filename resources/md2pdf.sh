@@ -55,13 +55,13 @@ if PANDOC=$(which pandoc); then
   if $PDF ; then
     if WKHTMLTOPDF=$(which wkhtmltopdf); then
       wkhtmltopdf --orientation landscape -q -s A4 --dpi 300 $tmp3_html_filename $pdf_filename
-      rm $tmp3_html_filename
     else
       echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'wkhtmltopdf' not found. Generating of pdf report impossible."
       rm $tmp3_html_filename
       exit 1
     fi
   fi
+  rm $tmp3_html_filename
 
   if $PDF ; then
     if [[ -f $pdf_filename ]]; then
