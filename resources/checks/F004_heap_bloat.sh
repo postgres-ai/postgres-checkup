@@ -75,7 +75,7 @@ with data as (
         then extra_size::numeric
       else null
     end as "extra_size_bytes",
-    extra_ratio as "extra_ratio",
+    extra_ratio as "extra_ratio_percent",
     case
       when extra_size::numeric >= 0
         then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'

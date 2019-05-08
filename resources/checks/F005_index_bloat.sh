@@ -11,9 +11,18 @@ with data as (
     where reloptions::text ~ 'autovacuum'
   ), step0 as (
       select
-        tbl.oid tblid, nspname, tbl.relname AS tblname, idx.relname AS idxname, idx.reltuples, idx.relpages, idx.relam,
-        indrelid, indexrelid, regexp_split_to_table(indkey::text, ' ')::smallint AS attnum, --indkey::smallint[] AS attnum,
-        coalesce(substring(array_to_string(idx.reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 90) as fillfactor
+        tbl.oid tblid,
+        nspname,
+        tbl.relname AS tblname,
+        idx.relname AS idxname,
+        idx.reltuples,
+        idx.relpages,
+        idx.relam,
+        indrelid,
+        indexrelid,
+        regexp_split_to_table(indkey::text, ' ')::smallint AS attnum, --indkey::smallint[] AS attnum,
+        coalesce(substring(array_to_string(idx.reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 90) as fillfactor,
+        pg_total_relation_size(tbl.oid) - pg_indexes_size(tbl.oid) - coalesce(pg_total_relation_size(tbl.reltoastrelid), 0) as table_size_bytes
       from pg_index
       join pg_class idx on idx.oid = pg_index.indexrelid
       join pg_class tbl on tbl.oid = pg_index.indrelid
@@ -49,7 +58,8 @@ with data as (
       end as index_tuple_hdr_bm,
       /* data len: we remove null values save space using it fractionnal part from stats */
       sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) as nulldatawidth,
-      max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na
+      max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na,
+      i.table_size_bytes
     from pg_attribute as a
     join step0 as i on a.attrelid = i.indexrelid AND a.attnum = i.attnum
     join pg_stats as s on
@@ -60,7 +70,7 @@ with data as (
       )
     join pg_type as t on a.atttypid = t.oid
     where a.attnum > 0
-    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 17
   ), step2 as (
     select
       *,
@@ -102,53 +112,56 @@ with data as (
     -- WHERE NOT is_na
   )
   select
-    case is_na when true then 'TRUE' else '' end as "Is N/A",
+    case is_na when true then 'TRUE' else '' end as "is_na",
+    index_name as "index_name",
+    coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "table_name",
     format(
       \$out$%s
     (%s)\$out$,
       left(index_name, 50) || case when length(index_name) > 50 then '…' else '' end,
       coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name
-    ) as "Index (Table)",
-    real_size as "Real size bytes",
-    pg_size_pretty(real_size::numeric) as "Size",
-    extra_ratio as "Extra ratio",
+    ) as "index_table_name",
+    real_size as "real_size_bytes",
+    pg_size_pretty(real_size::numeric) as "size",
+    extra_ratio as "extra_ratio_percent",
     case
       when extra_size::numeric >= 0
         then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
       else null
-    end  as "Extra",
+    end  as "extra",
     case
       when extra_size::numeric >= 0
         then extra_size
       else null
-    end as "Extra size bytes",
+    end as "extra_size_bytes",
     case
       when bloat_size::numeric >= 0
         then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
       else null
-    end as "Bloat",
+    end as "bloat",
     case
       when (bloat_size)::numeric >=0
         then bloat_size
         else null
-      end as "Bloat size bytes",
+      end as "bloat_size_bytes",
     case
       when (bloat_ratio)::numeric >=0
         then bloat_ratio
         else null
-      end as "Bloat ratio",
+      end as "bloat_ratio_percent",
     case
       when (real_size - bloat_size)::numeric >=0
         then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
         else null
-     end as "Live",
+     end as "live",
     case
       when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
         else null
-     end as "Live bytes",     
+     end as "live_bytes",
     fillfactor,
-    case when ot.table_id is not null then true else false end as overrided_settings
+    case when ot.table_id is not null then true else false end as overrided_settings,
+    table_size_bytes
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
@@ -160,15 +173,16 @@ with data as (
     limited_data.*
   from limited_data
 ), limited_json_data as (
-  select json_object_agg(ld."Index (Table)", ld) as json from num_limited_data ld
+  select json_object_agg(ld."index_table_name", ld) as json from num_limited_data ld
 ), total_data as (
   select
     sum(1) as count,
-    sum("Extra size bytes") as "Extra size bytes sum",
-    sum("Real size bytes") as "Real size bytes sum",
-    sum("Bloat size bytes") as "Bloat size bytes sum",
-   (sum("Bloat size bytes")::numeric/sum("Real size bytes")::numeric * 100) as "Bloat ratio",
-    sum("Extra size bytes") as "Extra size bytes sum"
+    sum("extra_size_bytes") as "extra_size_bytes_sum",
+    sum("real_size_bytes") as "real_size_bytes_sum",
+    sum("bloat_size_bytes") as "bloat_size_bytes_sum",
+   (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
+    sum("extra_size_bytes") as "extra_size_bytes_sum",
+    sum("table_size_bytes") as "table_size_bytes_sum"
   from data
 )
 select
