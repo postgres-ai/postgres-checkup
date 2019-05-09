@@ -11,7 +11,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 ### Master (`{{.hosts.master}}`) ###
 {{ if gt (len (index (index (index .results .hosts.master) "data") "dead_tuples")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
   
-\#|  Relation | reltype | Since last autovacuum | Since last vacuum | Autovacuum Count | Vacuum Count | n_tup_ins | n_tup_upd | n_tup_del | pg_class.reltuples | n_live_tup | n_dead_tup | &#9660;Dead Tuples Ratio, %
+\#|  Relation | reltype | Since last autovacuum | Since last vacuum | Autovacuum Count | Vacuum Count | n_tup_ins | n_tup_upd | n_tup_del | pg_class.reltuples | n_live_tup | n_dead_tup | &#9660;Dead Tuples Level, %
 ---|-------|------|-----------------------|-------------------|----------|---------|-----------|-----------|-----------|--------------------|------------|------------|-----------
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "dead_tuples") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "dead_tuples") $key) -}}

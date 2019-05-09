@@ -11,7 +11,7 @@ Current database: {{ .database }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if gt (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
-\# | Index (Table) | Table Size |Index Size | Extra | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat ratio, % | Live Data Size | Fill factor
+\# | Index (Table) | Table Size |Index Size | Extra | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat level, % | Live Data Size | Fillfactor
 ---|---------------|------------|-----------|-------|------------------------------|-------------------|---------------------|----------------|-------------
 &nbsp;|===== TOTAL ===== |
 {{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "table_size_bytes_sum" ) 2 }} |

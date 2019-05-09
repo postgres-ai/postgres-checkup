@@ -12,7 +12,7 @@ Current database: {{ .database }}
 {{ if (index (index (index .results .hosts.master) "data") "heap_bloat") }}
 {{ if gt (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}
 
-\# | Table | Size | Extra | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat ratio | Est. bloat ratio, % | Live Data Size | Last vacuum | Fillfactor
+\# | Table | Size | Extra | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat factor | Est. bloat level, % | Live Data Size | Last vacuum | Fillfactor
 ---|-------|------|-------|------------------------------|-------------------|------------------|---------------------|----------------|-------------|------------
 {{ if (index (index (index .results .hosts.master) "data") "heap_bloat_total") }}&nbsp;|===== TOTAL ===== |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "real_size_bytes_sum") }}{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "real_size_bytes_sum") 2 }}{{ end }} ||
