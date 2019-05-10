@@ -6,7 +6,7 @@ OS_INFO=""
 DISK_INFO=""
 CTL_INFO=""
 
-if [[ "${SSH_SUPPORT}" = "false" ]]; then
+if [[ "${SSH_SUPPORT}" = "false" ]] && [[ "${HOST}" != "127.0.0.1" ]] && [[ "${HOST}" != "localhost" ]] ; then
   echo "SSH is not supported, skipping..." >&2
   exit 1
 fi
