@@ -153,11 +153,11 @@ func Sub(a int, b int) int {
 func MsFormat(value interface{}) string {
 	val := pyraconv.ToString(value)
 	floatVal := pyraconv.ToFloat64(value)
-	tm, terr := time.ParseDuration(val + "ms")
+	tm, terr := time.ParseDuration(val + "&nbsp;ms")
 	if tm > time.Second && terr == nil {
 		return tm.String()
 	} else {
-		return strconv.FormatFloat(floatVal, 'f', 3, 64) + "ms"
+		return strconv.FormatFloat(floatVal, 'f', 3, 64) + "&nbsp;ms"
 	}
 }
 
