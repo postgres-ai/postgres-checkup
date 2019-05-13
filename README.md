@@ -111,7 +111,7 @@ should work as well, but are not yet tested).
 
 ## How to Install
 
-1. Install required programs
+1. Install required programs  
 Ubuntu/Debian:
 ```
 sudo apt-get update
