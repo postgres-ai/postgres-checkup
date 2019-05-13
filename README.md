@@ -111,7 +111,8 @@ should work as well, but are not yet tested).
 
 ## How to Install
 
-1. Install required programs  
+#### 1. Install required programs
+
 Ubuntu/Debian:
 ```
 sudo apt-get update
@@ -135,7 +136,8 @@ brew install pandoc
 brew install Caskroom/cask/wkhtmltopdf
 ```
 
-2. Clone this repo.
+#### 2. Clone this repo
+
 Use `git clone`. This is the only method of installation currently supported.
 
 ## Example of Use
