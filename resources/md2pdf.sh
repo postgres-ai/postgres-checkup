@@ -17,10 +17,8 @@ if [[ ! -f "$md_filename" ]]; then
   md_filename=$2
 fi
 
-if ([[ "$option" == "--pdf" ]] || [[ "$option" == "--html" ]]); then
-  if [[ "$option" == "--html" ]]; then
-    PDF=false
-  fi
+if [[ "$option" == "--html" ]]; then
+  PDF=false
 fi
 
 tmp1_md_filename=${md_filename%.*}".tmp1.md"

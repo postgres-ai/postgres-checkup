@@ -111,6 +111,31 @@ should work as well, but are not yet tested).
 
 ## How to Install
 
+1. Install required programs
+Ubuntu/Debian:
+```
+sudo apt-get update
+sudo apt-get install postgresql
+sudo apt-get install coreutils
+sudo apt-get install jq
+sudo apt-get install golang
+# Optional
+sudo apt install pandoc
+sudo apt-get install wkhtmltopdf
+```
+
+MacOS (assuming that Homebrew is installed):
+```
+brew install postgresql
+brew install coreutils
+brew install jq
+brew install golang
+# Optional
+brew install pandoc
+brew install Caskroom/cask/wkhtmltopdf
+```
+
+2. Clone this repo.
 Use `git clone`. This is the only method of installation currently supported.
 
 ## Example of Use
