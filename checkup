@@ -358,14 +358,16 @@ validate_args() {
   if [[ "$HTML" == "true" ]]; then
     PANDOC=$(which pandoc || echo -n "0");
     if [[ "$PANDOC" == "0" ]]; then
-      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'pandoc' not found. Generating of html and pdf report impossible." >&2
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'pandoc' not found. Cannot generate PDF/HTML." >&2
+      exit 1
    fi
   fi
 
   if [[ "$PDF" == "true" ]]; then
     WKHTMLTOPDF=$(which wkhtmltopdf || echo -n "0");
     if [[ "$WKHTMLTOPDF" == "0" ]]; then
-      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' not found. Generating of pdf report impossible." >&2
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' not found. Cannot generate PDF." >&2
+      exit 1
     fi
   fi
 
