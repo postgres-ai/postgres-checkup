@@ -32,7 +32,6 @@ Nothing found.
 {{ if (index (index (index .results .hosts.master) "data") "rarely_used_indexes") }}
 {{ if gt (len (index (index (index .results .hosts.master) "data") "rarely_used_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
 
-<<<<<<< pghrep/templates/H002.tpl
 |\#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Comment | Supports FK|
 |--|-------|-------|-----{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----|----|-----|
 {{ if (index (index (index .results .hosts.master) "data") "rarely_used_indexes_total") }}|&nbsp;|=====TOTAL=====||{{ range $skey, $host := .hosts.replicas }}|{{ end }}|{{ ByteFormat ((index (index (index .results .hosts.master) "data") "rarely_used_indexes_total").index_size_bytes_sum) 2 }}|{{ ByteFormat ((index (index (index .results .hosts.master) "data") "rarely_used_indexes_total").table_size_bytes_sum) 2 }}|||{{ end }}

@@ -259,7 +259,7 @@ body input {
 }
 
 body a {
-  color: #0366d6;
+  color: black;
   text-decoration: none;
 }
 
