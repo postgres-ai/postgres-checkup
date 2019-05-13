@@ -177,8 +177,12 @@ func Sub(a int, b int) int {
 
 func MsFormat(value interface{}) string {
     val := pyraconv.ToInt64(value)
-    tm, _ := time.ParseDuration(strconv.FormatInt(val, 10) + "ms")
-    return tm.String()
+    if val != 0 {
+        tm, _ := time.ParseDuration(strconv.FormatInt(val, 10) + "ms")
+        return tm.String()
+    } else {
+        return strconv.FormatInt(val, 10) + "ms"
+    }
 }
 
 func NumFormat(value interface{}, places interface{}) string {

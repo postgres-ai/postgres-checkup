@@ -9,6 +9,21 @@ with data as (
     from pg_class pc
     join pg_namespace pn on pn.oid = pc.relnamespace
     where reloptions::text ~ 'autovacuum'
+  ), step0 as (
+      select
+        tbl.oid tblid, nspname, tbl.relname AS tblname, idx.relname AS idxname, idx.reltuples, idx.relpages, idx.relam,
+        indrelid, indexrelid, regexp_split_to_table(indkey::text, ' ')::smallint AS attnum, --indkey::smallint[] AS attnum,
+        coalesce(substring(array_to_string(idx.reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 90) as fillfactor
+      from pg_index
+      join pg_class idx on idx.oid = pg_index.indexrelid
+      join pg_class tbl on tbl.oid = pg_index.indrelid
+      join pg_namespace on pg_namespace.oid = idx.relnamespace
+      join pg_am a ON idx.relam = a.oid
+      where a.amname = 'btree'
+        AND pg_index.indisvalid
+        AND tbl.relkind = 'r'
+        AND idx.relpages > 10
+        AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
   ), step1 as (
     select
       i.tblid,
@@ -36,17 +51,7 @@ with data as (
       sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) as nulldatawidth,
       max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na
     from pg_attribute as a
-    join (
-      select
-        tbl.oid tblid, nspname, tbl.relname AS tblname, idx.relname AS idxname, idx.reltuples, idx.relpages, idx.relam,
-        indrelid, indexrelid, indkey::smallint[] AS attnum,
-        coalesce(substring(array_to_string(idx.reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 90) as fillfactor
-      from pg_index
-      join pg_class idx on idx.oid = pg_index.indexrelid
-      join pg_class tbl on tbl.oid = pg_index.indrelid
-      join pg_namespace on pg_namespace.oid = idx.relnamespace
-      where pg_index.indisvalid AND tbl.relkind = 'r' AND idx.relpages > 0
-    ) as i on a.attrelid = i.indexrelid
+    join step0 as i on a.attrelid = i.indexrelid AND a.attnum = i.attnum
     join pg_stats as s on
       s.schemaname = i.nspname
       and (
@@ -146,7 +151,7 @@ with data as (
     case when ot.table_id is not null then true else false end as overrided_settings
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
-  order by real_size desc nulls last
+  order by bloat_size desc nulls last
 ), limited_data as (
   select * from data limit ${ROWS_LIMIT}
 ), num_limited_data as (
@@ -178,3 +183,28 @@ select
   )
 SQL
 
+# An enhanced version of https://github.com/ioguix/pgsql-bloat-estimation/blob/master/btree/btree_bloat.sql
+
+# Copyright (c) 2015, Jehan-Guillaume (ioguix) de Rorthais
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions are met:
+#
+#* Redistributions of source code must retain the above copyright notice, this
+#  list of conditions and the following disclaimer.
+#
+#* Redistributions in binary form must reproduce the above copyright notice,
+#  this list of conditions and the following disclaimer in the documentation
+#  and/or other materials provided with the distribution.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+#FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+#DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+#SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+#OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+#OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

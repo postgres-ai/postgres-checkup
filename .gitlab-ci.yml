@@ -25,10 +25,10 @@ before_script:
   script:
     - psql -h postgres -d dbname -U username -c "SELECT version();"
     - echo "Test H003 Non indexed FKs"
-    - psql -h postgres -d dbname -U username -f .ci/h003.sql
+    - psql -h postgres -d dbname -U username -f .ci/h003_step_1.sql
     - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
-    - psql -h postgres -d dbname -U username -f .ci/h003_step2.sql
+    - psql -h postgres -d dbname -U username -f .ci/h003_step_2.sql
     - rm -Rf ./artifacts/
     - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 302
@@ -40,6 +40,10 @@ before_script:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_pkey"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 204
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 205
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 206
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
     - echo "H002 Passed"
   
 test-general:
@@ -89,8 +93,9 @@ test-general:
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > std.log 2> err.log
     - cat err.log
     - grep -v "Failed to create bus connection" err.log > err1.log || true
-    - cat err1.log
-    - export TEST_RESULT=$(stat --format="%s" err1.log) && echo $TEST_RESULT
+    - grep -v "SSH is not supported, skipping..." err1.log > err2.log || true
+    - cat err2.log
+    - export TEST_RESULT=$(stat --format="%s" err2.log) && echo $TEST_RESULT
     - ([[ $TEST_RESULT -ne 0 ]]) && exit 1
     - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai" && git config --global push.default simple) || true
     - eval $(ssh-agent -s) || true
@@ -98,9 +103,9 @@ test-general:
     - ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts || true
     - ssh -T git@gitlab.com || true
     - (cd ~/ && git clone git@gitlab.com:postgres-ai-team/postgres-checkup-tests.git) || true
-    - (mkdir -p ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME && rm -Rf ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/*) || true
+    - (mkdir -p ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME && [[ "$CI_COMMIT_REF_NAME" != "master" ]] && rm -Rf ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/*) || true
     - (cp -Rf $ARTIFACTS_PATH/test/* ~/postgres-checkup-tests/$CI_COMMIT_REF_NAME/) || true
-    - (cd ~/postgres-checkup-tests && git add ./$CI_COMMIT_REF_NAME && git commit -m "$CI_COMMIT_REF_NAME artifacts" && git push) || true
+    - (cd ~/postgres-checkup-tests && git add ./$CI_COMMIT_REF_NAME/* && git commit -m "$CI_COMMIT_REF_NAME artifacts" && git push) || true
     - exit $TEST_RESULT
 
   artifacts:

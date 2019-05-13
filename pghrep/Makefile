@@ -38,7 +38,12 @@ test:
 	go test ./src/fmtutils/
 
 vet:
-	go vet ./... 
+	# Command go vet examine all go files in a single scope, which isn't suitable for plugins.
+	# We will run it separately for plugins and main sources.
+	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
+		go vet ./plugins/$$f.go || exit 1 ; \
+	done
+	go vet ./src/...
 
 fmt:
 	go fmt $$(go list ./... | grep -v /vendor/)

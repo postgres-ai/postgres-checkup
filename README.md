@@ -1,7 +1,8 @@
 # Demo
 
 Auto-generated demonstration based on the code in the master
-branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master
+branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master.
+Go to `md_reports/TIMESTAMP` and then open `0_Full_report.md`.
 
 # Disclaimer: This Tool is Designed for DBA Experts
 
@@ -161,7 +162,44 @@ For example: in half a year we can switch to "epoch number `2`".
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.  
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
 
-As a result of postgres-checkup we have got two directories with .json files and .md files:
+For comprehensive analysis, it is recommended to run the tool on the master and
+all its replicas – postgres-checkup is able to combine all the information from
+multiple nodes to a single report.
+
+Some reports (such as K003) require two snapshots, to calculate "deltas" of
+metrics. So, for better results, use the following example, executing it during peak working
+hours, with `$DISTANCE` values from 10 min to a few hours:
+
+```bash
+$DISTANCE="1800" # 30 minutes
+
+# Assuming that db2 is the master, db3 and db4 are its replicas
+for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
+  ./checkup \
+    -h "$host" \
+    -p 5432 \
+    --username postgres \
+    --dbname postgres \
+    --project prod1 \
+    -e 1 \
+    --file resources/checks/K000_query_analysis.sh # the first snapshot is needed only for reports K***
+done
+  
+sleep "$DISTANCE"
+
+for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
+  ./checkup \
+    -h "$host" \
+    -p 5432 \
+    --username postgres \
+    --dbname postgres \
+    --project prod1 \
+    -e 1
+done
+```
+
+As a result of execution, two directories containing .json and .md files will
+be created:
 
 ```bash
 ./artifacts/prod1/json_reports/1_2018_12_06T14_12_36_+0300/
@@ -179,8 +217,87 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
+## Docker 🐳
 
-# The Full List of Checks
+It's possible to use the `postgres-checkup` from a docker container.
+The container will run, execute all checks and stop itself.
+The check result can be found inside the `artifacts` folder in current directory (pwd).
+
+### Usage with `docker run`
+
+First of all we need a postgres. You can use any local or remote running instance.
+For this example we run postgres in a separate docker container:
+
+```bash
+docker run \
+    --name postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    -d postgres
+```
+
+We need to know a hostname or an ip address of target database to be used with `-h` parameter:
+
+```bash
+PG_HOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' postgres)
+```
+
+You can use official images or build an image yourself. 
+Run this command to build an image:
+
+```bash
+docker build -t postgres-checkup .
+```
+
+Then run a container with `postgres-checkup`. 
+This command run the tool with access via `psql`:
+
+```bash
+docker run --rm \
+    --name postgres-checkup \
+    -e PGPASSWORD="postgres" \
+    -v `pwd`/artifacts:/artifacts \
+    postgres-checkup \
+    ./checkup -h $PG_HOST -p 5432 --username postgres --dbname postgres --project docker -e 1
+```
+
+If you want to execute all supported checks you have to use `ssh` access to target host with postgres.
+With docker container it's possible by mounting the ssh key file and specify the username in `-h` parameter:
+
+```bash
+docker run --rm \
+    --name postgres-checkup \
+    -e PGPASSWORD="postgres" \
+    -v `pwd`/artifacts:/artifacts \
+    -v `pwd`/ssh/key:/root/.ssh/id_rsa:ro \
+    postgres-checkup \
+    ./checkup -h $SSH_USER@$PG_HOST -p 5432 --username postgres --dbname postgres --project docker -e 1
+```
+
+If you try to check the local instance of postgres on your host from a container, you can't use `localhost` in `-h` parameter.
+You have to use `bridge` between host OS and Docker Engine. By default host IP is `172.17.0.1` in `docker0` network, but it can be different.
+More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
+
+### Usage with `docker-compose`
+
+It will run an empty `postgres` database and `postgres-checkup` application that will stop when it's done.
+Local folder `artifacts` will contain `docker` subfolder with check result.
+
+```bash
+docker-compose build
+docker-compose up -d
+
+docker-compose down
+```
+
+## Credits
+
+Some reports are based on or inspired by useful queries created and improved by
+various developers, including but not limited to:
+ * Jehan-Guillaume (ioguix) de Rorthais https://github.com/ioguix/pgsql-bloat-estimation
+ * Alexey Lesovsky, Alexey Ermakov, Maxim Boguk, Ilya Kosmodemiansky et al. from Data Egret (aka PostgreSQL-Consulting) https://github.com/dataegret/pg-utils
+ * Josh Berkus, Quinn Weaver et al. from PostgreSQL Experts, Inc. https://github.com/pgexperts/pgx_scripts
+
+# The Full List of Reports
 
 ## А. General  / Infrastructural
 
