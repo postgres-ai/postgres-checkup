@@ -355,6 +355,20 @@ validate_args() {
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
 
+  if [[ "$HTML" == "true" ]]; then
+    PANDOC=$(which pandoc || echo -n "0");
+    if [[ "$PANDOC" == "0" ]]; then
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'pandoc' not found. Generating of html and pdf report impossible." >&2
+   fi
+  fi
+
+  if [[ "$PDF" == "true" ]]; then
+    WKHTMLTOPDF=$(which wkhtmltopdf || echo -n "0");
+    if [[ "$WKHTMLTOPDF" == "0" ]]; then
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' not found. Generating of pdf report impossible." >&2
+    fi
+  fi
+
   # custom UNIX domain socket directory for PostgreSQL
   local psql_unix_socket_option=""
   if [[ "${PGSOCKET}" != "None" ]]; then
