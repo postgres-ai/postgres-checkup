@@ -169,6 +169,7 @@ func loadTemplates() *template.Template {
     tplFuncMap["RawFloatFormat"] = RawFloatFormat
     tplFuncMap["Int"] = Int
     tplFuncMap["EscapeQuery"] = EscapeQuery
+    tplFuncMap["WordWrap"] = WordWrap
 
     templates, err = template.New("").Funcs(tplFuncMap).ParseFiles(allFiles...)
     if err != nil {
