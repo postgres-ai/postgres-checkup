@@ -225,7 +225,7 @@ index_data as (
   left join fk_indexes fi on
     fi.fk_table_ref = ri.table_name
     and fi.opclasses like (ri.opclasses || '%')
-  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) <> 
+  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) = 
 	substring(ri.index_def from position('USING' in ri.index_def) for length(ri.index_def))
 ),
 -- Cut recursive links
