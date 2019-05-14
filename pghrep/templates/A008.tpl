@@ -84,4 +84,17 @@ Data collected: {{ DtFormat .timestamptz }}
 
 ## Conclusions ##
 
+{{- if .conclusions }}
+{{ range $conclusion := .conclusions -}}
+{{ $conclusion }}  
+{{ end }}
+{{ end }}
+
 ## Recommendations ##
+
+{{- if .recommendations }}
+{{ range $recommendation := .recommendations -}}
+{{ $recommendation }}  
+{{ end }}
+{{ end }}
+

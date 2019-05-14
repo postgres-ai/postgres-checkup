@@ -391,6 +391,7 @@ func main() {
         }
         bodyBytes, _ := json.Marshal(result)
         json.Unmarshal(bodyBytes, &reportData)
+        determineMasterReplica(reportData)
     }
     reportData["ROWS_LIMIT"] = ROWS_LIMIT
     var outputDir string
