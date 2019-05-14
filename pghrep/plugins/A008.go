@@ -90,29 +90,6 @@ func checkFsItem(fsItemData FsItem) (bool, bool, bool, bool) {
 	return nfs, less70p, in7090p, more90p
 }
 
-// check specified disk
-func checkDisk(fsItemData FsItem, conclusions []string, recommendations []string) ([]string, []string) {
-	if strings.ToLower(fsItemData.Fstype) == "nfs" {
-		conclusions = append(conclusions, "NFS found")
-		recommendations = append(recommendations, "NFS found")
-	}
-	usePercent := strings.Replace(fsItemData.UsePercent, "%", "", 1)
-	percent, _ := strconv.Atoi(usePercent)
-	if percent < PROBLEM_USAGE && fsItemData.Fstype != "tmpfs" {
-		conclusions = append(conclusions, "No significant risks of out-of-disk-space problem have been detected.")
-		recommendations = append(recommendations, "No recommendations.")
-	}
-	if percent >= PROBLEM_USAGE && percent < CRITICAL_USAGE && fsItemData.Fstype != "tmpfs" {
-		conclusions = append(conclusions, "[P2] Free disk space exceeds 70%. There are some risks of out-of-disk-space problem.")
-		recommendations = append(recommendations, "[P2] Add more disk space. It is recommended to keep free disk space less than 70%. to reduce risks of out-of-disk-space problem.")
-	}
-	if percent >= CRITICAL_USAGE && fsItemData.Fstype != "tmpfs" {
-		conclusions = append(conclusions, "[P1] Free disk space exceeds 90%. There are significant risks of out-of-disk-space problem. In this case, PostgreSQL will stop working and manual fix will be required.")
-		recommendations = append(recommendations, "[P1] Add more disk space as soon as possible to prevent outage.")
-	}
-	return conclusions, recommendations
-}
-
 // Generate conclusions and recommendatons
 func A008(data map[string]interface{}) {
 	nfs := false
