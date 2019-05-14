@@ -1,4 +1,7 @@
 # Collect pg_settings artifact
+
+${CHECK_HOST_CMD} "${_PSQL} -f -" "reset statement_timeout"
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with timeouts as (
   select json_object_agg(s.name,s ) from pg_settings s where name in ('statement_timeout', 'idle_in_transaction_session_timeout', 'authentication_timeout')
@@ -40,3 +43,5 @@ select
         'user_specified_settings', (select * from user_specified_settings)
     );
 SQL
+
+${CHECK_HOST_CMD} "${_PSQL} -f -" "set statement_timeout to ${STIMEOUT}s"
