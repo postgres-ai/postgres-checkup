@@ -213,10 +213,6 @@ index_data as (
     and  am1.amname = am2.amname -- same access type
     and i1.columns like (i2.columns || '%') -- index 2 includes all columns from index 1
     and i1.opclasses like (i2.opclasses || '%')
-    -- index expressions is same
-    -- and pg_get_expr(i1.indexprs, i1.indrelid) is not distinct from pg_get_expr(i2.indexprs, i2.indrelid)
-    -- index predicates is same
-    -- and pg_get_expr(i1.indpred, i1.indrelid) is not distinct from pg_get_expr(i2.indpred, i2.indrelid)
 ), redundant_indexes_fk as (
   select
     ri.*,
