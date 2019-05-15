@@ -7,11 +7,11 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master)}}
 {{ if (index (index .results .hosts.master) "data") }}
-Setting name | Value | Unit | Pretty value
--------------|-------|------|--------------
+| Setting name | Value | Unit | Pretty value |
+|-------------|-------|------|--------------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting }}|{{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}
+| [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting }}|{{ $value.unit }} | {{ UnitValue $value.setting $value.unit}} |
 {{ end }}
 
 ### CPU ###

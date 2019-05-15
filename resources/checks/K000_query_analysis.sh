@@ -6,6 +6,8 @@
 # json_object - currently generated json
 # prev_json_object - previously generated json
 
+ROWS_LIMIT=50
+
 set -u -e -o pipefail
 
 error_handler() {
@@ -399,9 +401,11 @@ for query_num in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
 
   # Generate link to a full text
   link="../../json_reports/${TIMESTAMP_DIRNAME}/K_query_groups/${query_num}_${ALIAS_INDEX}.sql"
+  readable_queryid="${query_num}_${ALIAS_INDEX}"
 
   # add link into the object
   JSON=$(jq --arg link $link -r '.queries."'$query_num'" += { "link": $link }' <<<${JSON})
+  JSON=$(jq --arg readable_queryid $readable_queryid -r '.queries."'$query_num'" += { "readable_queryid": $readable_queryid }' <<<${JSON})
 done
 
 # print resulting JSON to stdout
