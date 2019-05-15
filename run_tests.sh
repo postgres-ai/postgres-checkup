@@ -12,6 +12,37 @@ su - postgres -c "psql -A -t -d postgres -c 'DROP DATABASE if exists ${db_name}'
 su - postgres -c "psql -A -t -d postgres -c 'CREATE DATABASE ${db_name}'"
 su - postgres -c "psql -A -t -d ${db_name} -f "${current_dir}"/.ci/test_db_dump.sql"
 
+# ---------------------------------------------------------------------------------------------
+echo "=======> Test started: H002_unused_indexes.sh"
+test_resut=1
+
+rm -Rf ./artifacts
+./checkup -h 127.0.0.1 --username postgres --project test --dbname ${db_name} -e 1 \
+	--file ./resources/checks/H002_unused_indexes.sh
+
+data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') \
+	&& result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | 
+		jq '.results ."127.0.0.1" .data .redundant_indexes ."public.t_with_redundant_idx_id"') \
+	&& ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) \
+	&& echo "ERROR in H002: ${result} in '.results .\"127.0.0.1\" .data .redundant_indexes .\"public.t_with_redundant_idx_id\"'" \
+	&& echo $(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.') \
+	&& test_resut=0
+
+data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') \
+	&& result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | 
+		jq '.results ."127.0.0.1" .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') \
+	&& ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) \
+	&& echo "ERROR in H002: ${result} in '.results .\"127.0.0.1\" .data .redundant_indexes .\"public.t_with_redundant_idx_f1_uniq\"'" \
+	&& echo $(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.') \
+	&& test_resut=0
+
+if [ "$test_resut" -eq "1" ]; then
+	echo "<======= Test finished: H002"
+else
+	echo "<======= Test failed: H002"
+fi
+
+# ---------------------------------------------------------------------------------------------
 echo "=======> Test started: H003 Non indexed FKs"
 test_resut=1
 su - postgres -c "psql -A -t -d ${db_name} -f "${current_dir}"/.ci/h003_step_1.sql"
@@ -47,3 +78,4 @@ if [ "$test_resut" -eq "1" ]; then
 else
 	echo "<======= Test failed: H003"
 fi
+# ---------------------------------------------------------------------------------------------
