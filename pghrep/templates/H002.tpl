@@ -11,7 +11,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- end }}
 ### Never Used Indexes ###
 {{ if (index (index (index .results .hosts.master) "data") "never_used_indexes") }}
-{{ if gt (len (index (index (index .results .hosts.master) "data") "never_used_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "never_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 | \#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK |
 |--|-------|-------|----{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----|-----|
@@ -30,7 +30,7 @@ Nothing found.
 
 ### Rarely Used Indexes ###
 {{ if (index (index (index .results .hosts.master) "data") "rarely_used_indexes") }}
-{{ if gt (len (index (index (index .results .hosts.master) "data") "rarely_used_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "rarely_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 |\#| Table | Index | {{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Comment | Supports FK|
 |--|-------|-------|-----{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----|----|-----|
@@ -50,7 +50,7 @@ Nothing found.
 
 ### Redundant Indexes ###
 {{ if (index (index (index .results .hosts.master) "data") "redundant_indexes") }}
-{{ if gt (len (index (index (index .results .hosts.master) "data") "redundant_indexes")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "redundant_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 |\#| Table | Index | Redundant to |{{.hosts.master}} usage {{ range $skey, $host := .hosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK |
 |--|-------|-------|--------------|--{{ range $skey, $host := .hosts.replicas }}|--------{{ end }}|-----|-----|-----|

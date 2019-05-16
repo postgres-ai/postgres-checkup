@@ -1,4 +1,4 @@
-# {{ .checkId }} Top-{{.ROWS_LIMIT}} Queries by total_time
+# {{ .checkId }} Top-{{.LISTLIMIT}} Queries by total_time
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
@@ -15,7 +15,7 @@ Period age: {{ (index (index (index .results .hosts.master) "data") "period_age"
 Error (calls): {{ NumFormat (index (index (index .results .hosts.master) "data") "absolute_error_calls") 2 }} ({{ NumFormat (index (index (index .results .hosts.master) "data") "relative_error_calls") 2 }}%)  
 Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "data") "absolute_error_total_time") 2 }} ({{ NumFormat (index (index (index .results .hosts.master) "data") "relative_error_total_time") 2 }}%)
 
-{{ if gt (len (index (index (index .results .hosts.master) "data") "queries")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "queries")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 | \# | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
 |----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
