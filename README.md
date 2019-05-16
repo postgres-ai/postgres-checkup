@@ -98,6 +98,11 @@ The following programs must be installed on the observer machine:
 * golang >= 1.8 (no binaries are shipped at the moment)
 * awk
 * sed
+* pandoc *
+* wkhtmltopdf *
+
+Pandoc and wkhtmltopdf optional, they need for generating HTML and PDF versions
+of report (see `--pdf` and `--html`).
 
 Nothing special has to be installed on the observed machines. However, these
 machines must run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others
@@ -106,6 +111,33 @@ should work as well, but are not yet tested).
 :warning: Only Postgres version 9.6 and higher are currently supported.
 
 ## How to Install
+
+#### 1. Install required programs
+
+Ubuntu/Debian:
+```
+sudo apt-get update
+sudo apt-get install postgresql
+sudo apt-get install coreutils
+sudo apt-get install jq
+sudo apt-get install golang
+# Optional
+sudo apt install pandoc
+sudo apt-get install wkhtmltopdf
+```
+
+MacOS (assuming that Homebrew is installed):
+```
+brew install postgresql
+brew install coreutils
+brew install jq
+brew install golang
+# Optional
+brew install pandoc
+brew install Caskroom/cask/wkhtmltopdf
+```
+
+#### 2. Clone this repo
 
 Use `git clone`. This is the only method of installation currently supported.
 
