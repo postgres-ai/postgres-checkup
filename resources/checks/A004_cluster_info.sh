@@ -29,8 +29,6 @@ with data as (
     from pg_stat_database s
     where s.datname = current_database()
   )
-  select 'Postgres Version' as metric, version() as value
-  union all
   select
     'Config file' as metric,
     (select setting from pg_settings where name = 'config_file') as value

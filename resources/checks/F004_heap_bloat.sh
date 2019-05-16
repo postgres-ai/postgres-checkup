@@ -67,53 +67,58 @@ with data as (
     --   AND tblpages*((pst).free_percent + (pst).dead_tuple_percent)::float4/100 >= 1
   )
   select
-    case is_na when true then 'TRUE' else '' end as "Is N/A",
-    coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "Table",
-    pg_size_pretty(real_size::numeric) as "Size",
+    case is_na when true then 'TRUE' else '' end as "is_na",
+    coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "table_name",
+    pg_size_pretty(real_size::numeric) as "real_size",
     case
       when extra_size::numeric >= 0
         then extra_size::numeric
       else null
-    end as "Extra size bytes",
-    extra_ratio as "Extra_ratio",
+    end as "extra_size_bytes",
+    extra_ratio as "extra_ratio_percent",
     case
       when extra_size::numeric >= 0
         then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
       else null
-    end  as "Extra",
+    end  as "extra",
     case
       when bloat_size::numeric >= 0
         then bloat_size::numeric
       else null
-    end as "Bloat size bytes",
-    bloat_ratio as "Bloat ratio",
+    end as "bloat_size_bytes",
+    bloat_ratio as "bloat_ratio_percent",
     case
       when bloat_size::numeric >= 0
         then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
       else null
-    end as "Bloat estimate",
-    real_size as "Real size bytes",
+    end as "bloat_estimate",
+    real_size as "real_size_bytes",
     case
       when (real_size - bloat_size)::numeric >=0
         then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
         else null
-      end as "Live",
+      end as "live_data_size",
     case
       when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
         else null
-      end as "Live bytes",
+      end as "live_data_size_bytes",
     greatest(last_autovacuum, last_vacuum)::timestamp(0)::text
       || case greatest(last_autovacuum, last_vacuum)
         when last_autovacuum then ' (auto)'
-      else '' end as "Last Vaccuum",
+      else '' end as "last_vaccuum",
     (
       select
         coalesce(substring(array_to_string(reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 100)
       from pg_class
       where oid = tblid
-    ) as "Fillfactor",
-    case when ot.table_id is not null then true else false end as overrided_settings
+    ) as "fillfactor",
+    case when ot.table_id is not null then true else false end as overrided_settings,
+    case
+      when (real_size - bloat_size)::numeric >=0
+        then real_size::numeric / (real_size - bloat_size)::numeric
+        else null
+      end as "bloat_ratio"
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
@@ -125,15 +130,17 @@ with data as (
     limited_data.*
   from limited_data
 ), limited_json_data as (
-  select json_object_agg(ld."Table", ld) as json from num_limited_data ld
+  select json_object_agg(ld."table_name", ld) as json from num_limited_data ld
 ), total_data as (
   select
     sum(1) as count,
-    sum("Extra size bytes") as "Extra size bytes sum",
-    sum("Real size bytes") as "Real size bytes sum",
-    sum("Bloat size bytes") as "Bloat size bytes sum",
-    (sum("Bloat size bytes")::numeric/sum("Real size bytes")::numeric * 100) as "Bloat ratio",
-    sum("Extra size bytes") as "Extra size bytes sum"
+    sum("extra_size_bytes") as "extra_size_bytes_sum",
+    sum("real_size_bytes") as "real_size_bytes_sum",
+    sum("bloat_size_bytes") as "bloat_size_bytes_sum",
+    sum("live_data_size_bytes") as "live_data_size_bytes_sum",
+    (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
+    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_avg",
+    sum("extra_size_bytes") as "extra_size_bytes_sum"
   from data
 )
 select
@@ -144,7 +151,6 @@ select
     (select row_to_json(total_data) from total_data),
     'overrided_settings_count',
     (select count(1) from limited_data where overrided_settings = true)
-
   )
 SQL
 
