@@ -397,8 +397,10 @@ validate_args() {
   fi
 
   # Construct _PSQL macro for usage inside the check scripts
-  export PGOPTIONS="-c application_name=checkup -c statement_timeout=${STIMEOUT}s"
+  export PGOPTIONS_NO_TIMEOUT="-c application_name=checkup -c statement_timeout=${STIMEOUT}s"
+  export PGOPTIONS="${PGOPTIONS_NO_TIMEOUT} -c statement_timeout=${STIMEOUT}s"
   export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
+  export _PSQL_NO_TIMEOUT="PGOPTIONS=\"${PGOPTIONS_NO_TIMEOUT}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
   export _PSQL="PGOPTIONS=\"${PGOPTIONS}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
 
   dbg ""
