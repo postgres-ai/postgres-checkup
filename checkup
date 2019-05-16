@@ -21,7 +21,7 @@ SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
-export ROWS_LIMIT=100
+LISTLIMIT=50
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -354,6 +354,7 @@ validate_args() {
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
+  [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=50
 
   if ([[ "$HTML" == "true" ]] || [[ "$PDF" == "true" ]]); then
     PANDOC=$(which pandoc || echo -n "0");

@@ -6,8 +6,6 @@
 # json_object - currently generated json
 # prev_json_object - previously generated json
 
-ROWS_LIMIT=50
-
 set -u -e -o pipefail
 
 error_handler() {
@@ -99,7 +97,7 @@ if [[ "${err_code}" -ne "0" ]]; then
       md5( queryid::text || dbid::text || userid::text ) as md5
     from pg_stat_statements s
     order by total_time desc
-    limit ${ROWS_LIMIT}
+    limit ${LISTLIMIT}
   "
 else
   # WITH pg_stat_kcache
@@ -144,7 +142,7 @@ else
     from pg_stat_statements s
     join pg_stat_kcache() k using(queryid, dbid, userid)
     order by total_time desc
-    limit ${ROWS_LIMIT}
+    limit ${LISTLIMIT}
   "
 fi
 

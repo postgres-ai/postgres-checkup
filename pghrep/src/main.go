@@ -341,9 +341,9 @@ func main() {
     debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
     flag.Parse()
     checkData=*checkDataPtr
-    ROWS_LIMIT, rlerr := strconv.Atoi(os.Getenv("ROWS_LIMIT"))
+    ROWS_LIMIT, rlerr := strconv.Atoi(os.Getenv("LISTLIMIT"))
     if rlerr != nil {
-        ROWS_LIMIT = 100
+        ROWS_LIMIT = 50
     }
 
     if *debugPtr == 1  {
