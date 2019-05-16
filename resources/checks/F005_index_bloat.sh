@@ -123,6 +123,11 @@ with data as (
     ) as "index_table_name",
     real_size as "real_size_bytes",
     pg_size_pretty(real_size::numeric) as "size",
+    case
+      when (real_size - bloat_size)::numeric >=0
+        then real_size::numeric / (real_size - bloat_size)::numeric
+        else null
+      end as "bloat_ratio",
     extra_ratio as "extra_ratio_percent",
     case
       when extra_size::numeric >= 0
@@ -153,7 +158,12 @@ with data as (
       when (real_size - bloat_size)::numeric >=0
         then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
         else null
-     end as "live",
+     end as "live_data_size",
+    case
+      when (real_size - bloat_size)::numeric >=0
+        then (real_size - bloat_size)::numeric
+        else null
+      end as "live_data_size_bytes",
     case
       when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
@@ -180,9 +190,12 @@ with data as (
     sum("extra_size_bytes") as "extra_size_bytes_sum",
     sum("real_size_bytes") as "real_size_bytes_sum",
     sum("bloat_size_bytes") as "bloat_size_bytes_sum",
-   (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
+    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_avg",
+    (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
     sum("extra_size_bytes") as "extra_size_bytes_sum",
-    sum("table_size_bytes") as "table_size_bytes_sum"
+    sum("table_size_bytes") as "table_size_bytes_sum",
+    sum("live_data_size_bytes") as "live_data_size_bytes_sum"
+
   from data
 )
 select
