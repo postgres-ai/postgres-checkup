@@ -341,9 +341,9 @@ func main() {
     debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
     flag.Parse()
     checkData=*checkDataPtr
-    ROWS_LIMIT, rlerr := strconv.Atoi(os.Getenv("ROWS_LIMIT"))
+    LISTLIMIT, rlerr := strconv.Atoi(os.Getenv("LISTLIMIT"))
     if rlerr != nil {
-        ROWS_LIMIT = 100
+        LISTLIMIT = 50
     }
 
     if *debugPtr == 1  {
@@ -392,7 +392,7 @@ func main() {
         bodyBytes, _ := json.Marshal(result)
         json.Unmarshal(bodyBytes, &reportData)
     }
-    reportData["ROWS_LIMIT"] = ROWS_LIMIT
+    reportData["LISTLIMIT"] = LISTLIMIT
     var outputDir string
     if len(*outDirPtr) == 0 {
         outputDir = "./"
