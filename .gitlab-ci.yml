@@ -166,6 +166,7 @@ build:
   when: on_success
   only:
     - master
+    - docker_build
   services:
     - docker:dind
   script:
