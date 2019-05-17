@@ -1,8 +1,8 @@
 image: ubuntu:16.04
 
 stages:
-  - test
   - docker_build
+  - test
 
 variables:
   POSTGRES_DB: dbname # set database
