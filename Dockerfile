@@ -6,6 +6,7 @@ RUN apk add --update --no-cache \
     postgresql-client \
     coreutils \
     jq \
+    curl \
     go \
     gawk \
     sed \
