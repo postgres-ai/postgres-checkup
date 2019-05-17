@@ -157,3 +157,22 @@ test-check-cli:
       >&2 echo "Oh no! $errcount tests failed"
       exit 1
     fi
+
+
+build:
+  image: docker:dind
+  stage: build
+  when: on_success
+  only:
+    - master
+  services:
+    - docker:dind
+  script:
+    - docker build -t registry.gitlab.com/postgres-ai-team/postgres-checkup:latest .
+    - docker push registry.gitlab.com/postgres-ai-team/postgres-checkup:latest
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t registry.gitlab.com/postgres-ai-team/postgres-checkup:latest .
+    - docker push registry.gitlab.com/postgres-ai-team/postgres-checkup:latest
+    - docker rm -f redacted-staging
+    - docker run -d -p 9090:9090 --name postgres-checkup-test registry.gitlab.com/postgres-ai-team/postgres-checkup:latest
