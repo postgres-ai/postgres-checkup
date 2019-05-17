@@ -1,7 +1,7 @@
 # Generates JSON for three type of reports:
 # - K001 - Globally aggregated
 # - K002 - Workload type (first word analysis)
-# - K003 - TOP-50 queries by total time
+# - K003 - TOP queries by total time
 
 # json_object - currently generated json
 # prev_json_object - previously generated json

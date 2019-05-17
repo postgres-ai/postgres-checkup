@@ -243,9 +243,9 @@ Aggregated statistics about all queries performed during the observation period.
 Helps to understand which type of workload is the most frequent (selects, inserts, updates, etc.) during the observation period.
 The grouping is based on the first word of every query.
 
-### K003 Top-50 Queries by total_time
+### K003 Top Queries by total_time
 
-One of the most comprehensive and deep reports. Shows Top-100 query groups
+One of the most comprehensive and deep reports. Shows Top query groups
 ordered by total execution time during the observation period (`total_time` in
 pg_stat_statements). Good start for query optimization. 
 

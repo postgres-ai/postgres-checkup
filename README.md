@@ -398,7 +398,7 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 - [x] K001 Globally aggregated query metrics #158, #178, #182, #184  
 - [x] K002 Workload type ("first word" analysis) #159, #178, #179, #182, #184  
-- [x] K003 Top-50 queries by total_time  #160, #172, #174, #178, #179, #182, #184, #193
+- [x] K003 Top queries by total_time  #160, #172, #174, #178, #179, #182, #184, #193
 
 ## L. DB Schema Analysis
 - [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163  
