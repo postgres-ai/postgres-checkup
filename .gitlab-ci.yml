@@ -2,6 +2,7 @@ image: ubuntu:16.04
 
 stages:
   - test
+  - build
 
 variables:
   POSTGRES_DB: dbname # set database
