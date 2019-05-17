@@ -176,7 +176,9 @@ docker_build:
     - docker_build
   services:
     - docker:dind
-  script:
+  before_script:
     - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
+  script:
     - docker build -t registry.gitlab.com/postgres-ai-team/postgres-checkup:latest .
+  after_script:
     - docker push registry.gitlab.com/postgres-ai-team/postgres-checkup:latest
