@@ -9,20 +9,24 @@ variables:
   POSTGRES_USER: username # set username
   POSTGRES_PASSWORD: ""  
 
-before_script:
-  - apt-get update
-  - apt-get install -y jq curl wget
-  - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-  - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
-  - apt-get update
-  - apt-get -y upgrade
-  - apt-get -y install golang-1.9-go
-  - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
-  - source ~/.profile
-  - apt-get -y install postgresql-client-11
-  - psql --version
+.prepare:
+  stage: test
+  before_script:
+    - apt-get update
+    - apt-get install -y jq curl wget
+    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+    - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update
+    - apt-get -y upgrade
+    - apt-get -y install golang-1.9-go
+    - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
+    - source ~/.profile
+    - apt-get -y install postgresql-client-11
+    - psql --version
 
 .test-check:
+  stage: test
+  extends: ".prepare"
   script:
     - psql -h postgres -d dbname -U username -c "SELECT version();"
     - echo "Test H003 Non indexed FKs"
@@ -49,6 +53,7 @@ before_script:
   
 test-general:
   stage: test
+  extends: ".prepare"
   before_script:
     - apt-get update
     - apt-get install -y jq curl wget git s3cmd
@@ -118,6 +123,7 @@ test-general:
 
 test-pghrep:
   stage: test
+  extends: ".prepare"
   script:
     - cd pghrep && make test
 
@@ -143,6 +149,7 @@ test-check-cli:
   services:
     - postgres:11
   stage: "test"
+  extends: ".prepare"
   script: |
     errcount=0
     printTail="                                                                      "
