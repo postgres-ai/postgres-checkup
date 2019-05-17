@@ -168,11 +168,12 @@ test-check-cli:
 
 
 docker_build:
-  image: docker:dind
+  image: docker:stable
   stage: docker_build
   when: on_success
   variables:
-    DOCKER_DRIVER: overlay
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://localhost:2375
   only:
     - master
     - docker_build
@@ -181,6 +182,7 @@ docker_build:
   before_script:
     - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
   script:
-    - docker build -t registry.gitlab.com/postgres-ai-team/postgres-checkup:latest .
-  after_script:
+    - docker build -t registry.gitlab.com/postgres-ai-team/postgres-checkup:latest --no-cache=true .
     - docker push registry.gitlab.com/postgres-ai-team/postgres-checkup:latest
+  after_script:
+    - docker logout
