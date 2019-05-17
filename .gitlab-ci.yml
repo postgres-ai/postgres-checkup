@@ -2,7 +2,7 @@ image: ubuntu:16.04
 
 stages:
   - test
-  - build
+  - docker-build
 
 variables:
   POSTGRES_DB: dbname # set database
@@ -160,9 +160,9 @@ test-check-cli:
     fi
 
 
-build:
+docker-build:
   image: docker:dind
-  stage: build
+  stage: docker-build
   when: on_success
   only:
     - master
