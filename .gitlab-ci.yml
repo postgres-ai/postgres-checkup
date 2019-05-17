@@ -60,8 +60,10 @@ test-general:
     - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
     - apt-get update
     - apt-get -y upgrade
-    - apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-client-11 postgresql-server-dev-11 postgresql-11-pg-stat-kcache
+    - apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-client-11 postgresql-server-dev-11 && apt-get install -y postgresql-11-pg-stat-kcache
     - psql --version
+    - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
+    - source ~/.profile
     - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
     - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
     - echo "host all  all    ::1/128  trust" >> /etc/postgresql/11/main/pg_hba.conf
