@@ -171,6 +171,8 @@ docker_build:
   image: docker:dind
   stage: docker_build
   when: on_success
+  variables:
+    DOCKER_DRIVER: overlay
   only:
     - master
     - docker_build
