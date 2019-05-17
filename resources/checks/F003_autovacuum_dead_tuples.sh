@@ -31,7 +31,7 @@ with overrided_tables as (
   left join overrided_tables ot on ot.table_id = c.oid
   where reltuples > 10000
   order by 13 desc
-  limit ${ROWS_LIMIT}
+  limit ${LISTLIMIT}
 ), num_dead_tuples as (
   select
     row_number() over () num,

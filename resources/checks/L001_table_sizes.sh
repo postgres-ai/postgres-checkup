@@ -15,7 +15,7 @@ with data as (
   left join pg_namespace n on n.oid = c.relnamespace
   where relkind = 'r' and nspname <> 'pg_catalog'
   order by c.relpages desc
-  limit ${ROWS_LIMIT}
+  limit ${LISTLIMIT}
 ), data2 as (
   select
     null::oid as oid,

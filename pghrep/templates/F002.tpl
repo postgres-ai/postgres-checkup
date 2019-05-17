@@ -9,7 +9,7 @@ Current database: {{ .database }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
 #### Databases ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 | \# | Database | &#9660;&nbsp;Age | Capacity used, % | Warning | datfrozenxid |
 |--|--------|-----|------------------|---------|--------------|
@@ -25,7 +25,7 @@ Current database: {{ .database }}
 
 {{/* if index (index (index .results .hosts.master) "data") "per_database" */}}
 #### Tables in the observed database ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 | \# | Relation | Age | &#9660;&nbsp;Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid |
 |---|-------|-----|------------------|---------|-----------------|--------------------|

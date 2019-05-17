@@ -100,7 +100,7 @@ never_used_indexes as (
 ), never_used_indexes_num as (
   select row_number() over () num, nui.* 
   from never_used_indexes nui
-  limit ${ROWS_LIMIT}
+  limit ${LISTLIMIT}
 ), never_used_indexes_total as (
   select
     sum(index_size_bytes) as index_size_bytes_sum,
@@ -151,7 +151,7 @@ rarely_used_indexes as (
 ), rarely_used_indexes_num as (
   select row_number() over () num, rui.*
   from rarely_used_indexes rui
-  limit ${ROWS_LIMIT}
+  limit ${LISTLIMIT}
 ), rarely_used_indexes_total as (
   select
     sum(index_size_bytes) as index_size_bytes_sum,
@@ -213,10 +213,6 @@ index_data as (
     and  am1.amname = am2.amname -- same access type
     and i1.columns like (i2.columns || '%') -- index 2 includes all columns from index 1
     and i1.opclasses like (i2.opclasses || '%')
-    -- index expressions is same
-    and pg_get_expr(i1.indexprs, i1.indrelid) is not distinct from pg_get_expr(i2.indexprs, i2.indrelid)
-    -- index predicates is same
-    and pg_get_expr(i1.indpred, i1.indrelid) is not distinct from pg_get_expr(i2.indpred, i2.indrelid)
 ), redundant_indexes_fk as (
   select
     ri.*,
@@ -225,6 +221,8 @@ index_data as (
   left join fk_indexes fi on
     fi.fk_table_ref = ri.table_name
     and fi.opclasses like (ri.opclasses || '%')
+  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) = 
+	substring(ri.index_def from position('USING' in ri.index_def) for length(ri.index_def))
 ),
 -- Cut recursive links
 redundant_indexes_tmp_num as (
@@ -286,7 +284,7 @@ redundant_indexes_tmp_num as (
 ), redundant_indexes_num as (
   select row_number() over () num, rig.*
   from redundant_indexes_grouped rig
-  limit ${ROWS_LIMIT}
+  limit ${LISTLIMIT}
 ), redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json

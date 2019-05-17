@@ -6,7 +6,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ if (index .results .hosts.master) }}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-{{ if gt (len (index (index .results .hosts.master) "data")) .ROWS_LIMIT }}The list is limited to {{.ROWS_LIMIT}} items.{{ end }}  
+{{ if gt (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 | \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago |
 |----|------|----|---------------|-------|-----------------------|-----------------------|
@@ -23,7 +23,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
-{{ if gt (len (index (index $.results $host) "data")) $.ROWS_LIMIT }}The list is limited to {{ $.ROWS_LIMIT }} items.{{ end }}  
+{{ if gt (len (index (index $.results $host) "data")) $.LISTLIMIT }}The list is limited to {{ $.LISTLIMIT }} items.{{ end }}  
 
 | \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago |
 |----|------|----|---------------|-------|-----------------------|-----------------------|

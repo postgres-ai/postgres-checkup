@@ -21,7 +21,7 @@ SCRIPT_DIR=$(dirname $0)
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
-export ROWS_LIMIT=100
+DEFAULT_LIST_LIMIT=50
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -354,6 +354,7 @@ validate_args() {
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
+  [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
 
   if ([[ "$HTML" == "true" ]] || [[ "$PDF" == "true" ]]); then
     PANDOC=$(which pandoc || echo -n "0");
@@ -397,9 +398,12 @@ validate_args() {
   fi
 
   # Construct _PSQL macro for usage inside the check scripts
-  export PGOPTIONS="-c statement_timeout=${STIMEOUT}s"
+  export PGOPTIONS_NO_TIMEOUT=""
+  export PGOPTIONS="${PGOPTIONS_NO_TIMEOUT} -c statement_timeout=${STIMEOUT}s"
   export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
-  export _PSQL="PGOPTIONS=\"${PGOPTIONS}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
+  export _PSQL_NO_TIMEOUT="PGOPTIONS=\"${PGOPTIONS_NO_TIMEOUT}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
+  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
+  export _PSQL="PGAPPNAME=checkup PGOPTIONS=\"${PGOPTIONS}\" ${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
 
   dbg ""
   dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"

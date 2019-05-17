@@ -130,7 +130,7 @@ num_data as (
     parent_writes,
     cols_list,
     pg_get_indexdef(indexid) as indexdef
-  from data limit ${ROWS_LIMIT}
+  from data limit ${LISTLIMIT}
 )
 select json_object_agg(num_data.num, num_data) from num_data
 SQL
