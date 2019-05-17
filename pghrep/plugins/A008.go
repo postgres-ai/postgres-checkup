@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
 
@@ -34,19 +32,19 @@ type FsItem struct {
 	Device     string `json:"device"`
 }
 
-type ReportHostResultData struct {
-	DbData map[string]FsItem `json:"db_data"`
+type A008ReportHostResultData struct {
+	DbData map[string]FsItem `json:"data"`
 	FsData map[string]FsItem `json:"fs_data"`
 }
 
-type ReportHostResult struct {
-	Data      ReportHostResultData    `json:"data"`
-	NodesJson checkup.ReportLastNodes `json:"nodes.json"`
+type A008ReportHostResult struct {
+	Data      A008ReportHostResultData `json:"data"`
+	NodesJson checkup.ReportLastNodes  `json:"nodes.json"`
 }
 
-type ReportHostsResults map[string]ReportHostResult
+type A008ReportHostsResults map[string]A008ReportHostResult
 
-type Report struct {
+type A008Report struct {
 	Project       string                  `json:"project"`
 	Name          string                  `json:"name"`
 	CheckId       string                  `json:"checkId"`
@@ -54,25 +52,7 @@ type Report struct {
 	Database      string                  `json:"database"`
 	Dependencies  map[string]interface{}  `json:"dependencies"`
 	LastNodesJson checkup.ReportLastNodes `json:"last_nodes_json"`
-	Results       ReportHostsResults      `json:"results"`
-}
-
-func readData(filePath string) *Report {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil
-	}
-	defer file.Close()
-	jsonRaw, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil
-	}
-	var report Report
-	err = json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		return nil
-	}
-	return &report
+	Results       A008ReportHostsResults  `json:"results"`
 }
 
 func isValidFs(fs string) bool {
@@ -122,7 +102,6 @@ func checkFsItem(host string, fsItemData FsItem,
 
 // Generate conclusions and recommendatons
 func A008(data map[string]interface{}) {
-	//	nfs := false
 	less70p := false
 	p1 := false
 	p2 := false
@@ -132,8 +111,10 @@ func A008(data map[string]interface{}) {
 	var conclusions []string
 	var recommendations []string
 	filePath := pyraconv.ToString(data["source_path_full"])
-	report := readData(filePath)
-	if report == nil {
+	jsonRaw := checkup.LoadRawJsonReport(filePath)
+	var report A008Report
+	err := json.Unmarshal(jsonRaw, &report)
+	if err != nil {
 		return
 	}
 	for host, hostResult := range report.Results {
@@ -163,7 +144,7 @@ func A008(data map[string]interface{}) {
 			if len(nfsDisks) > 1 {
 				areIs = "are"
 			}
-			nfsConclusions = append(nfsConclusions, fmt.Sprintf("[P1] %s on %s "+areIs+" located on an NFS drive. "+
+			nfsConclusions = append(nfsConclusions, fmt.Sprintf("[P1] %s on host `%s` "+areIs+" located on an NFS drive. "+
 				"This might lead to serious issues with Postgres, including downtime and data corruption.",
 				strings.Join(nfsDisks, ", "), host))
 		}
@@ -183,7 +164,7 @@ func A008(data map[string]interface{}) {
 				respectively = " respectively"
 				s = "s"
 			}
-			nExtConclusions = append(nExtConclusions, fmt.Sprintf("[P3] %s on %s "+areIs+
+			nExtConclusions = append(nExtConclusions, fmt.Sprintf("[P3] %s on host `%s` "+areIs+
 				" located on drive"+s+" where the following filesystems are used: %s"+respectively+
 				". This might mean that Postgres performance and reliability characteristics are worse than it "+
 				"could be in case of use of more popular filesystems (such as ext4).",

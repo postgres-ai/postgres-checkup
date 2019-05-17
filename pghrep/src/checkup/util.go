@@ -33,6 +33,19 @@ type ReportLastNodes struct {
 	//	LastCheck
 }
 
+func LoadRawJsonReport(filePath string) []byte {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return []byte{}
+	}
+	defer file.Close()
+	jsonRaw, err := ioutil.ReadAll(file)
+	if err != nil {
+		return []byte{}
+	}
+	return jsonRaw
+}
+
 func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions []string,
 	recommendations []string, p1 bool, p2 bool, p3 bool) {
 	filePath := pyraconv.ToString(data["source_path_full"])
