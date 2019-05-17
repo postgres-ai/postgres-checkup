@@ -27,7 +27,7 @@ Current database: {{ .database }}
 {{- if ( index $value "bloat_size_bytes")}}{{ ByteFormat ( index $value "bloat_size_bytes") 2 }}{{end}} |
 {{- if ( index $value "bloat_size_bytes")}}{{ RawIntFormat ( index $value "bloat_size_bytes") }}{{end}} |
 {{- if ( index $value "bloat_ratio")}}{{ RawFloatFormat ( index $value "bloat_ratio") 2 }}{{end}} |
-{{- if ge (Int (index $value "Bloat ratio")) $minRatioWarning }} **{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}**{{else}}{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}{{end}} |
+{{- if ge (Int (index $value "bloat_ratio_percent")) $minRatioWarning }} **{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}**{{else}}{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}{{end}} |
 {{- "~" }}{{ ByteFormat ( index $value "live_data_size_bytes" ) 2 }} |
 {{- if (index $value "last_vaccuum") }} {{ ( index $value "last_vaccuum") }} {{ end }} |
 {{- ( index $value "fillfactor") }} |
