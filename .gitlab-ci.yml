@@ -173,6 +173,7 @@ docker_build:
   when: on_success
   variables:
     DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
   only:
     - master
     - docker_build
