@@ -249,38 +249,55 @@ docker build -t postgres-checkup .
 ```
 
 Then run a container with `postgres-checkup`. 
-This command run the tool with access via `psql`:
+This command run the tool using Postgres connection only (without SSH):
 
 ```bash
 docker run --rm \
-    --name postgres-checkup \
-    -e PGPASSWORD="postgres" \
-    -v `pwd`/artifacts:/artifacts \
-    postgres-checkup \
-    ./checkup -h $PG_HOST -p 5432 --username postgres --dbname postgres --project docker -e 1
+  --name postgres-checkup \
+  -e PGPASSWORD="postgres" \
+  -v `pwd`/artifacts:/artifacts \
+  postgres-checkup \
+    ./checkup \
+      -h hostname \
+      -p 5432 \
+      --username postgres \
+      --dbname postgres \
+      --project c \
+      -e "$(date +'%Y%m%d')001"
 ```
 
-If you want to execute all supported checks you have to use `ssh` access to target host with postgres.
-With docker container it's possible by mounting the ssh key file and specify the username in `-h` parameter:
+In this case some checks (those requiring SSH connection) will be skipped.
+
+If you want to have all supported checks, you have to use SSH access to the
+target machine with Postgres database.
+
+If SSH connection to the Postgres server is available, it is possible to pass
+SSH keys to the docker container, so postgres-checkup will switch to working via
+remote SSH calls, generating all reports:
 
 ```bash
 docker run --rm \
-    --name postgres-checkup \
-    -e PGPASSWORD="postgres" \
-    -v `pwd`/artifacts:/artifacts \
-    -v `pwd`/ssh/key:/root/.ssh/id_rsa:ro \
-    postgres-checkup \
-    ./checkup -h $SSH_USER@$PG_HOST -p 5432 --username postgres --dbname postgres --project docker -e 1
+  --name postgres-checkup \
+  -v "$(pwd)/artifacts:/artifacts" \
+  -v "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
+  postgres-checkup ./checkup \
+    -h sshusername@hostname \
+    --username my_postgres_user \
+    --dbname my_postgres_database \
+    --project docker_test_with_ssh \
+    -e "$(date +'%Y%m%d')001"
 ```
 
-If you try to check the local instance of postgres on your host from a container, you can't use `localhost` in `-h` parameter.
-You have to use `bridge` between host OS and Docker Engine. By default host IP is `172.17.0.1` in `docker0` network, but it can be different.
-More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
+If you try to check the local instance of postgres on your host from a container,
+you cannot use `localhost` in `-h` parameter. You have to use a bridge between
+host OS and Docker Engine. By default, host IP is `172.17.0.1` in `docker0`
+network, but it vary depending on configuration. More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
 
 ### Usage with `docker-compose`
 
-It will run an empty `postgres` database and `postgres-checkup` application that will stop when it's done.
-Local folder `artifacts` will contain `docker` subfolder with check result.
+It will run an empty `postgres` database and `postgres-checkup` application
+that will stop once it's done. The local folder named `artifacts` will contain
+the `docker` subfolder with checkup reports.
 
 ```bash
 docker-compose build
@@ -296,6 +313,8 @@ various developers, including but not limited to:
  * Jehan-Guillaume (ioguix) de Rorthais https://github.com/ioguix/pgsql-bloat-estimation
  * Alexey Lesovsky, Alexey Ermakov, Maxim Boguk, Ilya Kosmodemiansky et al. from Data Egret (aka PostgreSQL-Consulting) https://github.com/dataegret/pg-utils
  * Josh Berkus, Quinn Weaver et al. from PostgreSQL Experts, Inc. https://github.com/pgexperts/pgx_scripts
+
+Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 # The Full List of Reports
 
