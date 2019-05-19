@@ -163,7 +163,7 @@ test-check-cli:
     fi
 
 
-docker_build:
+Docker build master:
   image: docker:stable
   stage: docker_build
   when: on_success
@@ -182,5 +182,27 @@ docker_build:
     - [ $CI_COMMIT_SHA != "" ] && echo $CI_COMMIT_SHA
     - docker build -t registry.gitlab.com/postgres-ai/postgres-checkup:latest --no-cache=true .
     - docker push registry.gitlab.com/postgres-ai/postgres-checkup:latest
+  after_script:
+    - docker logout registry.gitlab.com
+
+Docker build for tag:
+  image: docker:stable
+  stage: docker_build
+  when: on_success
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+  only:
+    - master
+    - docker_build
+    variables:
+      - $CI_COMMIT_SHA != ""
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
+  script:
+    - docker build -t registry.gitlab.com/postgres-ai/postgres-checkup:$CI_COMMIT_SHA --no-cache=true .
+    - docker push registry.gitlab.com/postgres-ai/postgres-checkup:$CI_COMMIT_SHA
   after_script:
     - docker logout registry.gitlab.com
