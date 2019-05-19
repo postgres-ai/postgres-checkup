@@ -192,7 +192,7 @@ Docker build for tag:
     DOCKER_HOST: tcp://docker:2375
   only:
     variables:
-      - $CI_COMMIT_TAG != ""
+      - $CI_COMMIT_TAG != null
   services:
     - docker:dind
   before_script:
