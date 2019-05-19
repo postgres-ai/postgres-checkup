@@ -200,7 +200,7 @@ Docker build for tag:
   before_script:
     - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
   script:
-    - docker build -t registry.gitlab.com/postgres-ai/postgres-checkup:$CI_COMMIT_SHA --no-cache=true .
-    - docker push registry.gitlab.com/postgres-ai/postgres-checkup:$CI_COMMIT_SHA
+    - docker build -t "registry.gitlab.com/postgres-ai/postgres-checkup:${CI_COMMIT_SHA}" --no-cache=true .
+    - docker push "registry.gitlab.com/postgres-ai/postgres-checkup:${CI_COMMIT_SHA}"
   after_script:
     - docker logout registry.gitlab.com
