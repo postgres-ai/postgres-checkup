@@ -178,7 +178,7 @@ docker_build:
   before_script:
     - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
   script:
-    - echo "CI_COMMIT_SHA: ${CI_COMMIT_SHA}; CI_COMMIT_REF_NAME: ${CI_COMMIT_REF_NAME}"
+    - echo "CI_COMMIT_SHA: " $CI_COMMIT_SHA && echo "CI_COMMIT_REF_NAME: " $CI_COMMIT_REF_NAME
     - docker build -t registry.gitlab.com/postgres-ai/postgres-checkup:latest --no-cache=true .
     - docker push registry.gitlab.com/postgres-ai/postgres-checkup:latest
   after_script:
