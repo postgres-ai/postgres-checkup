@@ -19,7 +19,8 @@ Current database: {{ .database }}
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum") }}{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum") 2 }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum") }}{{- RawIntFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum" ) }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_avg") }}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_avg" ) 2 }}{{ end }} |
-{{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") }}{{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") 2 }}{{ end }}|||{{ end }}|{{ end }}
+{{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") }}{{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") 2 }}{{ end }} |
+{{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "live_data_size_bytes_sum") }} ~{{ ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "live_data_size_bytes_sum") 2 }}{{ end }} |||{{ end }}|{{ end }}
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "heap_bloat") "_keys") }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "heap_bloat") $key ) -}}
 |{{ $value.num }} |`{{- $key }}`{{if $value.overrided_settings}}\*{{ end }} |
@@ -27,7 +28,7 @@ Current database: {{ .database }}
 {{- if ( index $value "bloat_size_bytes")}}{{ ByteFormat ( index $value "bloat_size_bytes") 2 }}{{end}} |
 {{- if ( index $value "bloat_size_bytes")}}{{ RawIntFormat ( index $value "bloat_size_bytes") }}{{end}} |
 {{- if ( index $value "bloat_ratio")}}{{ RawFloatFormat ( index $value "bloat_ratio") 2 }}{{end}} |
-{{- if ge (Int (index $value "Bloat ratio")) $minRatioWarning }} **{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}**{{else}}{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}{{end}} |
+{{- if ge (Int (index $value "bloat_ratio_percent")) $minRatioWarning }} **{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}**{{else}}{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}{{end}} |
 {{- "~" }}{{ ByteFormat ( index $value "live_data_size_bytes" ) 2 }} |
 {{- if (index $value "last_vaccuum") }} {{ ( index $value "last_vaccuum") }} {{ end }} |
 {{- ( index $value "fillfactor") }} |
