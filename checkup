@@ -790,7 +790,7 @@ glue_md_reports() {
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
     [[ -e "${cur_report}" ]] || continue
     [[ "${cur_report}" != "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]] || continue
-    [[ "${cur_report}" != "A003.md" ]] || continue # reduce Full report size:
+
     title=$(head -n 1 ${cur_report})
     title="${title/\#/}"
     title="${title/\#/}"
