@@ -76,7 +76,7 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 {{ end }}{{/* range */}}
   
 {{- else -}}{{/* if host data */}}
-No data
+Nothing found
 {{- end -}}{{/* if host data */}}
 {{- end -}}{{/* hosts range */}}
 {{- end -}}{{/* if replicas */}}

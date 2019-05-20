@@ -37,13 +37,13 @@ Max workers memory: {{ ByteFormat ( Mul $autovacuum_work_mem $autovacuum_max_wor
 
 :warning: Warning: collection of current impact on disks is not yet implemented. Please refer to Postgres logs and see current read and write IO bandwidth caused by autovacuum.  
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data
+Nothing found
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 ## Conclusions ##

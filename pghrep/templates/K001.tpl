@@ -66,7 +66,7 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 {{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}%|
 {{ end }}{{/* range */}}
 {{- else -}}{{/* if host data */}}
-No data
+Nothing found
 {{- end -}}{{/* if host data */}}
 {{- end -}}{{/* hosts range */}}
 {{- end -}}{{/* if replicas */}}

@@ -37,7 +37,7 @@ No tuned tables are found
 | Setting {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }} |
 |--------{{ range $skey, $host := .hosts.replicas }}|-------- {{ end }}|
 |[hot_standby_feedback](https://postgresqlco.nf/en/doc/param/hot_standby_feedback)
-{{- range $skey, $host := .hosts.replicas -}}| {{if (index $.results $host) }}{{- $value := (index (index (index (index (index $.results $host) "data") "settings") "global_settings") "hot_standby_feedback") -}}{{- $value.setting -}}{{ else }}No data{{ end }} |
+{{- range $skey, $host := .hosts.replicas -}}| {{if (index $.results $host) }}{{- $value := (index (index (index (index (index $.results $host) "data") "settings") "global_settings") "hot_standby_feedback") -}}{{- $value.setting -}}{{ else }}Nothing found{{ end }} |
 {{- end -}}{{/* range replicas */}}
 {{ end }}{{/* if replicas */}}
 
