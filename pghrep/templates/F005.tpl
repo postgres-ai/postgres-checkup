@@ -38,13 +38,13 @@ Current database: {{ .database }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data
+Nothing found
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 

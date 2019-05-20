@@ -26,13 +26,13 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ end }}
 {{- end -}}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data
+Nothing found
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 ## Conclusions ##

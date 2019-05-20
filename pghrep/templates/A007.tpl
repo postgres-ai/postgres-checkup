@@ -8,8 +8,9 @@ Data collected: {{ DtFormat .timestamptz }}
 ### Master (`{{.hosts.master}}`) ###
 | Source | Settings count | Changed settings |
 |-------|----------------|-----------------|
-{{ range $key, $value := (index (index (index .results .hosts.master) "data") "changes") }}| {{ if $value.sourcefile }}{{ $value.sourcefile }}{{ else}}default{{ end }} | {{ $value.count }} | {{ if $value.examples}} {{ if (gt (len $value.examples) 0) }}{{ range $skey, $sname := (index $value "examples") }}{{ $sname }} {{ end }} {{ end }}
-{{ end }}|{{ end }}
+{{ range $key, $value := (index (index (index .results .hosts.master) "data") "changes") }}| {{ if $value.sourcefile }}{{ $value.sourcefile }}{{ else}}default{{ end }} | {{ $value.count }} | {{ if $value.examples}} {{ if (gt (len $value.examples) 0) }}{{ range $skey, $sname := (index $value "examples") }}{{ $sname }} {{ end }}{{ end }}{{ end }}|
+{{ end }}
+
 {{ end }}
 {{ end }}
 {{ end }}
@@ -21,8 +22,8 @@ Data collected: {{ DtFormat .timestamptz }}
     {{ if (index $.results $host) }}
 | Source | Settings count | Changed settings |
 |-------|----------------|-----------------|
-{{ range $key, $value := (index (index (index $.results $host) "data") "changes") }}|{{ if $value.sourcefile }}{{ $value.sourcefile }}{{ else}}default{{ end }} | {{ $value.count }} | {{ if $value.examples}} {{ if (gt (len $value.examples) 0) }}{{ range $skey, $sname := (index $value "examples") }}{{ $sname }} {{ end }} {{ end }}
-{{ end }}|{{ end }}
+{{ range $key, $value := (index (index (index $.results $host) "data") "changes") }}|{{ if $value.sourcefile }}{{ $value.sourcefile }}{{ else}}default{{ end }} | {{ $value.count }} | {{ if $value.examples}} {{ if (gt (len $value.examples) 0) }}{{ range $skey, $sname := (index $value "examples") }}{{ $sname }} {{ end }}{{ end }}{{ end }}|
+{{ end }}
 {{ else }}
 No data
 {{ end}}{{ end }}{{ end }}

@@ -39,16 +39,16 @@ Current database: {{ .database }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else }}{{/* if heap_bloat */}}
-No data
+Nothing found
 {{- end -}}{{/* if heap_bloat */}}
 {{- else -}}
-No data
+Nothing found
 {{- end -}}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 ## Conclusions ##

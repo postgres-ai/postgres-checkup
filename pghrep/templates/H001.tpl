@@ -26,10 +26,10 @@ Invalid indexes not found
 Invalid indexes not found
 {{- end -}}{{/* if data */}}
 {{- else -}}
-No data
+Nothing found
 {{- end -}}{{/* if .host.master data */}}
 {{- else -}}
-No data
+Nothing found
 {{- end -}}{{/* if .host.master */}}
 
 

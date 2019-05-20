@@ -102,7 +102,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ end }}
 {{ end }}
 {{ else }}
-No data
+Nothing found
 {{ end}}{{ end }}{{ end }}
 ## Conclusions ##
 
