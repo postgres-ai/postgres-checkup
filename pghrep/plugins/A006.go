@@ -24,11 +24,11 @@ func compareHostsData(data map[string]interface{}) {
 		valueData := pyraconv.ToInterfaceMap(value)
 		settingValue := pyraconv.ToString(valueData["setting"])
 		settingUnit := pyraconv.ToString(valueData["unit"])
-		diffSetting := make(map[string]interface{})
+		var diffSetting []interface{}
 		masterSetting := make(map[string]interface{})
 		masterSetting["value"] = settingValue
 		masterSetting["unit"] = settingUnit
-		diffSetting["master"] = masterSetting
+		diffSetting = append(diffSetting, masterSetting)
 		diff := false
 		for _, replica := range replicas {
 			rSettingValue, rSettingUnit := getReplicaSettingValue(data, replica, settingName)
@@ -37,10 +37,15 @@ func compareHostsData(data map[string]interface{}) {
 				hostSetting := make(map[string]interface{})
 				hostSetting["value"] = rSettingValue
 				hostSetting["unit"] = rSettingUnit
-				diffSetting[replica] = hostSetting
+				diffSetting = append(diffSetting, hostSetting)
 				if (settingValue != rSettingValue) || (settingUnit != rSettingUnit) {
 					diff = true
 				}
+			} else {
+				hostSetting := make(map[string]interface{})
+				hostSetting["value"] = ""
+				hostSetting["unit"] = ""
+				diffSetting = append(diffSetting, hostSetting)
 			}
 		}
 		if diff {
@@ -55,10 +60,10 @@ func compareHostsData(data map[string]interface{}) {
 		valueData := pyraconv.ToInterfaceMap(value)
 		settingValue := pyraconv.ToString(valueData["setting"])
 		settingUnit := pyraconv.ToString(valueData["unit"])
-		diffConfig := make(map[string]interface{})
+		var diffConfig []interface{}
 		masterSetting := make(map[string]interface{})
 		masterSetting["value"] = settingValue
-		diffConfig["master"] = masterSetting
+		diffConfig = append(diffConfig, masterSetting)
 		diff := false
 		for _, replica := range replicas {
 			rSettingValue, rSettingUnit := getReplicaConfigValue(data, replica, configName)
@@ -66,10 +71,15 @@ func compareHostsData(data map[string]interface{}) {
 				hostSetting := make(map[string]interface{})
 				hostSetting["value"] = rSettingValue
 				hostSetting["unit"] = rSettingUnit
-				diffConfig[replica] = hostSetting
+				diffConfig = append(diffConfig, hostSetting)
 				if (settingValue != rSettingValue) || (settingUnit != rSettingUnit) {
 					diff = true
 				}
+			} else {
+				hostSetting := make(map[string]interface{})
+				hostSetting["value"] = ""
+				hostSetting["unit"] = ""
+				diffConfig = append(diffConfig, hostSetting)
 			}
 		}
 		if diff {
@@ -104,6 +114,7 @@ func getReplicaConfigValue(data map[string]interface{}, replica string, settingN
 	}
 	return "null", "null"
 }
+
 
 func (g prepare) Prepare(data map[string]interface{}) map[string]interface{} {
 	compareHostsData(data)
