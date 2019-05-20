@@ -22,7 +22,7 @@ No differences in `pg_settings` are found.
 No differences in `pg_config` are found.
 {{end}}
 {{ else }}
-    No data
+Nothing found
 {{ end }}
 
 ## Conclusions ##

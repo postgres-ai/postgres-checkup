@@ -100,7 +100,7 @@ Data collected: {{ DtFormat .timestamptz }}
 ```
 {{ end }}
         {{ else }}
-`No data`
+`Nothing found`
 {{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##

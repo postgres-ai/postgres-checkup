@@ -14,13 +14,13 @@ Current database: {{ .database }}
 |`{{ index $value "Table"}}` | `{{ index $value "PK"}}` | {{ index $value "Type"}} | {{- RawIntFormat (index $value "Current max value")}} | {{ index $value "Capacity used, %"}}|
 {{ end }}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data
+Nothing found
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 ## Conclusions ##

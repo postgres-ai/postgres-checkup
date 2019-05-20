@@ -31,7 +31,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}
 | {{ $key }} |{{ if eq (Trim (Trim $value.User "*") " ") "ALL users" }}{{ Trim (Trim $value.User "*") " " }}{{else}}`{{ Trim (Trim $value.User "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.DB "*") " ") "ALL databases" }}{{ Trim (Trim $value.DB "*") " " }}{{else}}`{{ Trim (Trim $value.DB "*") " " }}`{{end}}| {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }} | {{ index $value "Tx age >1m" }} | {{ index $value "Tx age >1h" }} |{{ end }}{{/* data range */}}
 {{- else -}}{{/* if $.results $host */}}
-No data
+Nothing found
 {{- end -}}{{/* if $.results $host */}}
 {{- end -}}{{/* replicas range*/}}
 {{- end -}}{{/* if replica */}}

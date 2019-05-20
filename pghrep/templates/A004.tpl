@@ -3,13 +3,13 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 
-|&#9660;&nbsp;Indicator | {{.hosts.master}} {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }}|
-|--------|-------{{ range $skey, $host := .hosts.replicas }}|-------- {{ end }}|
-{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "general_info") "_keys") }}
-    {{- $value := (index (index (index (index $.results $.hosts.master) "data") "general_info") $key) -}}
+|&#9660;&nbsp;Indicator | {{.reorderedHosts.master}} {{ range $skey, $host := .reorderedHosts.replicas }}| {{ $host }} {{ end }}|
+|--------|-------{{ range $skey, $host := .reorderedHosts.replicas }}|-------- {{ end }}|
+{{ range $i, $key := (index (index (index (index .results .reorderedHosts.master) "data") "general_info") "_keys") }}
+    {{- $value := (index (index (index (index $.results $.reorderedHosts.master) "data") "general_info") $key) -}}
     |{{ $key }} | 
     {{- Nobr (index $value "value") }}
-    {{- range $skey, $host := $.hosts.replicas }}| 
+    {{- range $skey, $host := $.reorderedHosts.replicas }}| 
         {{- if (index $.results $host) }}
             {{- if (index (index $.results $host) "data") }}
                 {{- if (index (index (index $.results $host) "data") "general_info") }}
@@ -20,15 +20,15 @@ Data collected: {{ DtFormat .timestamptz }}
     {{- end }}|
 {{ end }}
 
-{{ if .hosts.master }}
-{{- if (index .results .hosts.master) -}}
-{{- if (index (index .results .hosts.master) "data") -}}
+{{ if .reorderedHosts.master }}
+{{- if (index .results .reorderedHosts.master) -}}
+{{- if (index (index .results .reorderedHosts.master) "data") -}}
 ### Databases sizes ###
 
 | Database | &#9660;&nbsp;Size |
 |----------|--------|
-{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "database_sizes") "_keys") }}
-{{- $value := (index (index (index (index $.results $.hosts.master) "data") "database_sizes") $key) -}}
+{{ range $i, $key := (index (index (index (index .results .reorderedHosts.master) "data") "database_sizes") "_keys") }}
+{{- $value := (index (index (index (index $.results $.reorderedHosts.master) "data") "database_sizes") $key) -}}
 | `{{ $key }}` | {{ ByteFormat $value 2 }} |
 {{ end }}
 {{- end -}}
