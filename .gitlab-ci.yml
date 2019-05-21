@@ -15,7 +15,7 @@ before_script:
   - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
   - apt-get update
   - apt-get -y upgrade
-  - apt-get -y install golang-1.9-go
+  - apt-get -y install golang-1.9-go git
   - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
   - source ~/.profile
   - apt-get -y install postgresql-client-11
