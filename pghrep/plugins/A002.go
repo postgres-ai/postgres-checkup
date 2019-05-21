@@ -173,6 +173,7 @@ func A002CheckMajorVersions(report A002Report, result checkup.ReportOutcome) che
 				hostData.Data.Version, host))
 			result.Recommendations = append(result.Recommendations, fmt.Sprintf("[P1] Check PostgreSQL version on %s.", host))
 			result.P1 = true
+			continue
 		}
 		from, _ := time.Parse("2006-01-02", ver.FirstRelease)
 		to, _ := time.Parse("2006-01-02", ver.FinalRelease)
@@ -224,6 +225,7 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 				hostData.Data.Version, host))
 			result.Recommendations = append(result.Recommendations, fmt.Sprintf("[P1] Check PostgreSQL version on %s.", host))
 			result.P1 = true
+			continue
 		}
 		sort.Ints(ver.MinorVersions)
 		lastVersion := ver.MinorVersions[len(ver.MinorVersions)-1]
@@ -255,8 +257,16 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 	return result
 }
 
-func A002(data map[string]interface{}) {
+func A002Process(report A002Report) checkup.ReportOutcome {
 	var result checkup.ReportOutcome
+	A002PrepareVersionInfo()
+	result = A002CheckAllVersionsIsSame(report, result)
+	result = A002CheckMajorVersions(report, result)
+	result = A002CheckMinorVersions(report, result)
+	return result
+}
+
+func A002(data map[string]interface{}) {
 	filePath := pyraconv.ToString(data["source_path_full"])
 	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report A002Report
@@ -264,11 +274,7 @@ func A002(data map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	A002PrepareVersionInfo()
-	result = A002CheckAllVersionsIsSame(report, result)
-	result = A002CheckMajorVersions(report, result)
-	result = A002CheckMinorVersions(report, result)
-
+	result := A002Process(report)
 	if len(result.Recommendations) == 0 {
 		result.Recommendations = append(result.Recommendations, "No recommendations.")
 	} else {
