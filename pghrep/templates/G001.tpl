@@ -19,19 +19,19 @@ Data collected: {{ DtFormat .timestamptz }}
 
 {{ if gt (len .hosts.replicas) 0 }}
 ### Replica servers: ###
-    {{ range $skey, $host := .hosts.replicas }}
+{{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
-        {{ if (index $.results $host) }}
+{{ if (index $.results $host) }}
 | Setting name | Value |
 |-------------|-------|
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}
 | [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ UnitValue $value.setting $value.unit}} |
 {{ end }}
-        {{- else -}}
-No data
-        {{- end -}}
-    {{- end -}}
+{{- else -}}
+Nothing found
+{{- end -}}
+{{- end -}}
 {{- end }}
 
 ## Conclusions ##

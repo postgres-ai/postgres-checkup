@@ -16,13 +16,13 @@ Current database: {{ .database }}
 |{{ $value.num}} | {{if eq (index $value "Table") "=====TOTAL=====" }}{{ index $value "Table" }}{{else}}`{{ index $value "Table" }}`{{end}} | {{ index $value "Rows"}} | {{ index $value "Total Size"}} | {{ index $value "Table Size"}} | {{ index $value "Index(es) Size"}} | {{ index $value "TOAST Size"}}|
 {{ end }}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data
+Nothing found
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 ## Conclusions ##

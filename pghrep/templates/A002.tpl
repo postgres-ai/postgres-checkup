@@ -24,7 +24,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ (index (index $.results $value) "data").version }}
 ```
 {{ else }}
-No data
+Nothing found
 {{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##

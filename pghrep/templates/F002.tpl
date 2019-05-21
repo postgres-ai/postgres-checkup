@@ -23,7 +23,6 @@ Current database: {{ .database }}
 {{ end }}{{/* range */}}
 {{- end -}}{{/* if per_instance exists */}}
 
-{{/* if index (index (index .results .hosts.master) "data") "per_database" */}}
 #### Tables in the observed database ####
 {{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
@@ -43,13 +42,13 @@ Current database: {{ .database }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data
+Nothing found
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 

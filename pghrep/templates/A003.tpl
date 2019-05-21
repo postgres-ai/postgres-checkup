@@ -13,12 +13,12 @@ Data collected: {{ DtFormat .timestamptz }}
 | {{ $value.category }}|[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }}) | {{ Br $value.setting }} | {{ if $value.unit }}{{ $value.unit }} {{ end }} | {{ UnitValue $value.setting $value.unit }} |
 {{ end }}
 {{- else -}}{{/*Master data*/}}
-No data  
+Nothing found  
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master results*/}}
-No data  
+Nothing found  
 {{- end }}{{/*Master results*/}}
 {{- else -}}{{/*Master*/}}
-No data  
+Nothing found  
 {{ end }}{{/*Master*/}}
   

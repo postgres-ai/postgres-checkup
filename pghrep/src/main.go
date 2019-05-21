@@ -331,6 +331,32 @@ func determineMasterReplica(data map[string]interface{}) {
     data["hosts"] = hostRoles
 }
 
+/*
+  Replace master on replica#1 if master not defined
+*/
+func reorderHosts(data map[string]interface{}) {
+    hosts := pyraconv.ToInterfaceMap(data["hosts"])
+    masterHost := pyraconv.ToString(hosts["master"])
+    replicaHosts := pyraconv.ToStringArray(hosts["replicas"])
+    var allHosts []string
+    if hosts["master"] != nil {
+        allHosts = append(allHosts, masterHost)
+    }
+    for _, replicaHost := range replicaHosts {
+        allHosts = append(allHosts, replicaHost)
+    }
+    if len(allHosts) == 0 {
+        return
+    }
+    master := allHosts[0]
+    var replicas []string
+    replicas = append(replicas, allHosts[1:]...)
+    reorderedHosts := make(map[string]interface{})
+    reorderedHosts["master"] = master
+    reorderedHosts["replicas"] = replicas
+    data["reorderedHosts"] = reorderedHosts
+}
+
 func main() {
     // get input data checkId, checkData
     var checkId string
@@ -372,6 +398,7 @@ func main() {
     checkId = strings.ToUpper(checkId)
     loadDependencies(resultData)
     determineMasterReplica(resultData)
+    reorderHosts(resultData)
 
     l, err := newLoader()
     if err != nil {

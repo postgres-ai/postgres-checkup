@@ -7,7 +7,9 @@ with data as (
     coalesce(state, '** ALL states **') as "Current State",
     count(*) as "Count",
     count(*) filter (where state_change < now() - interval '1 minute') as "State changed >1m ago",
-    count(*) filter (where state_change < now() - interval '1 hour') as "State changed >1h ago"
+    count(*) filter (where state_change < now() - interval '1 hour') as "State changed >1h ago",
+    count(*) filter (where xact_start < now() - interval '1 minute') as "Tx age >1m",
+    count(*) filter (where xact_start < now() - interval '1 hour') as "Tx age >1h"
   from pg_stat_activity
   group by grouping sets ((datname, usename, state), (usename, state), ())
   order by

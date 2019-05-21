@@ -33,16 +33,16 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/* dead_tuples */}}
-No data
+Nothing found
 {{- end }}{{/* dead_tuples */}}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master data*/}}
-No data
+Nothing found
 {{- end }}{{/*Master data*/}}
 {{- else -}}{{/*Master*/}}
-No data
+Nothing found
 {{ end }}{{/*Master*/}}
 
 
