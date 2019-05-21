@@ -33,6 +33,14 @@ type ReportLastNodes struct {
 	//	LastCheck
 }
 
+type ReportOutcome struct {
+	P1              bool
+	P2              bool
+	P3              bool
+	Conclusions     []string
+	Recommendations []string
+}
+
 func LoadRawJsonReport(filePath string) []byte {
 	file, err := os.Open(filePath)
 	if err != nil {

@@ -84,16 +84,16 @@ func checkFsItem(host string, fsItemData FsItem,
 	if percent >= PROBLEM_USAGE && percent < CRITICAL_USAGE {
 		conclusions = append(conclusions, fmt.Sprintf("[P2] Disk %s on %s space usage is %s, it exceeds 70%%. "+
 			"There are some risks of out-of-disk-space problem.", fsItemData.MountPoint, host, fsItemData.Used))
-		recommendations = append(recommendations, fmt.Sprintf("[P2] Add more disk %s on %s space. "+
-			"It is recommended to keep free disk space less than 70%%. "+
-			"To reduce risks of out-of-disk-space problem.", fsItemData.MountPoint, host))
+		recommendations = append(recommendations, fmt.Sprintf("[P2] Add more disk space to %s on %s. "+
+			"It is recommended to keep free disk space less than 70%% "+
+			"to reduce risks of out-of-disk-space problem.", fsItemData.MountPoint, host))
 	}
 	if percent >= CRITICAL_USAGE {
 		conclusions = append(conclusions, fmt.Sprintf("Disk %s on %s space usage is %s, it exceeds 90%%. "+
 			"There are significant risks of out-of-disk-space problem. "+
 			"In this case, PostgreSQL will stop working and manual fix will be required.",
 			fsItemData.MountPoint, host, fsItemData.Used))
-		recommendations = append(recommendations, fmt.Sprintf("[P1] Add more disk %s on %s space as "+
+		recommendations = append(recommendations, fmt.Sprintf("[P1] Add more disk space to %s on %s as "+
 			"soon as possible to prevent outage.", fsItemData.MountPoint, host))
 
 	}
@@ -101,28 +101,19 @@ func checkFsItem(host string, fsItemData FsItem,
 }
 
 // Generate conclusions and recommendatons
-func A008(data map[string]interface{}) {
-	less70p := false
-	p1 := false
-	p2 := false
-	p3 := false
+func A008Process(report A008Report) checkup.ReportOutcome {
+	var result checkup.ReportOutcome
+	lessProblem := false
 	var nfsConclusions []string
 	var nExtConclusions []string
 	var conclusions []string
 	var recommendations []string
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
-	var report A008Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		return
-	}
 	for host, hostResult := range report.Results {
 		var nfsItems []FsItem
 		var notExtItems []FsItem
 		for _, fsItemData := range hostResult.Data.DbData {
 			l, n, ne := checkFsItem(host, fsItemData, conclusions, recommendations)
-			less70p = less70p || l
+			lessProblem = lessProblem || l
 			if n {
 				nfsItems = append(nfsItems, fsItemData)
 			}
@@ -132,14 +123,14 @@ func A008(data map[string]interface{}) {
 		}
 		for _, fsItemData := range hostResult.Data.FsData {
 			l, _, _ := checkFsItem(host, fsItemData, conclusions, recommendations)
-			less70p = less70p || l
+			lessProblem = lessProblem || l
 		}
 		if len(nfsItems) > 0 {
 			var nfsDisks []string
 			for _, nfsItem := range nfsItems {
 				nfsDisks = append(nfsDisks, nfsItem.MountPoint)
 			}
-			p1 = true
+			result.P1 = true
 			areIs := "is"
 			if len(nfsDisks) > 1 {
 				areIs = "are"
@@ -155,7 +146,7 @@ func A008(data map[string]interface{}) {
 				nExtDisks = append(nExtDisks, nExtItem.MountPoint)
 				nExtDiskFs = append(nExtDiskFs, nExtItem.Fstype)
 			}
-			p3 = true
+			result.P3 = true
 			areIs := "is"
 			respectively := ""
 			s := ""
@@ -172,7 +163,7 @@ func A008(data map[string]interface{}) {
 		}
 
 	}
-	if less70p && len(recommendations) == 0 {
+	if lessProblem && len(recommendations) == 0 {
 		conclusions = append(conclusions, "No significant risks of out-of-disk-space problem have been detected.")
 	}
 	if len(nfsConclusions) > 0 {
@@ -186,15 +177,28 @@ func A008(data map[string]interface{}) {
 	if len(recommendations) == 0 {
 		recommendations = append(recommendations, "No recommendations.")
 	}
+	result.Conclusions = conclusions
+	result.Recommendations = recommendations
+	return result
+}
 
+func A008(data map[string]interface{}) {
+	filePath := pyraconv.ToString(data["source_path_full"])
+	jsonRaw := checkup.LoadRawJsonReport(filePath)
+	var report A008Report
+	err := json.Unmarshal(jsonRaw, &report)
+	if err != nil {
+		return
+	}
+	result := A008Process(report)
 	// update data
-	data["conclusions"] = conclusions
-	data["recommendations"] = recommendations
-	data["p1"] = p1
-	data["p2"] = p2
-	data["p3"] = p3
+	data["conclusions"] = result.Conclusions
+	data["recommendations"] = result.Recommendations
+	data["p1"] = result.P1
+	data["p2"] = result.P2
+	data["p3"] = result.P3
 	// update file
-	checkup.SaveJsonConclusionsRecommendations(data, conclusions, recommendations, p1, p2, p3)
+	checkup.SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
 }
 
 // Plugin entry point

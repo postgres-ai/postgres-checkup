@@ -23,7 +23,10 @@ LDFLAGS = -ldflags "-s -w \
 PLUGINS_SRC := $(wildcard plugins/*.go)
 
 # Build the project
-all: clean vet buildplugins main
+all: install clean vet buildplugins main
+
+install:
+	go get golang.org/x/net/html
 
 buildplugins:
 	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
