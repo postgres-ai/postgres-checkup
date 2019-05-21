@@ -65,7 +65,7 @@ func isRecommendedFs(fs string) bool {
 }
 
 func checkFsItemUsage(host string, fsItemData FsItem,
-	conclusions []string, recommendations []string) (bool, bool) {
+	conclusions []string, recommendations []string) (bool, bool, []string, []string) {
 	usageWarning := false
 	usageCritical := false
 	usePercent := strings.Replace(fsItemData.UsePercent, "%", "", 1)
@@ -90,7 +90,7 @@ func checkFsItemUsage(host string, fsItemData FsItem,
 			"soon as possible to prevent outage.", fsItemData.MountPoint, host))
 		usageCritical = true
 	}
-	return usageWarning, usageCritical
+	return usageWarning, usageCritical, conclusions, recommendations
 }
 
 // Generate conclusions and recommendatons
@@ -112,12 +112,14 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 			if strings.ToLower(fsItemData.Fstype[0:3]) == "nfs" {
 				networkFsItems = append(networkFsItems, fsItemData)
 			}
-			problem, critical := checkFsItemUsage(host, fsItemData, conclusions, recommendations)
+			var problem, critical bool
+			problem, critical, conclusions, recommendations = checkFsItemUsage(host, fsItemData, conclusions, recommendations)
 			usageWarning = usageWarning || problem
 			usageCritical = usageCritical || critical
 		}
 		for _, fsItemData := range hostResult.Data.FsData {
-			problem, critical := checkFsItemUsage(host, fsItemData, conclusions, recommendations)
+			var problem, critical bool
+			problem, critical, conclusions, recommendations = checkFsItemUsage(host, fsItemData, conclusions, recommendations)
 			usageWarning = usageWarning || problem
 			usageCritical = usageCritical || critical
 		}
