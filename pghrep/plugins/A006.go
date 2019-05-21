@@ -115,7 +115,6 @@ func getReplicaConfigValue(data map[string]interface{}, replica string, settingN
 	return "null", "null"
 }
 
-
 func (g prepare) Prepare(data map[string]interface{}) map[string]interface{} {
 	compareHostsData(data)
 	return data
