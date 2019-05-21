@@ -10,6 +10,8 @@ import (
 	"../src/pyraconv"
 )
 
+type prepare string
+
 const CRITICAL_USAGE int = 90
 const PROBLEM_USAGE int = 70
 
@@ -18,8 +20,6 @@ var VALID_FS []string = []string{
 	"xfs",
 	"tmpfs",
 }
-
-type prepare string
 
 type FsItem struct {
 	Fstype     string `json:"fstype"`
@@ -65,9 +65,10 @@ func isValidFs(fs string) bool {
 }
 
 func checkFsItem(host string, fsItemData FsItem,
-	conclusions []string, recommendations []string) (bool, bool, bool) {
+	conclusions []string, recommendations []string) (bool, bool, bool, bool) {
 	nfs := false
-	less70p := false
+	problemUsage := false
+	criticalUsage := false
 	nonExt4 := false
 
 	if isValidFs(strings.ToLower(fsItemData.Fstype)) != true {
@@ -79,7 +80,7 @@ func checkFsItem(host string, fsItemData FsItem,
 	usePercent := strings.Replace(fsItemData.UsePercent, "%", "", 1)
 	percent, _ := strconv.Atoi(usePercent)
 	if percent < PROBLEM_USAGE {
-		less70p = true
+		// nothing to do
 	}
 	if percent >= PROBLEM_USAGE && percent < CRITICAL_USAGE {
 		conclusions = append(conclusions, fmt.Sprintf("[P2] Disk %s on %s space usage is %s, it exceeds 70%%. "+
@@ -87,6 +88,7 @@ func checkFsItem(host string, fsItemData FsItem,
 		recommendations = append(recommendations, fmt.Sprintf("[P2] Add more disk space to %s on %s. "+
 			"It is recommended to keep free disk space less than 70%% "+
 			"to reduce risks of out-of-disk-space problem.", fsItemData.MountPoint, host))
+		problemUsage = true
 	}
 	if percent >= CRITICAL_USAGE {
 		conclusions = append(conclusions, fmt.Sprintf("Disk %s on %s space usage is %s, it exceeds 90%%. "+
@@ -95,35 +97,38 @@ func checkFsItem(host string, fsItemData FsItem,
 			fsItemData.MountPoint, host, fsItemData.Used))
 		recommendations = append(recommendations, fmt.Sprintf("[P1] Add more disk space to %s on %s as "+
 			"soon as possible to prevent outage.", fsItemData.MountPoint, host))
-
+		criticalUsage = true
 	}
-	return less70p, nfs, nonExt4
+	return problemUsage, criticalUsage, nfs, nonExt4
 }
 
 // Generate conclusions and recommendatons
 func A008Process(report A008Report) checkup.ReportOutcome {
 	var result checkup.ReportOutcome
-	lessProblem := false
+	problemUsage := false
+	criticalUsage := false
 	var nfsConclusions []string
 	var nExtConclusions []string
 	var conclusions []string
 	var recommendations []string
 	for host, hostResult := range report.Results {
 		var nfsItems []FsItem
-		var notExtItems []FsItem
+		var notRecItems []FsItem
 		for _, fsItemData := range hostResult.Data.DbData {
-			l, n, ne := checkFsItem(host, fsItemData, conclusions, recommendations)
-			lessProblem = lessProblem || l
-			if n {
+			problem, critical, nfs, notrec := checkFsItem(host, fsItemData, conclusions, recommendations)
+			problemUsage = problemUsage || problem
+			criticalUsage = criticalUsage || critical
+			if nfs {
 				nfsItems = append(nfsItems, fsItemData)
 			}
-			if ne {
-				notExtItems = append(notExtItems, fsItemData)
+			if notrec {
+				notRecItems = append(notRecItems, fsItemData)
 			}
 		}
 		for _, fsItemData := range hostResult.Data.FsData {
-			l, _, _ := checkFsItem(host, fsItemData, conclusions, recommendations)
-			lessProblem = lessProblem || l
+			problem, critical, _, _ := checkFsItem(host, fsItemData, conclusions, recommendations)
+			problemUsage = problemUsage || problem
+			criticalUsage = criticalUsage || critical
 		}
 		if len(nfsItems) > 0 {
 			var nfsDisks []string
@@ -139,10 +144,10 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 				"This might lead to serious issues with Postgres, including downtime and data corruption.",
 				strings.Join(nfsDisks, ", "), host))
 		}
-		if len(notExtItems) > 0 {
+		if len(notRecItems) > 0 {
 			var nExtDisks []string
 			var nExtDiskFs []string
-			for _, nExtItem := range notExtItems {
+			for _, nExtItem := range notRecItems {
 				nExtDisks = append(nExtDisks, nExtItem.MountPoint)
 				nExtDiskFs = append(nExtDiskFs, nExtItem.Fstype)
 			}
@@ -163,7 +168,13 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 		}
 
 	}
-	if lessProblem && len(recommendations) == 0 {
+	if problemUsage {
+		result.P2 = true
+	}
+	if criticalUsage {
+		result.P1 = true
+	}
+	if !problemUsage && !criticalUsage && len(recommendations) == 0 {
 		conclusions = append(conclusions, "No significant risks of out-of-disk-space problem have been detected.")
 	}
 	if len(nfsConclusions) > 0 {
