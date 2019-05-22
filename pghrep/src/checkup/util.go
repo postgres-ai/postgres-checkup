@@ -3,6 +3,7 @@ package checkup
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -39,6 +40,17 @@ type ReportOutcome struct {
 	P3              bool
 	Conclusions     []string
 	Recommendations []string
+}
+
+func (r *ReportOutcome) AppendConclusion(conclusion string, a ...interface{}) {
+	r.Conclusions = append(r.Conclusions, fmt.Sprintf(conclusion, a...))
+}
+
+func (r *ReportOutcome) AppendRecommendation(reccomendation string,
+	a ...interface{}) {
+	if reccomendation != "" {
+		r.Recommendations = append(r.Recommendations, fmt.Sprintf(reccomendation, a...))
+	}
 }
 
 func LoadRawJsonReport(filePath string) []byte {

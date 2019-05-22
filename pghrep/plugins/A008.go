@@ -10,6 +10,7 @@ import (
 
 	"../src/checkup"
 	"../src/pyraconv"
+	"github.com/dustin/go-humanize/english"
 )
 
 type prepare string
@@ -19,17 +20,18 @@ const USAGE_WARNING int = 70
 
 const MSG_NO_USAGE_RISKS_CONCLUSION string = "No significant risks of out-of-disk-space problem have been detected."
 const MSG_USAGE_WARNING_CONCLUSION string = "[P2] Disk %s on %s space usage is %s, it exceeds 70%%. There are some risks of out-of-disk-space problem."
-const MSG_USAGE_WARNING_RECCOMENDATION string = "[P2] Add more disk space to %s on %s. It is recommended to keep free disk space less than %d%% " +
+const MSG_USAGE_WARNING_RECOMMENDATION string = "[P2] Add more disk space to %s on %s. It is recommended to keep free disk space less than %d%% " +
 	"to reduce risks of out-of-disk-space problem."
 const MSG_USAGE_CRITICAL_CONCLUSION string = "Disk %s on %s space usage is %s, it exceeds 90%%. There are significant risks of out-of-disk-space problem. " +
 	"In this case, PostgreSQL will stop working and manual fix will be required."
-const MSG_USAGE_CRITICAL_RECCOMENDATION string = "[P1] Add more disk space to %s on %s as soon as possible to prevent outage."
-const MSG_NETWORK_FS_CONCLUSION string = "[P1] %s on host `%s` %s located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption."
-const MSG_NETWORK_FS_RECCOMENDATION string = "[P1] Do not use NFS for Postgres."
-const MSG_NOT_RECCOMENDED_FS_CONCLUSION string = "[P3] %s on host `%s` %s located on drive%s where the following filesystems are used: %s%s" +
-	". This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4)."
-const MSG_NOT_RECCOMENDED_FS_RECCOMENDATION string = "[P3] Consider using ext4 for all Postgres directories."
-const MSG_NO_RECCOMENDATION string = "No recommendations."
+const MSG_USAGE_CRITICAL_RECOMMENDATION string = "[P1] Add more disk space to %s on %s as soon as possible to prevent outage."
+const MSG_NETWORK_FS_CONCLUSION_1 string = "[P1] %s on host `%s` is located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption."
+const MSG_NETWORK_FS_CONCLUSION_N string = "[P1] %s on host `%s` are located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption."
+const MSG_NETWORK_FS_RECOMMENDATION string = "[P1] Do not use NFS for Postgres."
+const MSG_NOT_RECOMMENDED_FS_CONCLUSION_1 string = "[P3] %s on host `%s` is located on drive where the following filesystems are used: %s. This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4)."
+const MSG_NOT_RECOMMENDED_FS_CONCLUSION_N string = "[P3] %s on host `%s` are located on drives where the following filesystems are used: %s respectively. This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4)."
+const MSG_NOT_RECOMMENDED_FS_RECOMMENDATION string = "[P3] Consider using ext4 for all Postgres directories."
+const MSG_NO_FS_RECOMMENDATION string = "No recommendations."
 
 var FS_RECOMMENDED []string = []string{
 	"ext4",
@@ -81,7 +83,7 @@ func isRecommendedFs(fs string) bool {
 }
 
 func checkFsItemUsage(host string, fsItemData FsItem,
-	conclusions []string, recommendations []string) (bool, bool, []string, []string) {
+	result checkup.ReportOutcome) (bool, bool, checkup.ReportOutcome) {
 	usageWarning := false
 	usageCritical := false
 	usePercent := strings.Replace(fsItemData.UsePercent, "%", "", 1)
@@ -90,20 +92,18 @@ func checkFsItemUsage(host string, fsItemData FsItem,
 		// nothing to do
 	}
 	if percent >= USAGE_WARNING && percent < USAGE_CRITICAL {
-		conclusions = append(conclusions, fmt.Sprintf(MSG_USAGE_WARNING_CONCLUSION, fsItemData.MountPoint,
-			host, fsItemData.Used))
-		recommendations = append(recommendations, fmt.Sprintf(MSG_USAGE_WARNING_RECCOMENDATION,
-			fsItemData.MountPoint, host, USAGE_WARNING))
+		result.AppendConclusion(MSG_USAGE_WARNING_CONCLUSION, fsItemData.MountPoint, host, fsItemData.Used)
+		result.AppendRecommendation(MSG_USAGE_WARNING_RECOMMENDATION, fsItemData.MountPoint, host, USAGE_WARNING)
 		usageWarning = true
+		result.P2 = true
 	}
 	if percent >= USAGE_CRITICAL {
-		conclusions = append(conclusions, fmt.Sprintf(MSG_USAGE_CRITICAL_CONCLUSION, fsItemData.MountPoint,
-			host, fsItemData.Used))
-		recommendations = append(recommendations, fmt.Sprintf(MSG_USAGE_CRITICAL_RECCOMENDATION,
-			fsItemData.MountPoint, host))
+		result.AppendConclusion(MSG_USAGE_CRITICAL_CONCLUSION, fsItemData.MountPoint, host, fsItemData.Used)
+		result.AppendRecommendation(MSG_USAGE_CRITICAL_RECOMMENDATION, fsItemData.MountPoint, host)
 		usageCritical = true
+		result.P1 = true
 	}
-	return usageWarning, usageCritical, conclusions, recommendations
+	return usageWarning, usageCritical, result
 }
 
 // Generate conclusions and recommendatons
@@ -113,85 +113,56 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 	usageCritical := false
 	var nfsConclusions []string
 	var notRecConclusions []string
-	var conclusions []string
-	var recommendations []string
 	for host, hostResult := range report.Results {
-		var networkFsItems []FsItem
-		var notRecommendedFsItems []FsItem
+		var notRecommendedFsDisks []string
+		var notRecommendedFsDisksFs []string
+		var networkFsDisks []string
 		for _, fsItemData := range hostResult.Data.DbData {
 			if isRecommendedFs(strings.ToLower(fsItemData.Fstype)) != true {
-				notRecommendedFsItems = append(notRecommendedFsItems, fsItemData)
+				notRecommendedFsDisks = append(notRecommendedFsDisks, fsItemData.MountPoint)
+				notRecommendedFsDisksFs = append(notRecommendedFsDisksFs, fsItemData.Fstype)
 			}
 			if strings.ToLower(fsItemData.Fstype[0:3]) == "nfs" {
-				networkFsItems = append(networkFsItems, fsItemData)
+				networkFsDisks = append(networkFsDisks, fsItemData.MountPoint)
 			}
-			var problem, critical bool
-			problem, critical, conclusions, recommendations = checkFsItemUsage(host, fsItemData, conclusions, recommendations)
-			usageWarning = usageWarning || problem
+			var warning, critical bool
+			warning, critical, result = checkFsItemUsage(host, fsItemData, result)
+			usageWarning = usageWarning || warning
 			usageCritical = usageCritical || critical
 		}
 		for _, fsItemData := range hostResult.Data.FsData {
-			var problem, critical bool
-			problem, critical, conclusions, recommendations = checkFsItemUsage(host, fsItemData, conclusions, recommendations)
-			usageWarning = usageWarning || problem
+			var warning, critical bool
+			warning, critical, result = checkFsItemUsage(host, fsItemData, result)
+			usageWarning = usageWarning || warning
 			usageCritical = usageCritical || critical
 		}
-		if len(networkFsItems) > 0 {
-			var networkFsDisks []string
-			for _, fsItem := range networkFsItems {
-				networkFsDisks = append(networkFsDisks, fsItem.MountPoint)
-			}
+		if len(networkFsDisks) > 0 {
 			result.P1 = true
-			areIs := "is"
-			if len(networkFsDisks) > 1 {
-				areIs = "are"
-			}
-			nfsConclusions = append(nfsConclusions, fmt.Sprintf(MSG_NETWORK_FS_CONCLUSION,
-				strings.Join(networkFsDisks, ", "), host, areIs))
+			nfsConclusions = append(nfsConclusions, fmt.Sprintf(english.PluralWord(len(networkFsDisks),
+				MSG_NETWORK_FS_CONCLUSION_1, MSG_NETWORK_FS_CONCLUSION_N),
+				strings.Join(networkFsDisks, ", "), host))
 		}
-		if len(notRecommendedFsItems) > 0 {
-			var notRecommendedFsDisks []string
-			var notRecommendedFsDisksFs []string
-			for _, fsItem := range notRecommendedFsItems {
-				notRecommendedFsDisks = append(notRecommendedFsDisks, fsItem.MountPoint)
-				notRecommendedFsDisksFs = append(notRecommendedFsDisksFs, fsItem.Fstype)
-			}
+		if len(notRecommendedFsDisks) > 0 {
 			result.P3 = true
-			areIs := "is"
-			respectively := ""
-			s := ""
-			if len(notRecommendedFsDisks) > 1 {
-				areIs = "are"
-				respectively = " respectively"
-				s = "s"
-			}
-			notRecConclusions = append(notRecConclusions, fmt.Sprintf(MSG_NOT_RECCOMENDED_FS_CONCLUSION,
-				strings.Join(notRecommendedFsDisks, ", "), host, areIs, s, strings.Join(notRecommendedFsDisksFs, ", "), respectively))
+			notRecConclusions = append(notRecConclusions, fmt.Sprintf(english.PluralWord(len(notRecommendedFsDisks),
+				MSG_NOT_RECOMMENDED_FS_CONCLUSION_1, MSG_NOT_RECOMMENDED_FS_CONCLUSION_N),
+				strings.Join(notRecommendedFsDisks, ", "), host, strings.Join(notRecommendedFsDisksFs, ", ")))
 		}
-
 	}
-	if usageWarning {
-		result.P2 = true
-	}
-	if usageCritical {
-		result.P1 = true
-	}
-	if !usageWarning && !usageCritical && len(recommendations) == 0 {
-		conclusions = append(conclusions, MSG_NO_USAGE_RISKS_CONCLUSION)
+	if !usageWarning && !usageCritical && len(result.Recommendations) == 0 {
+		result.AppendConclusion(MSG_NO_USAGE_RISKS_CONCLUSION)
 	}
 	if len(nfsConclusions) > 0 {
-		conclusions = append(conclusions, nfsConclusions...)
-		recommendations = append(recommendations, MSG_NETWORK_FS_RECCOMENDATION)
+		result.Conclusions = append(result.Conclusions, nfsConclusions...)
+		result.AppendRecommendation(MSG_NETWORK_FS_RECOMMENDATION)
 	}
 	if len(notRecConclusions) > 0 {
-		conclusions = append(conclusions, notRecConclusions...)
-		recommendations = append(recommendations, MSG_NOT_RECCOMENDED_FS_RECCOMENDATION)
+		result.Conclusions = append(result.Conclusions, notRecConclusions...)
+		result.AppendRecommendation(MSG_NOT_RECOMMENDED_FS_RECOMMENDATION)
 	}
-	if len(recommendations) == 0 {
-		recommendations = append(recommendations, MSG_NO_RECCOMENDATION)
+	if len(result.Recommendations) == 0 {
+		result.AppendRecommendation(MSG_NO_FS_RECOMMENDATION)
 	}
-	result.Conclusions = conclusions
-	result.Recommendations = recommendations
 	return result
 }
 
