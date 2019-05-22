@@ -636,7 +636,7 @@ build_pghrep() {
   dbg "building pghrep..."
   local save_pwd="${PWD}"
   cd "${SCRIPT_DIR}/pghrep"
-  make buildplugins main >/dev/null
+  make install buildplugins main >/dev/null
   cd "${save_pwd}"
   export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
   dbg "done building pghrep"
