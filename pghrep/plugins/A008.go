@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -14,6 +16,20 @@ type prepare string
 
 const USAGE_CRITICAL int = 90
 const USAGE_WARNING int = 70
+
+const MSG_NO_USAGE_RISKS_CONCLUSION string = "No significant risks of out-of-disk-space problem have been detected."
+const MSG_USAGE_WARNING_CONCLUSION string = "[P2] Disk %s on %s space usage is %s, it exceeds 70%%. There are some risks of out-of-disk-space problem."
+const MSG_USAGE_WARNING_RECCOMENDATION string = "[P2] Add more disk space to %s on %s. It is recommended to keep free disk space less than %d%% " +
+	"to reduce risks of out-of-disk-space problem."
+const MSG_USAGE_CRITICAL_CONCLUSION string = "Disk %s on %s space usage is %s, it exceeds 90%%. There are significant risks of out-of-disk-space problem. " +
+	"In this case, PostgreSQL will stop working and manual fix will be required."
+const MSG_USAGE_CRITICAL_RECCOMENDATION string = "[P1] Add more disk space to %s on %s as soon as possible to prevent outage."
+const MSG_NETWORK_FS_CONCLUSION string = "[P1] %s on host `%s` %s located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption."
+const MSG_NETWORK_FS_RECCOMENDATION string = "[P1] Do not use NFS for Postgres."
+const MSG_NOT_RECCOMENDED_FS_CONCLUSION string = "[P3] %s on host `%s` %s located on drive%s where the following filesystems are used: %s%s" +
+	". This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4)."
+const MSG_NOT_RECCOMENDED_FS_RECCOMENDATION string = "[P3] Consider using ext4 for all Postgres directories."
+const MSG_NO_RECCOMENDATION string = "No recommendations."
 
 var FS_RECOMMENDED []string = []string{
 	"ext4",
@@ -74,20 +90,17 @@ func checkFsItemUsage(host string, fsItemData FsItem,
 		// nothing to do
 	}
 	if percent >= USAGE_WARNING && percent < USAGE_CRITICAL {
-		conclusions = append(conclusions, fmt.Sprintf("[P2] Disk %s on %s space usage is %s, it exceeds 70%%. "+
-			"There are some risks of out-of-disk-space problem.", fsItemData.MountPoint, host, fsItemData.Used))
-		recommendations = append(recommendations, fmt.Sprintf("[P2] Add more disk space to %s on %s. "+
-			"It is recommended to keep free disk space less than 70%% "+
-			"to reduce risks of out-of-disk-space problem.", fsItemData.MountPoint, host))
+		conclusions = append(conclusions, fmt.Sprintf(MSG_USAGE_WARNING_CONCLUSION, fsItemData.MountPoint,
+			host, fsItemData.Used))
+		recommendations = append(recommendations, fmt.Sprintf(MSG_USAGE_WARNING_RECCOMENDATION,
+			fsItemData.MountPoint, host, USAGE_WARNING))
 		usageWarning = true
 	}
 	if percent >= USAGE_CRITICAL {
-		conclusions = append(conclusions, fmt.Sprintf("Disk %s on %s space usage is %s, it exceeds 90%%. "+
-			"There are significant risks of out-of-disk-space problem. "+
-			"In this case, PostgreSQL will stop working and manual fix will be required.",
-			fsItemData.MountPoint, host, fsItemData.Used))
-		recommendations = append(recommendations, fmt.Sprintf("[P1] Add more disk space to %s on %s as "+
-			"soon as possible to prevent outage.", fsItemData.MountPoint, host))
+		conclusions = append(conclusions, fmt.Sprintf(MSG_USAGE_CRITICAL_CONCLUSION, fsItemData.MountPoint,
+			host, fsItemData.Used))
+		recommendations = append(recommendations, fmt.Sprintf(MSG_USAGE_CRITICAL_RECCOMENDATION,
+			fsItemData.MountPoint, host))
 		usageCritical = true
 	}
 	return usageWarning, usageCritical, conclusions, recommendations
@@ -133,9 +146,8 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 			if len(networkFsDisks) > 1 {
 				areIs = "are"
 			}
-			nfsConclusions = append(nfsConclusions, fmt.Sprintf("[P1] %s on host `%s` "+areIs+" located on an NFS drive. "+
-				"This might lead to serious issues with Postgres, including downtime and data corruption.",
-				strings.Join(networkFsDisks, ", "), host))
+			nfsConclusions = append(nfsConclusions, fmt.Sprintf(MSG_NETWORK_FS_CONCLUSION,
+				strings.Join(networkFsDisks, ", "), host, areIs))
 		}
 		if len(notRecommendedFsItems) > 0 {
 			var notRecommendedFsDisks []string
@@ -153,11 +165,8 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 				respectively = " respectively"
 				s = "s"
 			}
-			notRecConclusions = append(notRecConclusions, fmt.Sprintf("[P3] %s on host `%s` "+areIs+
-				" located on drive"+s+" where the following filesystems are used: %s"+respectively+
-				". This might mean that Postgres performance and reliability characteristics are worse than it "+
-				"could be in case of use of more popular filesystems (such as ext4).",
-				strings.Join(notRecommendedFsDisks, ", "), host, strings.Join(notRecommendedFsDisksFs, ", ")))
+			notRecConclusions = append(notRecConclusions, fmt.Sprintf(MSG_NOT_RECCOMENDED_FS_CONCLUSION,
+				strings.Join(notRecommendedFsDisks, ", "), host, areIs, s, strings.Join(notRecommendedFsDisksFs, ", "), respectively))
 		}
 
 	}
@@ -168,18 +177,18 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 		result.P1 = true
 	}
 	if !usageWarning && !usageCritical && len(recommendations) == 0 {
-		conclusions = append(conclusions, "No significant risks of out-of-disk-space problem have been detected.")
+		conclusions = append(conclusions, MSG_NO_USAGE_RISKS_CONCLUSION)
 	}
 	if len(nfsConclusions) > 0 {
 		conclusions = append(conclusions, nfsConclusions...)
-		recommendations = append(recommendations, "[P1] Do not use NFS for Postgres.")
+		recommendations = append(recommendations, MSG_NETWORK_FS_RECCOMENDATION)
 	}
 	if len(notRecConclusions) > 0 {
 		conclusions = append(conclusions, notRecConclusions...)
-		recommendations = append(recommendations, "[P3] Consider using ext4 for all Postgres directories.")
+		recommendations = append(recommendations, MSG_NOT_RECCOMENDED_FS_RECCOMENDATION)
 	}
 	if len(recommendations) == 0 {
-		recommendations = append(recommendations, "No recommendations.")
+		recommendations = append(recommendations, MSG_NO_RECCOMENDATION)
 	}
 	result.Conclusions = conclusions
 	result.Recommendations = recommendations
@@ -192,17 +201,12 @@ func A008(data map[string]interface{}) {
 	var report A008Report
 	err := json.Unmarshal(jsonRaw, &report)
 	if err != nil {
+		log.New(os.Stderr, "", 0).Println("Can't load json report to process")
 		return
 	}
 	result := A008Process(report)
-	// update data
-	data["conclusions"] = result.Conclusions
-	data["recommendations"] = result.Recommendations
-	data["p1"] = result.P1
-	data["p2"] = result.P2
-	data["p3"] = result.P3
-	// update file
-	checkup.SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
+	// update data and file
+	checkup.SaveConclusionsRecommendations(data, result)
 }
 
 // Plugin entry point

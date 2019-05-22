@@ -81,3 +81,12 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 		out.WriteTo(jfile)
 	}
 }
+
+func SaveConclusionsRecommendations(data map[string]interface{}, result ReportOutcome) {
+	data["conclusions"] = result.Conclusions
+	data["recommendations"] = result.Recommendations
+	data["p1"] = result.P1
+	data["p2"] = result.P2
+	data["p3"] = result.P3
+	SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
+}
