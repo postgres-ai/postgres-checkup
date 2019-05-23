@@ -20,7 +20,6 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 | \# | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
 |----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "queries") "_keys") }}
-{{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "queries") $key) -}}
 | {{- $key}} | 
 {{- EscapeQuery (WordWrap (LimitStr $value.query 1000) 30) }}<br/>[Full query]({{ $value.link }}) | 
@@ -37,7 +36,6 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 {{- NumFormat $value.diff_kcache_writes 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_writes 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_writes 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_writes 2 }}% | 
 {{- RawFloatFormat $value.diff_kcache_user_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_user_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_user_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_user_time_ms 2 }}% | 
 {{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
-{{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
 
 {{- end }}{{/*Master data*/}}
@@ -59,7 +57,6 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 | \# | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
 |----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "queries") "_keys") }}
-{{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $host) "data") "queries") $key) -}}
 |{{- $key}} | 
 {{- EscapeQuery (WordWrap (LimitStr $value.query 1000) 30) }}<br/>[Full query]({{ $value.link }}) | 
@@ -76,7 +73,6 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 {{- NumFormat $value.diff_kcache_writes 2 }}&nbsp;bytes<br/>{{ NumFormat $value.per_sec_kcache_writes 2 }}&nbsp;bytes/sec<br/>{{ NumFormat $value.per_call_kcache_writes 2 }}&nbsp;bytes/call<br/>{{ NumFormat $value.ratio_kcache_writes 2 }}% | 
 {{- RawFloatFormat $value.diff_kcache_user_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_user_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_user_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_user_time_ms 2 }}% | 
 {{- RawFloatFormat $value.diff_kcache_system_time_ms 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_kcache_system_time_ms }}/sec<br/>{{ MsFormat $value.per_call_kcache_system_time_ms }}/call<br/>{{ NumFormat $value.ratio_kcache_system_time_ms 2 }}% |
-{{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
   
 {{- else -}}{{/* if host data */}}

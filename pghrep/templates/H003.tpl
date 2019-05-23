@@ -12,7 +12,6 @@ Current database: {{ .database }}
 | Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef |
 |----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
-{{- if lt $i $.LISTLIMIT -}}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
     |{{ $key }} | `{{ $value.schema_name }}` | `{{ $value.table_name }}` | `{{- $value.fk_name }}` |
     {{- $value.issue }} |
@@ -24,7 +23,6 @@ Current database: {{ .database }}
     {{- NumFormat $value.parent_writes -1 }} |
     {{- $value.cols_list }} |
     {{- $value.indexdef }}|
-{{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
 {{ else }}
 No data
