@@ -45,8 +45,10 @@ Data collected: {{ DtFormat .timestamptz }}
 | \# | Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset |
 |--|-----------|-------|-----------|----------------|------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "databases_stat") "_keys") }}
+{{- if lt $i $.LISTLIMIT -}}
 {{- $value:= (index (index (index (index $.results $.hosts.master) "data") "databases_stat") $key) -}}
 | {{ $value.num }}| `{{- $key }}` | {{ $value.conflicts}} | {{ $value.deadlocks }} | {{ $value.stats_reset }}|{{ $value.stats_reset_age }} |
+{{/* if limit list */}}{{ end -}}
 {{ end }}
 {{ end }}
 {{- end -}}
@@ -96,8 +98,10 @@ Data collected: {{ DtFormat .timestamptz }}
 | Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset |
 |----------|-----------|------------------------|----------------|------------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "databases_stat") "_keys") }}
+{{- if lt $i $.LISTLIMIT -}}
 {{- $value:= (index (index (index (index $.results $host) "data") "databases_stat") $key) -}}
 | `{{$key}}` | {{ $value.conflicts}} | {{ $value.deadlocks }} | {{ $value.stats_reset }} | {{ $value.stats_reset_age }} |
+{{/* if limit list */}}{{ end -}}
 {{ end }}
 {{ end }}
 {{ end }}

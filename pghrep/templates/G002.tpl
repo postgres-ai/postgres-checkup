@@ -11,8 +11,10 @@ Data collected: {{ DtFormat .timestamptz }}
  \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago | Tx age >1m | Tx age >1h
 |----|------|----|---------------|-------|-----------------------|-----------------------|------------|-----------
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
+{{- if lt $i $.LISTLIMIT -}}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
 | {{ $key }} |{{ if eq (Trim (Trim $value.User "*") " ") "ALL users" }}{{ Trim (Trim $value.User "*") " " }}{{else}}`{{ Trim (Trim $value.User "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.DB "*") " ") "ALL databases" }}{{ Trim (Trim $value.DB "*") " " }}{{else}}`{{ Trim (Trim $value.DB "*") " " }}`{{end}}| {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }} | {{ index $value "Tx age >1m" }} | {{ index $value "Tx age >1h" }} | 
+{{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
 {{ end }}{{/* if .host.master data */}}
 {{ end }}{{/* if .results .host.master */}}
@@ -28,8 +30,10 @@ Data collected: {{ DtFormat .timestamptz }}
 | \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago | Tx age >1m | Tx age >1h |
 |----|------|----|---------------|-------|-----------------------|-----------------------|------------|------------|
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
+{{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}
-| {{ $key }} |{{ if eq (Trim (Trim $value.User "*") " ") "ALL users" }}{{ Trim (Trim $value.User "*") " " }}{{else}}`{{ Trim (Trim $value.User "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.DB "*") " ") "ALL databases" }}{{ Trim (Trim $value.DB "*") " " }}{{else}}`{{ Trim (Trim $value.DB "*") " " }}`{{end}}| {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }} | {{ index $value "Tx age >1m" }} | {{ index $value "Tx age >1h" }} |{{ end }}{{/* data range */}}
+| {{ $key }} |{{ if eq (Trim (Trim $value.User "*") " ") "ALL users" }}{{ Trim (Trim $value.User "*") " " }}{{else}}`{{ Trim (Trim $value.User "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.DB "*") " ") "ALL databases" }}{{ Trim (Trim $value.DB "*") " " }}{{else}}`{{ Trim (Trim $value.DB "*") " " }}`{{end}}| {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }} | {{ index $value "Tx age >1m" }} | {{ index $value "Tx age >1h" }} |{{/* if limit   list */}}{{ end }}
+{{ end }}{{/* data range */}}
 {{- else -}}{{/* if $.results $host */}}
 Nothing found
 {{- end -}}{{/* if $.results $host */}}
