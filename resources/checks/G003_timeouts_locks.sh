@@ -12,7 +12,6 @@ with timeouts as (
   from pg_stat_database sd
   where datname in (SELECT datname FROM pg_database WHERE datistemplate = false)
   order by deadlocks desc
-  limit ${LISTLIMIT}
 ), num_dbs_data as (
   select
     row_number() over () num,

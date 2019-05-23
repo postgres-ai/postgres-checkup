@@ -176,7 +176,7 @@ with data as (
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
 ), limited_data as (
-  select * from data limit ${LISTLIMIT}
+  select * from data
 ), num_limited_data as (
   select
     row_number() over () num,
