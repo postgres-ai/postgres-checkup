@@ -22,6 +22,7 @@ Current database: {{ .database }}
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") }}{{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") 2 }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "live_data_size_bytes_sum") }} ~{{ ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "live_data_size_bytes_sum") 2 }}{{ end }} |||{{ end }}|{{ end }}
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "heap_bloat") "_keys") }}
+{{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "heap_bloat") $key ) -}}
 |{{ $value.num }} |`{{- $key }}`{{if $value.overrided_settings}}\*{{ end }} |
 {{- ByteFormat ( index $value "real_size_bytes" ) 2 }} |
@@ -32,8 +33,8 @@ Current database: {{ .database }}
 {{- "~" }}{{ ByteFormat ( index $value "live_data_size_bytes" ) 2 }} |
 {{- if (index $value "last_vaccuum") }} {{ ( index $value "last_vaccuum") }} {{ end }} |
 {{- ( index $value "fillfactor") }} |
+{{/* if limit list */}}{{ end -}}
 {{ end }}{{/*range*/}}
-
 
 {{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'

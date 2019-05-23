@@ -6,6 +6,8 @@
 # json_object - currently generated json
 # prev_json_object - previously generated json
 
+LISTLIMIT=100
+
 set -u -e -o pipefail
 
 error_handler() {

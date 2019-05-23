@@ -24,13 +24,11 @@ with overrided_tables as (
     (age(datfrozenxid) > 1200000000)::int as warning
   from pg_database
   order by 3 desc
-  limit ${LISTLIMIT}
 ), num_per_instance as (
   select
     row_number() over () num,
     per_instance.*
   from per_instance
-  limit ${LISTLIMIT}
 ), per_database as (
   select
     coalesce(nullif(n.nspname || '.', 'public.'), '') || c.relname as relation,
@@ -51,7 +49,6 @@ with overrided_tables as (
   where c.relkind IN ('r', 'm') and not (n.nspname = 'pg_catalog' and c.relname <> 'pg_class')
     and n.nspname <> 'information_schema'
   order by 3 desc
-  limit ${LISTLIMIT}
 ), num_per_database as (
   select
     row_number() over () num,
