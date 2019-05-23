@@ -100,7 +100,6 @@ never_used_indexes as (
 ), never_used_indexes_num as (
   select row_number() over () num, nui.* 
   from never_used_indexes nui
-  limit ${LISTLIMIT}
 ), never_used_indexes_total as (
   select
     sum(index_size_bytes) as index_size_bytes_sum,
@@ -151,7 +150,6 @@ rarely_used_indexes as (
 ), rarely_used_indexes_num as (
   select row_number() over () num, rui.*
   from rarely_used_indexes rui
-  limit ${LISTLIMIT}
 ), rarely_used_indexes_total as (
   select
     sum(index_size_bytes) as index_size_bytes_sum,
@@ -284,7 +282,6 @@ redundant_indexes_tmp_num as (
 ), redundant_indexes_num as (
   select row_number() over () num, rig.*
   from redundant_indexes_grouped rig
-  limit ${LISTLIMIT}
 ), redundant_indexes_json as (
   select
     json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
