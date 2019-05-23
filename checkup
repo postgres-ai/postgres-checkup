@@ -829,11 +829,12 @@ host_pre_start_checks() {
     # use local psql and connect to remote postgres without ssh
     local re="127\.0"
     if [[ "${HOST}" =~ $re || "${HOST}" = "localhost" ]]; then
-      # keep _PSQL as is, use UNIX domain socket for psql
+      # keep _PSQL and _PSQL_NO_TIMEOUT as is, use UNIX domain socket for psql
       true
     else
       # use TCP for psql
       export _PSQL="${_PSQL} -h ${HOST}"
+      export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${HOST}"
     fi
 
     export SSH_SUPPORT="false"
@@ -843,6 +844,7 @@ host_pre_start_checks() {
   dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
   dbg "NATIVE_HOSTNAME: '${NATIVE_HOSTNAME}'"
   dbg "_PSQL: '${_PSQL}'"
+  dbg "_PSQL_NO_TIMEOUT: '${_PSQL_NO_TIMEOUT}'"
 }
 
 #######################################
