@@ -117,3 +117,10 @@ CREATE TABLE test_schema."orders_A"
 
 INSERT INTO test_schema."orders_A"(cnt) select id from generate_series(0, 100) _(id);
 SELECT setval('test_schema."orders_A_id_seq"'::regclass, 300000000, false);
+
+
+create table t_l003 (
+     id    integer primary key,
+     name   varchar(40)
+);
+insert into t_l003 (id, name) values(1920000000, 'test row');
