@@ -90,8 +90,7 @@ test-general:
     - .ci/test_db_dump.sh
     - vacuumdb -U username dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
-    - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - cat err.log
+    - ./checkup -h localhost --username username --project test --dbname dbname -e 1
     - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - cat err.log
     - grep -v "Failed to create bus connection" err.log > err1.log || true
