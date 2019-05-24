@@ -31,10 +31,10 @@ pdf_filename=${md_filename%.*}".pdf"
 if PANDOC=$(which pandoc); then
   awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
-  pandoc --from=markdown_github-yaml_metadata_block --standalone \
+  pandoc --from=markdown_github-yaml_metadata_block --metadata pagetitle="Postgres Checkup Report" --standalone \
   --to=html -V -H $CUR_DIR/md.style --output=$tmp1_html_filename $tmp1_md_filename
 
-  pandoc --from=markdown_github-yaml_metadata_block --standalone \
+  pandoc --from=markdown_github-yaml_metadata_block --metadata pagetitle="Postgres Checkup Report" --standalone \
   --to=html -V -H $CUR_DIR/pdf.style --output=$tmp2_html_filename $tmp1_md_filename
 
   # replace :warninig: image
