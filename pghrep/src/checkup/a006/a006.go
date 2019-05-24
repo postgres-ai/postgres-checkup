@@ -1,12 +1,10 @@
-package main
+package a006
 
 import (
-	"../src/pyraconv"
+	"../../pyraconv"
 )
 
 var Data map[string]interface{}
-
-type prepare string
 
 func compareHostsData(data map[string]interface{}) {
 	hosts := pyraconv.ToInterfaceMap(data["hosts"])
@@ -87,8 +85,8 @@ func compareHostsData(data map[string]interface{}) {
 		}
 	}
 	diffData["pg_configs"] = diffConfigs
-
 	data["diffData"] = diffData
+	return
 }
 
 func getReplicaSettingValue(data map[string]interface{}, replica string, settingName string) (string, string) {
@@ -115,9 +113,6 @@ func getReplicaConfigValue(data map[string]interface{}, replica string, settingN
 	return "null", "null"
 }
 
-func (g prepare) Prepare(data map[string]interface{}) map[string]interface{} {
+func A006PreprocessReportData(data map[string]interface{}) {
 	compareHostsData(data)
-	return data
 }
-
-var Preparer prepare

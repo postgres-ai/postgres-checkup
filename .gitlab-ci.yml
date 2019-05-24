@@ -13,7 +13,7 @@ variables:
   stage: test
   before_script:
     - apt-get update
-    - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go
+    - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go git
     - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
     - apt-get update
@@ -121,7 +121,7 @@ test-pghrep:
   stage: test
   extends: ".prepare"
   script:
-    - cd pghrep && make test
+    - cd pghrep && make install && make test
 
 test-check-9.6:
   extends: ".test-check"
