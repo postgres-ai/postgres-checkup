@@ -32,10 +32,14 @@ if PANDOC=$(which pandoc); then
   awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
   pandoc --from=markdown_github-yaml_metadata_block --standalone \
-  --to=html -V -H $CUR_DIR/md.style --output=$tmp1_html_filename $tmp1_md_filename
+    --metadata pagetitle="Postgres Checkup Report" \
+    --to=html -V -H $CUR_DIR/md.style \
+    --output=$tmp1_html_filename $tmp1_md_filename
 
   pandoc --from=markdown_github-yaml_metadata_block --standalone \
-  --to=html -V -H $CUR_DIR/pdf.style --output=$tmp2_html_filename $tmp1_md_filename
+    --metadata pagetitle="Postgres Checkup Report" \
+    --to=html -V -H $CUR_DIR/pdf.style \
+    --output=$tmp2_html_filename $tmp1_md_filename
 
   # replace :warninig: image
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
