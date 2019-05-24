@@ -36,9 +36,6 @@ func checkFsItemUsage(host string, fsItemData FsItem,
 	usageCritical := false
 	usePercent := strings.Replace(fsItemData.UsePercent, "%", "", 1)
 	percent, _ := strconv.Atoi(usePercent)
-	if percent < USAGE_WARNING {
-		// nothing to do
-	}
 	if percent >= USAGE_WARNING && percent < USAGE_CRITICAL {
 		result.AppendConclusion(MSG_USAGE_WARNING_CONCLUSION, fsItemData.MountPoint, host, fsItemData.Used)
 		result.AppendRecommendation(MSG_USAGE_WARNING_RECOMMENDATION, fsItemData.MountPoint, host, USAGE_WARNING)
