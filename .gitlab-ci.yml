@@ -121,7 +121,7 @@ test-pghrep:
   stage: test
   extends: ".prepare"
   script:
-    - cd pghrep && make test
+    - cd pghrep && make install && make test
 
 test-check-9.6:
   extends: ".test-check"
