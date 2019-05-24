@@ -40,6 +40,7 @@ main:
 test:
 	go test ./src/
 	go test ./src/fmtutils/
+	go test ./src/checkup/*/
 
 vet:
 	# Command go vet examine all go files in a single scope, which isn't suitable for plugins.
