@@ -32,10 +32,14 @@ if PANDOC=$(which pandoc); then
   awk '{ gsub(/\\\//, "/"); print }' $md_filename > $tmp1_md_filename
 
   pandoc --from=markdown_github-yaml_metadata_block --standalone \
-  --to=html -V -H $CUR_DIR/md.style --output=$tmp1_html_filename $tmp1_md_filename
+    --to=html -V -H $CUR_DIR/md.style \
+    --metadata pagetitle="$tmp1_html_filename" \
+    --output=$tmp1_html_filename $tmp1_md_filename
 
   pandoc --from=markdown_github-yaml_metadata_block --standalone \
-  --to=html -V -H $CUR_DIR/pdf.style --output=$tmp2_html_filename $tmp1_md_filename
+    --to=html -V -H $CUR_DIR/pdf.style \
+    --metadata pagetitle="$tmp2_html_filename" \
+    --output=$tmp2_html_filename $tmp1_md_filename
 
   # replace :warninig: image
   awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
@@ -49,7 +53,7 @@ if PANDOC=$(which pandoc); then
   rm $tmp1_html_filename
   rm $tmp2_html_filename
   rm $tmp1_md_filename
-  
+
   if $PDF ; then
     if WKHTMLTOPDF=$(which wkhtmltopdf); then
       wkhtmltopdf --orientation landscape -q -s A4 --dpi 300 $tmp3_html_filename $pdf_filename
