@@ -23,7 +23,11 @@ LDFLAGS = -ldflags "-s -w \
 PLUGINS_SRC := $(wildcard plugins/*.go)
 
 # Build the project
-all: clean vet buildplugins main
+all: clean install vet buildplugins main
+
+install:
+	go get golang.org/x/net/html
+	go get github.com/dustin/go-humanize
 
 buildplugins:
 	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
@@ -36,6 +40,7 @@ main:
 test:
 	go test ./src/
 	go test ./src/fmtutils/
+	go test ./src/checkup/*/
 
 vet:
 	# Command go vet examine all go files in a single scope, which isn't suitable for plugins.
