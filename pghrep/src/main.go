@@ -333,9 +333,18 @@ func reorderHosts(data map[string]interface{}) {
 	if len(allHosts) == 0 {
 		return
 	}
-	master := allHosts[0]
+	// check host data
+	var hostsWithData []string
+	for _, host := range allHosts {
+		results := pyraconv.ToInterfaceMap(data["results"])
+		hostData, ok := results[host]
+		if ok && hostData != nil {
+			hostsWithData = append(hostsWithData, host)
+		}
+	}
+	master := hostsWithData[0]
 	var replicas []string
-	replicas = append(replicas, allHosts[1:]...)
+	replicas = append(replicas, hostsWithData[1:]...)
 	reorderedHosts := make(map[string]interface{})
 	reorderedHosts["master"] = master
 	reorderedHosts["replicas"] = replicas
