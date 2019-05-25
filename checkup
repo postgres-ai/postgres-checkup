@@ -370,6 +370,16 @@ validate_args() {
       echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' not found. Cannot generate PDF." >&2
       exit 1
     fi
+
+    wkhtmltopdf_ver_resp=$(wkhtmltopdf -V)
+    wkhtmltopdf_ver_resp_lines=${wkhtmltopdf_ver_resp// /\\n}
+    wkhtmltopdf_current_ver=$(echo -e $wkhtmltopdf_ver_resp_lines | awk '/([0-9.]+)/')
+    wkhtmltopdf_required_ver="0.12.4"
+
+    if [ "$(printf '%s\n' "$wkhtmltopdf_required_ver" "$wkhtmltopdf_current_ver" | sort -V | head -n1)" != "$wkhtmltopdf_required_ver" ]; then 
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' is out-of-date. Update to $wkhtmltopdf_required_ver. See README. Cannot generate PDF." >&2
+      exit 1
+    fi
   fi
 
   # custom UNIX domain socket directory for PostgreSQL

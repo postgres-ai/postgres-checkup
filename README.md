@@ -99,7 +99,7 @@ The following programs must be installed on the observer machine:
 * awk
 * sed
 * pandoc *
-* wkhtmltopdf *
+* wkhtmltopdf >= 0.12.4 *
 
 Pandoc and wkhtmltopdf optional, they need for generating HTML and PDF versions
 of report (see `--pdf` and `--html`).
@@ -122,8 +122,13 @@ sudo apt-get install coreutils
 sudo apt-get install jq
 sudo apt-get install golang
 # Optional
+# Pandoc (needed for both HTML and PDF generation)
 sudo apt install pandoc
-sudo apt-get install wkhtmltopdf
+# wkhtmltopdf (needed for PDF generation)
+wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
+sudo apt-get install -y openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
 ```
 
 MacOS (assuming that Homebrew is installed):
