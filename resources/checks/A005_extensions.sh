@@ -38,4 +38,3 @@ SQL
 done
 
 jq -r . <<<"$result"
-
