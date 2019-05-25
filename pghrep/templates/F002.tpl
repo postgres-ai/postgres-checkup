@@ -1,22 +1,22 @@
-# {{ .checkId }} Autovacuum: Transaction Wraparound Check #
+# {{ .checkId }} Autovacuum: Transaction ID Wraparound Check #
 
 ## Observations ##
-Data collected: {{ DtFormat .timestamptz }}  
-Current database: {{ .database }}  
+Data collected: {{ DtFormat .timestamptz }}
+Current database: {{ .database }}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master)}}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
 #### Databases ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}
 
 | \# | Database | &#9660;&nbsp;Age | Capacity used, % | Warning | datfrozenxid |
 |--|--------|-----|------------------|---------|--------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_instance") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_instance") $key) -}}
-| {{ $value.num }} |`{{- index $value "datname"}}`| 
+| {{ $value.num }} |`{{- index $value "datname"}}`|
 {{- NumFormat (index $value "age") -1 }} |
 {{- index $value "capacity_used"}} |
 {{- if (index $value "warning") }} &#9888; {{ else }} {{ end }} |
@@ -26,7 +26,7 @@ Current database: {{ .database }}
 {{- end -}}{{/* if per_instance exists */}}
 
 #### Tables in the observed database ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}
 
 | \# | Relation | Age | &#9660;&nbsp;Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid |
 |---|-------|-----|------------------|---------|-----------------|--------------------|
@@ -60,7 +60,7 @@ Nothing found
 
 {{- if .conclusions }}
 {{ range $conclusion := .conclusions -}}
-{{ $conclusion }}  
+{{ $conclusion }}
 {{ end }}
 {{ end }}
 
@@ -68,7 +68,7 @@ Nothing found
 
 {{- if .recommendations }}
 {{ range $recommendation := .recommendations -}}
-{{ $recommendation }}  
+{{ $recommendation }}
 {{ end }}
 {{ end }}
 
