@@ -19,7 +19,7 @@ func printReccomendations(result checkup.ReportOutcome) {
 	}
 }
 
-func TestF002Sucess(t *testing.T) {
+func TestF002Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -45,7 +45,7 @@ func TestF002Sucess(t *testing.T) {
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
 	if result.P1 || result.P2 || result.P3 {
-		t.Fatal("TestF002Sucess failed")
+		t.Fatal("TestF002Success failed")
 	}
 	printConclusions(result)
 	printReccomendations(result)

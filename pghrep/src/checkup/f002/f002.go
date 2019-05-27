@@ -44,7 +44,7 @@ func F002PreprocessReportData(data map[string]interface{}) {
 	var report F002Report
 	err := json.Unmarshal(jsonRaw, &report)
 	if err != nil {
-		log.Err("Can't load json report to process")
+		log.Err("Cannot load json report to process")
 		return
 	}
 	result := F002Process(report)
