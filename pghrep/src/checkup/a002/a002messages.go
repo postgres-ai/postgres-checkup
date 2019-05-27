@@ -18,7 +18,7 @@ const MSG_SUPPORTED_VERSION_CONCLUSION string = "Postgres major version being us
 	"of bugs and security issues, updates (new minor versions) with fixes will be released and available for use." +
 	" Read more: [Versioning Policy](https://www.postgresql.org/support/versioning/)."
 const MSG_LAST_MINOR_VERSION_CONCLUSION string = "%s is the most up-to-date Postgres minor version in the branch %s."
-const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1 string = "[P2] The minor version being used (%s) are not up-to-date (%s)."
+const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1 string = "[P2] The minor version being used (%s) is not up-to-date (%s)."
 const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N string = "[P2] The minor versions being used (%s) are not up-to-date (%s)."
 const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_1 string = "[P2] Not all nodes have the same Postgres version. Node %s uses Postgres %s."
 const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_N string = "[P2] Not all nodes have the same Postgres version. Nodes %s uses Postgres %s respectively."
