@@ -370,6 +370,16 @@ validate_args() {
       echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' not found. Cannot generate PDF." >&2
       exit 1
     fi
+
+    wkhtmltopdf_ver_resp=$(wkhtmltopdf -V)
+    wkhtmltopdf_ver_resp_lines=${wkhtmltopdf_ver_resp// /\\n}
+    wkhtmltopdf_current_ver=$(echo -e $wkhtmltopdf_ver_resp_lines | awk '/([0-9.]+)/')
+    wkhtmltopdf_required_ver="0.12.4"
+
+    if [ "$(printf '%s\n' "$wkhtmltopdf_required_ver" "$wkhtmltopdf_current_ver" | sort -V | head -n1)" != "$wkhtmltopdf_required_ver" ]; then 
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: 'wkhtmltopdf' version is outdated. Update to $wkhtmltopdf_required_ver or newer. See README. Cannot generate PDF." >&2
+      exit 1
+    fi
   fi
 
   # custom UNIX domain socket directory for PostgreSQL
@@ -782,7 +792,7 @@ glue_md_reports() {
   tableOfContents=""
   content=""
   echo "" >> "${out_fname}"
-  echo "<a name=\"postgres-checkup_top\"></a>" >> "${out_fname}"
+  echo "<a name=\"postgres-checkup_top\">&nbsp;</a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
   #generate table of contents and glue reports together
   for cur_report in "${MD_REPORTS_DIR}"/*.md; do
@@ -795,7 +805,7 @@ glue_md_reports() {
     title="${title%"${title##*[![:space:]]}"}"
     checkId=$(echo $title | cut -c 1-4)
     tableOfContents="$tableOfContents\n[$title](#postgres-checkup_$checkId)  "
-    content="$content\n\n\n---\n<a name=\"postgres-checkup_$checkId\"></a>\n[Table of contents](#postgres-checkup_top)"
+    content="$content\n\n\n---\n<a name=\"postgres-checkup_$checkId\">&nbsp;</a>\n[Table of contents](#postgres-checkup_top)"
     report=$(cat "${cur_report}")
     content="$content\n$report"
   done
