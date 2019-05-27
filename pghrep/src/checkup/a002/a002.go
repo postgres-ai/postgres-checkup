@@ -201,16 +201,19 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 	return result
 }
 
-func removeArrayDoubles(array []string) []string {
-	items := map[string]int{}
-	var result []string
-	for _, data := range array {
-		items[data] = 1
+func getUniques(array []string) []string {
+	items := map[string]bool{}
+	for _, item := range array {
+		items[item] = true
 	}
+
+	res := make([]string, len(items))
+	i := 0
 	for key, _ := range items {
-		result = append(result, key)
+		res[i] = key
+		i++
 	}
-	return result
+	return res
 }
 
 func A002Process(report A002Report) checkup.ReportOutcome {
