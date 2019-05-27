@@ -190,14 +190,30 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 			updateVersions = append(updateVersions, hostData.Data.ServerMajorVer+"."+strconv.Itoa(lastVersion))
 		}
 	}
-	if len(updateHosts) > 0 {
-		result.AppendConclusion(english.PluralWord(len(updateHosts),
+	curVersions = getUniques(curVersions)
+	if len(curVersions) > 0 {
+		result.AppendConclusion(english.PluralWord(len(curVersions),
 			MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1, MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N),
-			strings.Join(updateHosts, ", "), strings.Join(curVersions, ", "), updateVersions[0])
+			strings.Join(curVersions, ", "), updateVersions[0])
 		result.AppendRecommendation(MSG_NOT_LAST_MINOR_VERSION_RECOMMENDATION, updateVersions[0])
 		result.P2 = true
 	}
 	return result
+}
+
+func getUniques(array []string) []string {
+	items := map[string]bool{}
+	for _, item := range array {
+		items[item] = true
+	}
+
+	res := make([]string, len(items))
+	i := 0
+	for key, _ := range items {
+		res[i] = key
+		i++
+	}
+	return res
 }
 
 func A002Process(report A002Report) checkup.ReportOutcome {
@@ -215,7 +231,7 @@ func A002PreprocessReportData(data map[string]interface{}) {
 	var report A002Report
 	err := json.Unmarshal(jsonRaw, &report)
 	if err != nil {
-		log.Err("Can't load json report to process")
+		log.Err("Cannot load json report to process")
 		return
 	}
 	result := A002Process(report)
