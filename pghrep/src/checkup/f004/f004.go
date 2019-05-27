@@ -11,9 +11,9 @@ import (
 	"../../pyraconv"
 )
 
-const WARNING_BLOAT_RATIO float32 = 40.0        //90.0
-const CRITICAL_BLOAT_RATIO float32 = 90.0       //90.0
-const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0 //90.0
+const WARNING_BLOAT_RATIO float32 = 40.0
+const CRITICAL_BLOAT_RATIO float32 = 90.0
+const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0
 
 // Generate conclusions and recommendatons
 func F004Process(report F004Report) checkup.ReportOutcome {
