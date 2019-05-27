@@ -121,7 +121,7 @@ sudo apt-get install postgresql
 sudo apt-get install coreutils
 sudo apt-get install jq
 sudo apt-get install golang
-# Optional
+# Optional (if you need PDF/HTML)
 # Pandoc (needed for both HTML and PDF generation)
 sudo apt install pandoc
 # wkhtmltopdf (needed for PDF generation)
