@@ -117,7 +117,7 @@ func A008PreprocessReportData(data map[string]interface{}) {
 	var report A008Report
 	err := json.Unmarshal(jsonRaw, &report)
 	if err != nil {
-		log.Err("Can't load json report to process")
+		log.Err("Cannot load json report to process")
 		return
 	}
 	result := A008Process(report)
