@@ -7,18 +7,6 @@ import (
 	checkup ".."
 )
 
-func printConclusions(result checkup.ReportOutcome) {
-	for _, conclusion := range result.Conclusions {
-		fmt.Println("C:  ", conclusion)
-	}
-}
-
-func printReccomendations(result checkup.ReportOutcome) {
-	for _, recommendation := range result.Recommendations {
-		fmt.Println("R:  ", recommendation)
-	}
-}
-
 func TestF002Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
@@ -47,8 +35,8 @@ func TestF002Success(t *testing.T) {
 	if result.P1 || result.P2 || result.P3 {
 		t.Fatal("TestF002Success failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintReccomendations(result)
 }
 
 func TestF002ChecDatabases(t *testing.T) {
@@ -79,8 +67,8 @@ func TestF002ChecDatabases(t *testing.T) {
 	if !result.P1 {
 		t.Fatal("TestF002Sucess failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintReccomendations(result)
 }
 
 func TestF002ChecTables(t *testing.T) {
@@ -133,8 +121,8 @@ func TestF002ChecTables(t *testing.T) {
 	if !result.P1 {
 		t.Fatal("TestF002Sucess failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintReccomendations(result)
 }
 
 func TestF002ChecDatabaseTables(t *testing.T) {
@@ -187,6 +175,6 @@ func TestF002ChecDatabaseTables(t *testing.T) {
 	if !result.P1 {
 		t.Fatal("TestF002Sucess failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintReccomendations(result)
 }

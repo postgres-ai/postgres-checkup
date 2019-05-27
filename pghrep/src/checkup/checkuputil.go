@@ -94,7 +94,7 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 	}
 }
 
-func SaveConclusionsRecommendations(data map[string]interface{}, 
+func SaveConclusionsRecommendations(data map[string]interface{},
 	result ReportOutcome) map[string]interface{} {
 	data["conclusions"] = result.Conclusions
 	data["recommendations"] = result.Recommendations
@@ -103,4 +103,16 @@ func SaveConclusionsRecommendations(data map[string]interface{},
 	data["p3"] = result.P3
 	SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
 	return data
+}
+
+func PrintConclusions(result ReportOutcome) {
+	for _, conclusion := range result.Conclusions {
+		fmt.Println("C:  ", conclusion)
+	}
+}
+
+func PrintReccomendations(result ReportOutcome) {
+	for _, recommendation := range result.Recommendations {
+		fmt.Println("R:  ", recommendation)
+	}
 }

@@ -26,6 +26,7 @@ import (
 	"./checkup/a006"
 	"./checkup/a008"
 	"./checkup/f002"
+	"./checkup/f004"
 	"./checkup/h001"
 
 	"./log"
@@ -411,6 +412,8 @@ func preprocessReportData(checkId string, data map[string]interface{}) {
 		h001.H001PreprocessReportData(data)
 	case "F002":
 		f002.F002PreprocessReportData(data)
+	case "F004":
+		f004.F004PreprocessReportData(data)
 	}
 	return
 }
