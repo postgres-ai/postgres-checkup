@@ -190,12 +190,25 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 			updateVersions = append(updateVersions, hostData.Data.ServerMajorVer+"."+strconv.Itoa(lastVersion))
 		}
 	}
-	if len(updateHosts) > 0 {
-		result.AppendConclusion(english.PluralWord(len(updateHosts),
+	curVersions = removeArrayDoubles(curVersions)
+	if len(curVersions) > 0 {
+		result.AppendConclusion(english.PluralWord(len(curVersions),
 			MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1, MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N),
-			strings.Join(updateHosts, ", "), strings.Join(curVersions, ", "), updateVersions[0])
+			strings.Join(curVersions, ", "), updateVersions[0])
 		result.AppendRecommendation(MSG_NOT_LAST_MINOR_VERSION_RECOMMENDATION, updateVersions[0])
 		result.P2 = true
+	}
+	return result
+}
+
+func removeArrayDoubles(array []string) []string {
+	items := map[string]int{}
+	var result []string
+	for _, data := range array {
+		items[data] = 1
+	}
+	for key, _ := range items {
+		result = append(result, key)
 	}
 	return result
 }
