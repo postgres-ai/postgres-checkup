@@ -190,7 +190,7 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 			updateVersions = append(updateVersions, hostData.Data.ServerMajorVer+"."+strconv.Itoa(lastVersion))
 		}
 	}
-	curVersions = removeArrayDoubles(curVersions)
+	curVersions = getUniques(curVersions)
 	if len(curVersions) > 0 {
 		result.AppendConclusion(english.PluralWord(len(curVersions),
 			MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1, MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N),
