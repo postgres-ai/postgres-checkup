@@ -11,6 +11,7 @@ RUN apk add --update --no-cache \
     gawk \
     sed \
     make \
-    build-base
+    build-base \
+    git
 
 COPY . .
