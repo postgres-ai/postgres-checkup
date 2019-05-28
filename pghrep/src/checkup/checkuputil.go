@@ -82,7 +82,10 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 		orderedData.Set("p1", p1)
 		orderedData.Set("p2", p2)
 		orderedData.Set("p3", p3)
-		resultJson, _ := orderedData.MarshalJSON()
+		resultJson, merr := orderedData.MarshalJSON()
+		if merr != nil {
+			return
+		}
 		var out bytes.Buffer
 		json.Indent(&out, resultJson, "", "  ")
 		jfile, err := os.Create(filePath)
