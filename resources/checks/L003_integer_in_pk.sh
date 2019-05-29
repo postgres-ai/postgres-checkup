@@ -27,7 +27,7 @@ begin
     join pg_attribute a on
       a.attrelid = i.indrelid
       and a.attnum = any(i.indkey)
-    join pg_type t on t.oid = atttypid 
+    join pg_type t on t.oid = atttypid
     where
       i.indisprimary
       and (c.relpages > 1000 or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)

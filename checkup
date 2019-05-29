@@ -1110,7 +1110,7 @@ run_checks() {
   done
 
   msg
-  msg "All checks has been finished for host '$HOST'!"
+  msg "All checks have been finished for host '$HOST'!"
 
   # print stacks with failed reports
   if ! [[ -z "${check_failed_json_stack}" ]]; then
