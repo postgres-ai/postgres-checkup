@@ -60,7 +60,7 @@ Nothing found
 
 {{- if .conclusions }}
 {{ range $conclusion := .conclusions -}}
-{{ $conclusion }}  
+- {{ $conclusion }}
 {{ end }}
 {{ end }}
 
@@ -68,7 +68,7 @@ Nothing found
 
 {{- if .recommendations }}
 {{ range $recommendation := .recommendations -}}
-{{ $recommendation }}  
+- {{ $recommendation }}
 {{ end }}
 {{ end }}
 

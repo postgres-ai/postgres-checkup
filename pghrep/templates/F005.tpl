@@ -24,8 +24,7 @@ Current database: {{ .database }}
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
-{{- $tableIndex := Split $key "\n" -}}|{{ $value.num }} |
-{{- $table := Trim (index $tableIndex 1) " ()"}}`{{ (index $tableIndex 0) }}` (`{{ $table }}`{{if $value.overrided_settings}}\*{{ end }}) |
+|{{ $value.num }} | `{{ $value.index_name }}` (`{{ $value.table_name }}`{{if $value.overrided_settings}}\*{{ end }}) |
 {{- ByteFormat ( index $value "real_size_bytes") 2 }} |
 {{- ByteFormat ( index $value "table_size_bytes") 2 }} |
 {{- if ( index $value "bloat_size_bytes")}}{{ ByteFormat ( index $value "bloat_size_bytes") 2 }}{{end}} |
@@ -52,6 +51,17 @@ Nothing found
 
 ## Conclusions ##
 
+{{- if .conclusions }}
+{{ range $conclusion := .conclusions -}}
+- {{ $conclusion }}
+{{ end }}
+{{ end }}
 
 ## Recommendations ##
+
+{{- if .recommendations }}
+{{ range $recommendation := .recommendations -}}
+- {{ $recommendation }}
+{{ end }}
+{{ end }}
 

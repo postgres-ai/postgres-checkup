@@ -1,4 +1,4 @@
-package f004
+package f005
 
 import (
 	"encoding/json"
@@ -15,42 +15,42 @@ import (
 const WARNING_BLOAT_RATIO float32 = 40.0
 const CRITICAL_BLOAT_RATIO float32 = 90.0
 const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0
-const MIN_INDEX_SIZE_TO_ANALYZE int64 = 1024 * 1024
+const MIN_TABLE_SIZE_TO_ANALYZE int64 = 1024 * 1024
 
-func appendTable(list []string, tableBloatData F004HeapBloat) []string {
-	return append(list, fmt.Sprintf(TABLE_DETAILS, tableBloatData.TableName,
-		fmtutils.ByteFormat(float64(tableBloatData.RealSizeBytes), 2),
-		tableBloatData.BloatRatio, fmtutils.ByteFormat(float64(tableBloatData.ExtraSizeBytes), 2),
-		tableBloatData.BloatRatioPercent))
+func appendIndex(list []string, indexBloatData F005IndexBloat) []string {
+	return append(list, fmt.Sprintf(INDEX_DETAILS, indexBloatData.IndexName,
+		fmtutils.ByteFormat(float64(indexBloatData.RealSizeBytes), 2),
+		indexBloatData.BloatRatio, fmtutils.ByteFormat(float64(indexBloatData.ExtraSizeBytes), 2),
+		indexBloatData.BloatRatioPercent))
 }
 
 // Generate conclusions and recommendatons
-func F004Process(report F004Report) checkup.ReportOutcome {
+func F005Process(report F005Report) checkup.ReportOutcome {
 	var result checkup.ReportOutcome
 	// check total values
-	var top5tables []string
-	var criticalTables []string
-	var warningTables []string
+	var top5Indexes []string
+	var criticalIndexes []string
+	var warningIndexes []string
 	totalBloatIsCritical := false
-	var totalData F004HeapBloatTotal
+	var totalData F005IndexBloatTotal
 	i := 0
 	for _, hostData := range report.Results {
-		totalData = hostData.Data.HeapBloatTotal
-		if hostData.Data.HeapBloatTotal.BloatRatioPercentAvg > CRITICAL_TOTAL_BLOAT_RATIO {
+		totalData = hostData.Data.IndexBloatTotal
+		if hostData.Data.IndexBloatTotal.BloatRatioPercentAvg > CRITICAL_TOTAL_BLOAT_RATIO {
 			totalBloatIsCritical = true
 			result.P1 = true
 		}
-		for _, heapBloatData := range hostData.Data.HeapBloat {
-			if totalBloatIsCritical && heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && i < 5 {
-				top5tables = appendTable(top5tables, heapBloatData)
+		for _, indexBloatData := range hostData.Data.IndexBloat {
+			if totalBloatIsCritical && indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE && i < 5 {
+				top5Indexes = appendIndex(top5Indexes, indexBloatData)
 				i++
 			}
-			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
-				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) {
-				warningTables = appendTable(warningTables, heapBloatData)
+			if indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE && indexBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO {
+				criticalIndexes = appendIndex(criticalIndexes, indexBloatData)
 			}
-			if heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && heapBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO {
-				criticalTables = appendTable(criticalTables, heapBloatData)
+			if (indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
+				(indexBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) {
+				warningIndexes = appendIndex(warningIndexes, indexBloatData)
 			}
 		}
 	}
@@ -61,18 +61,18 @@ func F004Process(report F004Report) checkup.ReportOutcome {
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
 			totalData.BloatRatioAvg,
-			strings.Join(top5tables, ""))
+			strings.Join(top5Indexes, ""))
 		result.P1 = true
 	} else {
 		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg, fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
 	}
-	if len(criticalTables) > 0 {
-		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, CRITICAL_BLOAT_RATIO, strings.Join(criticalTables, ""))
+	if len(criticalIndexes) > 0 {
+		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, CRITICAL_BLOAT_RATIO, strings.Join(criticalIndexes, ""))
 		result.AppendRecommendation(MSG_BLOAT_CRITICAL_RECOMMENDATION)
 		result.P1 = true
 	}
-	if len(warningTables) > 0 {
-		result.AppendConclusion(MSG_BLOAT_WARNING_CONCLUSION, WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO, strings.Join(warningTables, ""))
+	if len(warningIndexes) > 0 {
+		result.AppendConclusion(MSG_BLOAT_WARNING_CONCLUSION, WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO, strings.Join(warningIndexes, ""))
 		if !result.P1 {
 			result.AppendRecommendation(MSG_BLOAT_WARNING_RECOMMENDATION)
 		}
@@ -88,16 +88,16 @@ func F004Process(report F004Report) checkup.ReportOutcome {
 	return result
 }
 
-func F004PreprocessReportData(data map[string]interface{}) {
+func F005PreprocessReportData(data map[string]interface{}) {
 	filePath := pyraconv.ToString(data["source_path_full"])
 	jsonRaw := checkup.LoadRawJsonReport(filePath)
-	var report F004Report
+	var report F005Report
 	err := json.Unmarshal(jsonRaw, &report)
 	if err != nil {
 		log.Err("Cannot load json report to process")
 		return
 	}
-	result := F004Process(report)
+	result := F005Process(report)
 	if len(result.Recommendations) == 0 {
 		result.AppendRecommendation(MSG_NO_RECOMMENDATIONS)
 	}
