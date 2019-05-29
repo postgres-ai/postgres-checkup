@@ -64,15 +64,18 @@ func F004Process(report F004Report) checkup.ReportOutcome {
 			strings.Join(top5tables, ""))
 		result.P1 = true
 	} else {
-		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg, fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
+		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg,
+			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
 	}
 	if len(criticalTables) > 0 {
-		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, CRITICAL_BLOAT_RATIO, strings.Join(criticalTables, ""))
+		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, len(criticalTables), CRITICAL_BLOAT_RATIO,
+			strings.Join(checkup.LimitList(criticalTables), ""))
 		result.AppendRecommendation(MSG_BLOAT_CRITICAL_RECOMMENDATION)
 		result.P1 = true
 	}
 	if len(warningTables) > 0 {
-		result.AppendConclusion(MSG_BLOAT_WARNING_CONCLUSION, WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO, strings.Join(warningTables, ""))
+		result.AppendConclusion(MSG_BLOAT_WARNING_CONCLUSION, len(warningTables), WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO,
+			strings.Join(checkup.LimitList(warningTables), ""))
 		if !result.P1 {
 			result.AppendRecommendation(MSG_BLOAT_WARNING_RECOMMENDATION)
 		}

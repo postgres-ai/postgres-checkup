@@ -143,7 +143,7 @@ func A002CheckAllVersionsIsSame(report A002Report,
 	if diff && len(hosts) > 1 {
 		result.AppendConclusion(english.PluralWord(len(hosts),
 			MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_1, MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_N),
-			strings.Join(hosts, "`, `"), strings.Join(getUniques(vers), "`, `"))
+			strings.Join(hosts, "`, `"), strings.Join(checkup.GetUniques(vers), "`, `"))
 		result.AppendRecommendation(MSG_NOT_ALL_VERSIONS_SAME_RECOMMENDATION)
 		result.P2 = true
 	} else {
@@ -228,7 +228,7 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 			updateVersions = append(updateVersions, majorVersion+"."+strconv.Itoa(lastVersion))
 		}
 	}
-	curVersions = getUniques(curVersions)
+	curVersions = checkup.GetUniques(curVersions)
 	if len(curVersions) > 0 {
 		result.AppendConclusion(english.PluralWord(len(curVersions),
 			MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1, MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N),
@@ -237,21 +237,6 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 		result.P2 = true
 	}
 	return result
-}
-
-func getUniques(array []string) []string {
-	items := map[string]bool{}
-	for _, item := range array {
-		items[item] = true
-	}
-
-	res := make([]string, len(items))
-	i := 0
-	for key, _ := range items {
-		res[i] = key
-		i++
-	}
-	return res
 }
 
 func A002Process(report A002Report) checkup.ReportOutcome {
