@@ -160,6 +160,7 @@ project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sig
 For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.
+
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
 
 For comprehensive analysis, it is recommended to run the tool on the master and
@@ -241,15 +242,14 @@ We need to know a hostname or an ip address of target database to be used with `
 PG_HOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' postgres)
 ```
 
-You can use official images or build an image yourself.
-Run this command to build an image:
+You can use official images or build an image yourself. Run this command to build an image:
 
 ```bash
 docker build -t postgres-checkup .
 ```
 
-Then run a container with `postgres-checkup`.
-This command run the tool using Postgres connection only (without SSH):
+Then run a container with `postgres-checkup`. This command run the tool using
+Postgres connection only (without SSH):
 
 ```bash
 docker run --rm \
