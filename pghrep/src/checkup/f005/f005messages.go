@@ -17,8 +17,7 @@ const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloa
 const MSG_BLOAT_GENERAL_RECOMMENDATION_2 string = "To reduce the index bloat, consider using one of the following:  \n" +
 	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/OUR_MAJOR_VERSION/sql-vacuum.html) (:warning:  requires downtime / maintenance window),  \n" +
 	"    - [`REINDEX`](https://www.postgresql.org/docs/OUR_MAJOR_VERSION/sql-reindex.html) (`REINDEX INDEX`, `REINDEX TABLE`; :warning:  requires downtime / maintenance window),  \n" +
-	"    - `REINDEX CONCURRENTLY` << ONLY IF MAJOR VERSION IS >= 12  \n" +
-	"    - recreating indexes online using `CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY` and renaming (not trivial for indexes supporting PK, FK),  << ONLY IF MAJOR VERSION IS < 12  \n" +
+	"    - recreating indexes online using `CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY` and renaming (not trivial for indexes supporting PK, FK) // Postgres 12 also provides `REINDEX CONCURRENTLY`,  \n" +
 	"    - one of the tools reducing the bloat online, without interrupting the operations:  \n" +
 	"        - [pg_repack](https://github.com/reorg/pg_repack),  \n" +
 	"        - [pg_squeeze](https://github.com/reorg/pg_repack),  \n" +
@@ -30,6 +29,6 @@ const MSG_BLOAT_PX_RECOMMENDATION string = "Read more on this topic:  \n" +
 	"    - [PostgreSQL Bloat: origins, monitoring and managing](https://www.compose.com/articles/postgresql-bloat-origins-monitoring-and-managing/) (2016, Compose)  \n" +
 	"    - [Dealing with significant Postgres database bloat — what are your options?](Dealing with significant Postgres database bloat — what are your options?) (2018, Compass)  \n" +
 	"    - [Postgres database bloat analysis](https://about.gitlab.com/handbook/engineering/infrastructure/blueprint/201901-postgres-bloat/) (2019, GitLab)  \n"
-const MSG_BLOAT_WARNING_CONCLUSION string = "[P2] There are some indexes with size > 1 MiB and index bloat estimate >= %.0f%% and < %.0f%%:  \n%s  \n"
-const MSG_BLOAT_CRITICAL_CONCLUSION string = "[P1] The following indexes have significant size (>1 MiB) and bloat estimate > %.0f%%:  \n%s  \n"
+const MSG_BLOAT_WARNING_CONCLUSION string = "[P2] There are %d indexes with size > 1 MiB and index bloat estimate >= %.0f%% and < %.0f%%:  \n%s  \n"
+const MSG_BLOAT_CRITICAL_CONCLUSION string = "[P1] The following %d indexes have significant size (>1 MiB) and bloat estimate > %.0f%%:  \n%s  \n"
 const INDEX_DETAILS string = "    - `%s`: size %s, can be reduced %.2f times, by ~%s (~%.0f%%)  \n"

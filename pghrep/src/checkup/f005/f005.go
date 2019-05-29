@@ -64,15 +64,17 @@ func F005Process(report F005Report) checkup.ReportOutcome {
 			strings.Join(top5Indexes, ""))
 		result.P1 = true
 	} else {
-		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg, fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
+		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg,
+			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
 	}
 	if len(criticalIndexes) > 0 {
-		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, CRITICAL_BLOAT_RATIO, strings.Join(criticalIndexes, ""))
+		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, len(criticalIndexes), CRITICAL_BLOAT_RATIO,
+			strings.Join(checkup.LimitList(criticalIndexes), ""))
 		result.AppendRecommendation(MSG_BLOAT_CRITICAL_RECOMMENDATION)
 		result.P1 = true
 	}
 	if len(warningIndexes) > 0 {
-		result.AppendConclusion(MSG_BLOAT_WARNING_CONCLUSION, WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO, strings.Join(warningIndexes, ""))
+		result.AppendConclusion(MSG_BLOAT_WARNING_CONCLUSION, len(warningIndexes), WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO, strings.Join(checkup.LimitList(warningIndexes), ""))
 		if !result.P1 {
 			result.AppendRecommendation(MSG_BLOAT_WARNING_RECOMMENDATION)
 		}

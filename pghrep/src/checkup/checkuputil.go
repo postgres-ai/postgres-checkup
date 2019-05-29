@@ -15,6 +15,8 @@ import (
 
 const MSG_ALL_GOOD_CONCLUSION string = "Hooray, all good. Keep this up!"
 const MSG_NO_RECOMMENDATION string = "No recommendations."
+const MSG_ETC_ITEM string = "    - etc."
+const RECOMMENDATION_ITEMS_LIMIT int = 5
 
 type ReportHost struct {
 	InternalAlias        string `json:"internal_alias"`
@@ -126,5 +128,30 @@ func PrintConclusions(result ReportOutcome) {
 func PrintReccomendations(result ReportOutcome) {
 	for _, recommendation := range result.Recommendations {
 		fmt.Println("R:  ", recommendation)
+	}
+}
+
+func GetUniques(array []string) []string {
+	items := map[string]bool{}
+	for _, item := range array {
+		items[item] = true
+	}
+
+	res := make([]string, len(items))
+	i := 0
+	for key, _ := range items {
+		res[i] = key
+		i++
+	}
+	return res
+}
+
+func LimitList(array []string) []string {
+	if len(array) <= RECOMMENDATION_ITEMS_LIMIT {
+		return array
+	} else {
+		limitedArray := array[0:RECOMMENDATION_ITEMS_LIMIT]
+		limitedArray = append(limitedArray, MSG_ETC_ITEM)
+		return limitedArray
 	}
 }
