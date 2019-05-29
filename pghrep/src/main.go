@@ -1,8 +1,8 @@
 /*
 Postgres Healt Reporter
 
-2018 © Dmitry Udalov dmius@postgres.ai
-2018 © Postgres.ai
+2018-2019 © Dmitry Udalov dmius@postgres.ai
+2018-2019 © Postgres.ai
 
 Perform a generation of Markdown report based on JSON results of postgres-checkup
 Usage:
@@ -27,6 +27,7 @@ import (
 	"./checkup/a008"
 	"./checkup/f002"
 	"./checkup/f004"
+	"./checkup/f005"
 	"./checkup/h001"
 
 	"./log"
@@ -423,6 +424,8 @@ func preprocessReportData(checkId string, data map[string]interface{}) {
 		f002.F002PreprocessReportData(data)
 	case "F004":
 		f004.F004PreprocessReportData(data)
+	case "F005":
+		f005.F005PreprocessReportData(data)
 	}
 	return
 }

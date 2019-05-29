@@ -19,20 +19,21 @@ func F002Process(report F002Report) checkup.ReportOutcome {
 	for _, hostData := range report.Results {
 		for db, dbData := range hostData.Data.Databases {
 			if dbData.CapacityUsed > CRITICAL_CAPACITY_USAGE {
-				databases = append(databases, "- database `"+db+"`  \n")
+				databases = append(databases, "    - database `"+db+"`  \n")
 				result.P1 = true
 			}
 		}
 		for table, tableData := range hostData.Data.Tables {
 			if tableData.CapacityUsed > CRITICAL_CAPACITY_USAGE {
-				tables = append(tables, "- table `"+table+"`  \n")
+				tables = append(tables, "    - table `"+table+"`  \n")
 				result.P1 = true
 			}
 		}
 	}
 	items := strings.Join(databases, "") + strings.Join(tables, "")
 	if len(databases) > 0 || len(tables) > 0 {
-		result.AppendConclusion(MSG_RISKS_ARE_HIGH_CONCLUSION, items)
+		result.AppendConclusion(MSG_RISKS_ARE_HIGH_CONCLUSION_1, items)
+		result.AppendConclusion(MSG_RISKS_ARE_HIGH_CONCLUSION_2)
 		result.AppendRecommendation(MSG_RISKS_ARE_HIGH_RECOMMENDATION)
 	}
 	return result

@@ -115,12 +115,7 @@ with data as (
     case is_na when true then 'TRUE' else '' end as "is_na",
     index_name as "index_name",
     coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "table_name",
-    format(
-      \$out$%s
-    (%s)\$out$,
-      left(index_name, 50) || case when length(index_name) > 50 then '…' else '' end,
-      coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name
-    ) as "index_table_name",
+    left(index_name, 50) || case when length(index_name) > 50 then '…' else '' end  || '(' || coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name || ')'as "index_table_name",
     real_size as "real_size_bytes",
     pg_size_pretty(real_size::numeric) as "size",
     case

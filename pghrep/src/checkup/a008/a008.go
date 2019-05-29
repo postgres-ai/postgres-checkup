@@ -85,13 +85,13 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 			result.P1 = true
 			nfsConclusions = append(nfsConclusions, fmt.Sprintf(english.PluralWord(len(networkFsDisks),
 				MSG_NETWORK_FS_CONCLUSION_1, MSG_NETWORK_FS_CONCLUSION_N),
-				strings.Join(networkFsDisks, ", "), host))
+				strings.Join(networkFsDisks, "`, `"), host))
 		}
 		if len(notRecommendedFsDisks) > 0 {
 			result.P3 = true
 			notRecConclusions = append(notRecConclusions, fmt.Sprintf(english.PluralWord(len(notRecommendedFsDisks),
 				MSG_NOT_RECOMMENDED_FS_CONCLUSION_1, MSG_NOT_RECOMMENDED_FS_CONCLUSION_N),
-				strings.Join(notRecommendedFsDisks, ", "), host, strings.Join(notRecommendedFsDisksFs, ", ")))
+				strings.Join(notRecommendedFsDisks, "`, `"), host, strings.Join(notRecommendedFsDisksFs, "`, `")))
 		}
 	}
 	if !usageWarning && !usageCritical && len(result.Recommendations) == 0 {
