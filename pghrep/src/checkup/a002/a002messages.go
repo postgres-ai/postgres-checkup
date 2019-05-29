@@ -17,7 +17,7 @@ const MSG_SUPPORTED_VERSION_CONCLUSION string = "Postgres major version being us
 	"currently supported by Postgres community and PGDG (end of life is scheduled %s). It means that in case " +
 	"of bugs and security issues, updates (new minor versions) with fixes will be released and available for use." +
 	" Read more: [Versioning Policy](https://www.postgresql.org/support/versioning/).  \n"
-const MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION string = "[P3] Upgrade to the newest major version: %.0f. It has a lot of new features and improvements.  \n"
+const MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION string = "[P3] Consider upgrading to the newest major version: %.0f. It has a lot of new features and improvements.  \n"
 
 const MSG_LAST_MINOR_VERSION_CONCLUSION string = "`%s` is the most up-to-date Postgres minor version in the branch `%s`.  \n"
 const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1 string = "[P2] The minor version being used (`%s`) is not up-to-date (the newest version: `%s`).  \n"
