@@ -162,7 +162,8 @@ Which literally means: connect to the server with given credentials, save data i
 project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sign of current iteration.
 For example: in half a year we can switch to "epoch number `2`".
 
-`-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.  
+`-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.
+
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
 
 For comprehensive analysis, it is recommended to run the tool on the master and
@@ -187,7 +188,7 @@ for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
     -e 1 \
     --file resources/checks/K000_query_analysis.sh # the first snapshot is needed only for reports K***
 done
-  
+
 sleep "$DISTANCE"
 
 for host in db2.vpn.local db3.vpn.local db4.vpn.local; do
@@ -244,15 +245,14 @@ We need to know a hostname or an ip address of target database to be used with `
 PG_HOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' postgres)
 ```
 
-You can use official images or build an image yourself. 
-Run this command to build an image:
+You can use official images or build an image yourself. Run this command to build an image:
 
 ```bash
 docker build -t postgres-checkup .
 ```
 
-Then run a container with `postgres-checkup`. 
-This command run the tool using Postgres connection only (without SSH):
+Then run a container with `postgres-checkup`. This command run the tool using
+Postgres connection only (without SSH):
 
 ```bash
 docker run --rm \
@@ -323,89 +323,89 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 ## А. General  / Infrastructural
 
-- [x] A001 System, CPU, RAM, disks, virtualization #6 , #56 , #57 , #86 
+- [x] A001 System, CPU, RAM, disks, virtualization #6 , #56 , #57 , #86
 - [x] A002 PostgreSQL versions (Simple) #68, #21, #86
-- [x] A003 Collect pg_settings  #15, #167, #86 
-- [x] A004 General cluster info  #7, #58, #59, #86, #162  
-- [x] A005 Extensions #8, #60, #61, #86, #167   
-- [x] A006 Config diff  #9, #62, #63, #86  
-- [x] A007 ALTER SYSTEM vs postgresql.conf #18, #86  
-- [x] A008 Disk usage and file system type #19, #20  
-- [ ] A010 Data checksums, wal_log_hints #22  
-- [ ] A011 Connection pooling. pgbouncer #23  
-- [ ] A012 Anti-crash checks #177  
+- [x] A003 Collect pg_settings  #15, #167, #86
+- [x] A004 General cluster info  #7, #58, #59, #86, #162
+- [x] A005 Extensions #8, #60, #61, #86, #167
+- [x] A006 Config diff  #9, #62, #63, #86
+- [x] A007 ALTER SYSTEM vs postgresql.conf #18, #86
+- [x] A008 Disk usage and file system type #19, #20
+- [ ] A010 Data checksums, wal_log_hints #22
+- [ ] A011 Connection pooling. pgbouncer #23
+- [ ] A012 Anti-crash checks #177
 
-## B. Backups and DR  
+## B. Backups and DR
 
-- [ ] B001 SLO/SLA, RPO, RTO  #24  
-- [ ] B002 File system, mount flags #25  
-- [ ] B003 Full backups / incremental  #26  
-- [ ] B004 WAL archiving (GB/day?) - #27  
-- [ ] B005 Restore checks, monitoring, alerting  #28  
+- [ ] B001 SLO/SLA, RPO, RTO  #24
+- [ ] B002 File system, mount flags #25
+- [ ] B003 Full backups / incremental  #26
+- [ ] B004 WAL archiving (GB/day?) - #27
+- [ ] B005 Restore checks, monitoring, alerting  #28
 
 ## C. Replication and HA
 
-- [ ] C001 SLO/SLA  #29  
-- [ ] C002 Sync/async, Streaming / wal transfer; logical decoding #30  
-- [ ] C003 SPOFs; “-1 datacenter”, standby with traffic #31  
-- [ ] C004 Failover #32  
-- [ ] C005 Switchover #33  
-- [ ] C006 Delayed replica (replay of 1 day of WALs) - #34  
+- [ ] C001 SLO/SLA  #29
+- [ ] C002 Sync/async, Streaming / wal transfer; logical decoding #30
+- [ ] C003 SPOFs; “-1 datacenter”, standby with traffic #31
+- [ ] C004 Failover #32
+- [ ] C005 Switchover #33
+- [ ] C006 Delayed replica (replay of 1 day of WALs) - #34
 
-## D. Monitoring / Troubleshooting   
+## D. Monitoring / Troubleshooting
 
-- [ ] D001 Logging (syslog?), log_*** #35  
-- [x] D002 Useful Linux tools  #36  
-- [ ] D003 List of monitoring metrics #37  
-- [x] D004 pg_stat_statements, tuning opts, pg_stat_kcache #38  
-- [ ] D005 track_io_timing, …, auto_explain  #39  
-- [ ] D006 Recommended DBA toolsets: postgres_dba, pgCenter, pgHeroother  #40  
-- [ ] D007 Postgres-specific tools for troubleshooting  #137  
+- [ ] D001 Logging (syslog?), log_*** #35
+- [x] D002 Useful Linux tools  #36
+- [ ] D003 List of monitoring metrics #37
+- [x] D004 pg_stat_statements, tuning opts, pg_stat_kcache #38
+- [ ] D005 track_io_timing, …, auto_explain  #39
+- [ ] D006 Recommended DBA toolsets: postgres_dba, pgCenter, pgHeroother  #40
+- [ ] D007 Postgres-specific tools for troubleshooting  #137
 
 ## E. WAL, Checkpoints
 
-- [ ] E001 WAL/checkpoint settings, IO  #41   
-- [ ] E002 Checkpoints, bgwriter, IO  #42  
+- [ ] E001 WAL/checkpoint settings, IO  #41
+- [ ] E002 Checkpoints, bgwriter, IO  #42
 
 ## F. Autovacuum, Bloat
 
-- [x] F001 < F003 Current autovacuum-related settings  #108, #164    
-- [x] F002 < F007 Transaction wraparound check  #16, #171  
-- [x] F003 < F006 Dead tuples  #164   
-- [x] F004 < F001 Heap bloat estimation #87, #122  
-- [x] F005 < F002 Index bloat estimation #88  
-- [ ] F006 < F004 Precise heap bloat analysis 
-- [ ] F007 < F005 Precise index bloat analysis 
-- [x] F008 < F008 Resource usage (CPU, Memory, disk IO) #44  
+- [x] F001 < F003 Current autovacuum-related settings  #108, #164
+- [x] F002 < F007 Transaction ID wraparound check  #16, #171
+- [x] F003 < F006 Dead tuples  #164
+- [x] F004 < F001 Heap bloat estimation #87, #122
+- [x] F005 < F002 Index bloat estimation #88
+- [ ] F006 < F004 Precise heap bloat analysis
+- [ ] F007 < F005 Precise index bloat analysis
+- [x] F008 < F008 Resource usage (CPU, Memory, disk IO) #44
 
-## G. Performance / Connections / Memory-related Settings 
+## G. Performance / Connections / Memory-related Settings
 
-- [x] G001 Memory-related settings #45, #190  
-- [x] G002 Connections #46  
-- [x] G003 Timeouts, locks, deadlocks (amount) #47  
-- [ ] G004 Query planner (diff) #48   
-- [ ] G005 I/O settings #49   
-- [ ] G006 Default_statistics_target (plus per table?) #50   
+- [x] G001 Memory-related settings #45, #190
+- [x] G002 Connections #46
+- [x] G003 Timeouts, locks, deadlocks (amount) #47
+- [ ] G004 Query planner (diff) #48
+- [ ] G005 I/O settings #49
+- [ ] G006 Default_statistics_target (plus per table?) #50
 
 ## H. Index Analysis
 
-- [x] H001 Indexes: invalid #192, #51  
-- [x] H002 Unused and redundant indexes #51, #180, #170, #168, #322  
-- [x] H003 Missing FK indexes #52, #142, #173  
+- [x] H001 Indexes: invalid #192, #51
+- [x] H002 Unused and redundant indexes #51, #180, #170, #168, #322
+- [x] H003 Missing FK indexes #52, #142, #173
 
 ## J.  Capacity Planning
 
-- [ ] J001 Capacity planning - #54  
+- [ ] J001 Capacity planning - #54
 
 ## K. SQL query Analysis
 
-- [x] K001 Globally aggregated query metrics #158, #178, #182, #184  
-- [x] K002 Workload type ("first word" analysis) #159, #178, #179, #182, #184  
+- [x] K001 Globally aggregated query metrics #158, #178, #182, #184
+- [x] K002 Workload type ("first word" analysis) #159, #178, #179, #182, #184
 - [x] K003 Top queries by total_time  #160, #172, #174, #178, #179, #182, #184, #193
 
 ## L. DB Schema Analysis
-- [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163  
-- [ ] L002 (was: H004) Data types being used #53  
+- [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163
+- [ ] L002 (was: H004) Data types being used #53
 - [x] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
 
 ## TODO:
@@ -414,7 +414,7 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 ---
 
-# Ideas :bulb: :bulb: :bulb:  :thinking\_face: 
+# Ideas :bulb: :bulb: :bulb:  :thinking\_face:
 
 - analyze all FKs and check if data types of referencing column and referenced one match (same thing for multi-column FKs)
 - tables w/o PKs? tables not having even unique index?

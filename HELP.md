@@ -7,20 +7,20 @@ This group determines the available resources such as hardware characteristics o
 General information about operational systems where the observed Postgres master and its replicas operate.
 
 > Insights:
-> 
+>
 > - Hardware and software differences (OS versions, Linux kernel versions, CPU, Memory). If the observed master and its replicas run on different platforms, it might cause issues with binary replication.
->  
+>
 > - Memory settings tuning. (Examples: is swap enabled? Are huge pages used?) Observing state of memory about memory consumption by database may lead to recommendations of changes to improve system performance.
->  
+>
 > - Information about virtualization type.
 
 
 ### A002 Postgres Version Information
 
 This report answers the following questions:
-- Do all nodes have the same Postgres version?  
+- Do all nodes have the same Postgres version?
 - Is the minor version being used up-to-date? Keeping the minor version of the database up-to-date is recommended to decrease chances to encounter with bugs, performance and security issues?
-- Is the major version currently supported by the community?  
+- Is the major version currently supported by the community?
 - Will the major version be supported by the community during the next 12 months?
 - If the minor version is not the most recent, are any critical bugfixes released that need to be applied ASAP?
 
@@ -40,18 +40,18 @@ The following is included:
 - The uptime. Sometimes low uptime may indicate an unplanned, accidental restart of the database.
 - General information: how many databases are on one instance, what is their size, replication mode, age of statistics.
 - Information about replicas, replication modes, replication delays.
-- Ratio of forced checkpoints among all checkpoints registered since statistics reset time. 
-> Insights: Frequent checkpoints in most cases create an excessive load on the disk subsystem. Identifying this fact will allow the more optimal disk utilization. 
-- How big is the observed database (the cluster may have multiple databases)? 
-> Insight: if the database is smaller than RAM, there are good chances to avoid intensive disk IO in most operations 
-- Cache Effectiveness: percentage of buffer pool hits. 
-> Insight: if it is not more than 95% on all nodes, it might be a good sign that the buffer pool size needs to be increased.   
-- Successful Commits: percentage of successfully committed transactions. 
-> Insight: if the value is not more than 99%, it might be a sign of logic issues with application code leading to high rates of ROLLBACK events. 
-- Temp Files per day: how many temporary files were generated per day in average, since last statistics reset time. 
-> Insight: if this value is high (thousands), it is a signal that work_mem should be increased. 
-- Deadlocks per day. 
-> Insight: significant (dozens) daily number of deadlocks is a sign of issues with application logic that needs redesign. 
+- Ratio of forced checkpoints among all checkpoints registered since statistics reset time.
+> Insights: Frequent checkpoints in most cases create an excessive load on the disk subsystem. Identifying this fact will allow the more optimal disk utilization.
+- How big is the observed database (the cluster may have multiple databases)?
+> Insight: if the database is smaller than RAM, there are good chances to avoid intensive disk IO in most operations
+- Cache Effectiveness: percentage of buffer pool hits.
+> Insight: if it is not more than 95% on all nodes, it might be a good sign that the buffer pool size needs to be increased.
+- Successful Commits: percentage of successfully committed transactions.
+> Insight: if the value is not more than 99%, it might be a sign of logic issues with application code leading to high rates of ROLLBACK events.
+- Temp Files per day: how many temporary files were generated per day in average, since last statistics reset time.
+> Insight: if this value is high (thousands), it is a signal that work_mem should be increased.
+- Deadlocks per day.
+> Insight: significant (dozens) daily number of deadlocks is a sign of issues with application logic that needs redesign.
 
 ### A005 Extensions
 
@@ -59,7 +59,7 @@ Provides a list of all available and installed (in the current observed database
 
 ### A006 Postgres Setting Deviations
 
-Helps to check that there are no differences in Postgres configuration on the observed nodes (except `transaction_read_only` and pg_stat_kcache’s `linux_hz`). 
+Helps to check that there are no differences in Postgres configuration on the observed nodes (except `transaction_read_only` and pg_stat_kcache’s `linux_hz`).
 
 > Insights:
 > - In general, any differences in configuration on master and its replicas might lead to issues in case of failover. An example: the master is tuned, while replicas are not tuned at all or tuned poorly, in the event of failover, a new master cannot operate properly due to poor tuning.
@@ -72,13 +72,13 @@ There are multiple ways to change database settings globally:
 - explicitly, in the configuration file postgresql.conf, and
 - implicitly, using 'ALTER SYSTEM' commands.
 
-This report checks if there are settings which were set by implicit (ALTER SYSTEM) way.  
+This report checks if there are settings which were set by implicit (ALTER SYSTEM) way.
 
 Possible sources of configuration settings (presented in the first column of the report’s table):
 
 * `postgresql.auto.conf`: changed via 'ALTER SYSTEM' command.
 * `%any other file pattern%`: changed in additional config included to the main one.
-* `postgresql.conf`: non-default values are set in postgresql.conf.  
+* `postgresql.conf`: non-default values are set in postgresql.conf.
 
 ### A008 Disk Usage and File System Type
 
@@ -132,11 +132,11 @@ Shows global and per-table (if any) autovacuum-related Postgres settings.
 
 > Insights:
 > - Is any tuning applied (values are not default)?
-> - Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow you to understand the nature of the functioning of autovacuum workers. Such tables are marked with asterisk (*) in the following reports.
+> - Are there any custom table autovacuum settings? There are cases when the tables have a custom autovacuum configuration. Tracking such tables will allow you to understand the nature of the functioning of autovacuum workers. Such tables are marked with asterisk (\*) in the following reports.
 
-### F002 Autovacuum: Transaction Wraparound Check
+### F002 Autovacuum: Transaction ID Wraparound Check
 
-Shows a distance in % to transaction wraparound disaster for every database.
+Shows a distance in % to transaction ID wraparound disaster for every database.
 
 > Insights:
 > If % is higher than 50%, autovacuum tuning should be considered as soon as possible.
@@ -160,14 +160,14 @@ Estimated table and index bloat is presented in this report.
 > - Objects with a high percentage of bloat lead to wasted disk space, degradation in query performance, additional CPU costs, and excessive read load on the disk.
 > This report is based on estimations. The errors in bloat estimates may be significant (in some cases, up to 15% and event more). Use it only as an indicator of potential issues.
 > - Checks the following things:
->     - Extreme (>90%) level of heap or index bloat estimated. 
->     - Significant (>40%) level of heap or index bloat estimated. 
+>     - Extreme (>90%) level of heap or index bloat estimated.
+>     - Significant (>40%) level of heap or index bloat estimated.
 
 ### F008 Autovacuum: Resource Usage
 
-Shows a table with Postgres settings related to autovacuum resource usage.  
+Shows a table with Postgres settings related to autovacuum resource usage.
 
-> Insights:  
+> Insights:
 > - Is  `autovacuum_max_workers`  not default? (When CPU cores or vCPUs >= 10).
 > - Is `autovacuum_vacuum_cost_limit` / `vacuum_cost_limit` not default?
 > - Isn't `maintenance_work_mem` / `autovacuum_work_mem` too low compared to table sizes and RAM?
@@ -201,7 +201,7 @@ A detailed snapshot report of all connections, grouped by users, databases and s
 Provides information about how "timeout" and locking-related settings are tuned, shows deadlocks counter for every database since statistics reset.
 
 > Insights:
-> - Questions worth answering:  
+> - Questions worth answering:
 >     - Is `statement_timeout` > 0 and <= 30 seconds (good choice for an OLTP system)?
 >     - Is `idle_in_transaction_session_timeout` >0 and < 20 minutes (preventing autovacuum and locking issues)?
 >     - Is `max_locks_per_transaction` not default (for example, low value may interrupt pg_dump)?
@@ -218,14 +218,14 @@ Shows the list of never used, rarely used and redundant indexes.
 Helps to understand how much space they occupy.
 
 > Insights:
-> - Questions worth answering:  
+> - Questions worth answering:
 >     - Is the total size of unused indexes less than 10% of the DB size (only if statistics is older than 1 week)?
 >     - Is statistics saved across restarts?
 > - If statistics age is low, the report should be used with caution.
 
 ### H003 Non-indexed Foreign Keys
 
-Checks if all foreign keys have indexes in referencing tables.  
+Checks if all foreign keys have indexes in referencing tables.
 
 # K. SQL Query Analysis
 
@@ -247,7 +247,7 @@ The grouping is based on the first word of every query.
 
 One of the most comprehensive and deep reports. Shows Top query groups
 ordered by total execution time during the observation period (`total_time` in
-pg_stat_statements). Good start for query optimization. 
+pg_stat_statements). Good start for query optimization.
 
 > Insights:
 > - The first question to answer: Are there any query groups with `total_time` ratio >50% of overall `total_time`?  If we have this type of query, it is definitely worth optimizing it.
@@ -262,11 +262,11 @@ face of a growing amount of data.
 
 ### L001 Table Sizes
 
-Displays the size of tables and their components (indexes, TOAST, the table itself).  
+Displays the size of tables and their components (indexes, TOAST, the table itself).
 
-> - Questions worth answering:  
->     - Does the size of indexes for each table not exceed heap (with toast) size? 
->     - Are there any non-indexes tables which size is > 10 MiB?  
+> - Questions worth answering:
+>     - Does the size of indexes for each table not exceed heap (with toast) size?
+>     - Are there any non-indexes tables which size is > 10 MiB?
 >     - Are there any non-partitioned tables of size > 100 GiB?
 
 ### L003 Integer (int2, int4) Out-of-range Risks in PKs

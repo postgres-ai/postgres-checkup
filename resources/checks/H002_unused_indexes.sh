@@ -98,7 +98,7 @@ never_used_indexes as (
     and idx_is_btree
   order by index_size_bytes desc
 ), never_used_indexes_num as (
-  select row_number() over () num, nui.* 
+  select row_number() over () num, nui.*
   from never_used_indexes nui
 ), never_used_indexes_total as (
   select
@@ -219,8 +219,8 @@ index_data as (
   left join fk_indexes fi on
     fi.fk_table_ref = ri.table_name
     and fi.opclasses like (ri.opclasses || '%')
-  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) = 
-	substring(ri.index_def from position('USING' in ri.index_def) for length(ri.index_def))
+  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) =
+    substring(ri.index_def from position('USING' in ri.index_def) for length(ri.index_def))
 ),
 -- Cut recursive links
 redundant_indexes_tmp_num as (

@@ -34,7 +34,7 @@ with overrided_tables as (
     coalesce(nullif(n.nspname || '.', 'public.'), '') || c.relname as relation,
     greatest(age(c.relfrozenxid), age(t.relfrozenxid)) as age,
     round(
-      (greatest(age(c.relfrozenxid), age(t.relfrozenxid))::numeric * 
+      (greatest(age(c.relfrozenxid), age(t.relfrozenxid))::numeric *
       100 / (2 * 10^9 - current_setting('vacuum_freeze_min_age')::numeric)::numeric),
       2
     ) as capacity_used,
@@ -55,11 +55,11 @@ with overrided_tables as (
     per_database.*
   from per_database
 )
-select 
+select
   json_build_object(
-    'per_instance', 
+    'per_instance',
     (select json_object_agg(i.datname, i) from num_per_instance i),
-    'per_database', 
+    'per_database',
     (select json_object_agg(d.relation, d) from num_per_database d),
     'overrided_settings_count',
     (select count(1) from per_database where overrided_settings = true)

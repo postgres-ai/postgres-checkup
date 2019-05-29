@@ -68,7 +68,6 @@ if [[ "${err_code}" -ne "0" ]]; then
     select
       /* rownum in snapshot may be not equal to resulting rownum */
       row_number() over (order by total_time desc) as rownum,
-  
       /* pg_stat_statements_part */
       left(query, 50000) as query, /*  obsolete left ? check pg_stat_statements for cutting */
       calls,
@@ -107,7 +106,6 @@ else
     select
       /* rownum in snapshot may be not equal to resulting rownum */
       row_number() over (order by total_time desc) as rownum,
-  
       /* pg_stat_statements_part */
       left(query, 50000) as query, /*  obsolete left ? check pg_stat_statements for cutting */
       calls,
@@ -132,13 +130,11 @@ else
       blk_read_time,
       blk_write_time,
       queryid,
-
       /* kcache part */
       k.reads as kcache_reads,
       k.writes as kcache_writes,
       k.user_time::bigint * 1000 as kcache_user_time_ms,
       k.system_time::bigint * 1000 as kcache_system_time_ms,
-  
       /* save hash */
       md5(queryid::text || dbid::text || userid::text) as md5
     from pg_stat_statements s
@@ -237,7 +233,7 @@ sql="
        ${json_object}
     \$snap2\$::json
   ), delta(seconds) as (
-    select 
+    select
       (select j->>'snapshot_timestamptz_s' from snap2)::numeric
        - (select j->>'snapshot_timestamptz_s' from snap1)::numeric
   ), s1(md5, obj) as (
@@ -290,7 +286,7 @@ sql="
       key
     from sum_s2
     join sum_si_s2 using (key)
-  ), diff_calc_rel_err as (   
+  ), diff_calc_rel_err as (
     select
       abs(sum_si_s2.sum_calls - sum_si_s1.sum_calls) as sum_calls,
       abs(sum_si_s2.sum_total_time - sum_si_s1.sum_total_time) as sum_total_time,

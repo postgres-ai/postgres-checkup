@@ -1,10 +1,10 @@
 # Autovacuum: resource usage
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
-  select 
-    json_object_agg(s.name, s) 
-  from pg_settings s 
-  where 
+  select
+    json_object_agg(s.name, s)
+  from pg_settings s
+  where
     name in ('log_autovacuum_min_duration',
              'autovacuum_max_workers',
              'autovacuum_work_mem',

@@ -12,7 +12,7 @@ if [[ $majorVer -lt 10 ]]; then
 \set postgres_dba_last_wal_receive_lsn pg_last_xlog_receive_location
 \set postgres_dba_last_wal_replay_lsn pg_last_xlog_replay_location
 \set postgres_dba_is_wal_replay_paused pg_is_xlog_replay_paused "
-else 
+else
   #  echo "Version greater or equal 10"
   prepare_sql="
 \set postgres_dba_last_wal_receive_lsn pg_last_wal_receive_lsn
