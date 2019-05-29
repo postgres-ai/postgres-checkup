@@ -1,13 +1,15 @@
 # {{ .checkId }} Autovacuum: Transaction ID Wraparound Check #
 
 ## Observations ##
-Data collected: {{ DtFormat .timestamptz }}
-Current database: {{ .database }}
+- Data collected: {{ DtFormat .timestamptz }}
+- Current database: {{ .database }}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master)}}
 {{ if (index (index .results .hosts.master) "data") }}
+
 ### Master (`{{.hosts.master}}`) ###
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
+
 #### Databases ####
 {{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}
 
