@@ -13,6 +13,11 @@ import (
 
 // General for all reports
 
+const MSG_ALL_GOOD_CONCLUSION string = "Hooray, all good. Keep this up!"
+const MSG_NO_RECOMMENDATION string = "No recommendations."
+const MSG_ETC_ITEM string = "    - etc."
+const RECOMMENDATION_ITEMS_LIMIT int = 5
+
 type ReportHost struct {
 	InternalAlias        string `json:"internal_alias"`
 	Index                string `json:"index"`
@@ -82,7 +87,10 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 		orderedData.Set("p1", p1)
 		orderedData.Set("p2", p2)
 		orderedData.Set("p3", p3)
-		resultJson, _ := orderedData.MarshalJSON()
+		resultJson, merr := orderedData.MarshalJSON()
+		if merr != nil {
+			return
+		}
 		var out bytes.Buffer
 		json.Indent(&out, resultJson, "", "  ")
 		jfile, err := os.Create(filePath)
@@ -94,8 +102,14 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 	}
 }
 
-func SaveConclusionsRecommendations(data map[string]interface{}, 
+func SaveConclusionsRecommendations(data map[string]interface{},
 	result ReportOutcome) map[string]interface{} {
+	if len(result.Conclusions) == 0 {
+		result.AppendConclusion(MSG_ALL_GOOD_CONCLUSION)
+	}
+	if len(result.Recommendations) == 0 {
+		result.AppendRecommendation(MSG_NO_RECOMMENDATION)
+	}
 	data["conclusions"] = result.Conclusions
 	data["recommendations"] = result.Recommendations
 	data["p1"] = result.P1
@@ -103,4 +117,41 @@ func SaveConclusionsRecommendations(data map[string]interface{},
 	data["p3"] = result.P3
 	SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
 	return data
+}
+
+func PrintConclusions(result ReportOutcome) {
+	for _, conclusion := range result.Conclusions {
+		fmt.Println("C:  ", conclusion)
+	}
+}
+
+func PrintReccomendations(result ReportOutcome) {
+	for _, recommendation := range result.Recommendations {
+		fmt.Println("R:  ", recommendation)
+	}
+}
+
+func GetUniques(array []string) []string {
+	items := map[string]bool{}
+	for _, item := range array {
+		items[item] = true
+	}
+
+	res := make([]string, len(items))
+	i := 0
+	for key, _ := range items {
+		res[i] = key
+		i++
+	}
+	return res
+}
+
+func LimitList(array []string) []string {
+	if len(array) <= RECOMMENDATION_ITEMS_LIMIT {
+		return array
+	} else {
+		limitedArray := array[0:RECOMMENDATION_ITEMS_LIMIT]
+		limitedArray = append(limitedArray, MSG_ETC_ITEM)
+		return limitedArray
+	}
 }

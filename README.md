@@ -99,7 +99,7 @@ The following programs must be installed on the observer machine:
 * awk
 * sed
 * pandoc *
-* wkhtmltopdf *
+* wkhtmltopdf >= 0.12.4 *
 
 Pandoc and wkhtmltopdf optional, they need for generating HTML and PDF versions
 of report (see `--pdf` and `--html`).
@@ -117,21 +117,24 @@ should work as well, but are not yet tested).
 Ubuntu/Debian:
 ```
 sudo apt-get update
-sudo apt-get install postgresql
-sudo apt-get install coreutils
-sudo apt-get install jq
-sudo apt-get install golang
-# Optional
+sudo apt-get install git postgresql coreutils jq golang
+# Optional (if you need PDF/HTML)
+# Pandoc (needed for both HTML and PDF generation)
 sudo apt install pandoc
-sudo apt-get install wkhtmltopdf
+# wkhtmltopdf (needed for PDF generation)
+wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
+sudo apt-get install -y openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
 ```
 
-MacOS (assuming that Homebrew is installed):
+MacOS (assuming that [Homebrew](https://brew.sh/) is installed):
 ```
 brew install postgresql
 brew install coreutils
 brew install jq
 brew install golang
+brew install git
 # Optional
 brew install pandoc
 brew install Caskroom/cask/wkhtmltopdf

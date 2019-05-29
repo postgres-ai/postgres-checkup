@@ -1,8 +1,8 @@
 /*
 Postgres Healt Reporter
 
-2018 © Dmitry Udalov dmius@postgres.ai
-2018 © Postgres.ai
+2018-2019 © Dmitry Udalov dmius@postgres.ai
+2018-2019 © Postgres.ai
 
 Perform a generation of Markdown report based on JSON results of postgres-checkup
 Usage:
@@ -25,6 +25,9 @@ import (
 	"./checkup/a002"
 	"./checkup/a006"
 	"./checkup/a008"
+	"./checkup/f002"
+	"./checkup/f004"
+	"./checkup/f005"
 	"./checkup/h001"
 
 	"./log"
@@ -333,9 +336,18 @@ func reorderHosts(data map[string]interface{}) {
 	if len(allHosts) == 0 {
 		return
 	}
-	master := allHosts[0]
+	// check host data
+	var hostsWithData []string
+	for _, host := range allHosts {
+		results := pyraconv.ToInterfaceMap(data["results"])
+		hostData, ok := results[host]
+		if ok && hostData != nil {
+			hostsWithData = append(hostsWithData, host)
+		}
+	}
+	master := hostsWithData[0]
 	var replicas []string
-	replicas = append(replicas, allHosts[1:]...)
+	replicas = append(replicas, hostsWithData[1:]...)
 	reorderedHosts := make(map[string]interface{})
 	reorderedHosts["master"] = master
 	reorderedHosts["replicas"] = replicas
@@ -408,6 +420,12 @@ func preprocessReportData(checkId string, data map[string]interface{}) {
 		a008.A008PreprocessReportData(data)
 	case "H001":
 		h001.H001PreprocessReportData(data)
+	case "F002":
+		f002.F002PreprocessReportData(data)
+	case "F004":
+		f004.F004PreprocessReportData(data)
+	case "F005":
+		f005.F005PreprocessReportData(data)
 	}
 	return
 }

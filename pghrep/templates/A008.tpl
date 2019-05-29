@@ -1,8 +1,9 @@
 # {{ .checkId }} Disk Usage and File System Type
-Output of `df -TPh` (follows symlinks)
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
+Output of `df -TPh` (follows symlinks)  
+
 {{ if .hosts.master }}
     {{ if (index .results .hosts.master) }}
         {{ if (index (index .results .hosts.master) "data") }}
@@ -86,7 +87,7 @@ Data collected: {{ DtFormat .timestamptz }}
 
 {{- if .conclusions }}
 {{ range $conclusion := .conclusions -}}
-{{ $conclusion }}  
+- {{ $conclusion }}
 {{ end }}
 {{ end }}
 
@@ -94,7 +95,6 @@ Data collected: {{ DtFormat .timestamptz }}
 
 {{- if .recommendations }}
 {{ range $recommendation := .recommendations -}}
-{{ $recommendation }}  
+- {{ $recommendation }}
 {{ end }}
 {{ end }}
-
