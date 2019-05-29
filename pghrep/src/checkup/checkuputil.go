@@ -13,6 +13,9 @@ import (
 
 // General for all reports
 
+const MSG_ALL_GOOD_CONCLUSION string = "Hooray, all good. Keep this up!"
+const MSG_NO_RECOMMENDATION string = "No recommendations."
+
 type ReportHost struct {
 	InternalAlias        string `json:"internal_alias"`
 	Index                string `json:"index"`
@@ -99,6 +102,12 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 
 func SaveConclusionsRecommendations(data map[string]interface{},
 	result ReportOutcome) map[string]interface{} {
+	if len(result.Conclusions) == 0 {
+		result.AppendConclusion(MSG_ALL_GOOD_CONCLUSION)
+	}
+	if len(result.Recommendations) == 0 {
+		result.AppendRecommendation(MSG_NO_RECOMMENDATION)
+	}
 	data["conclusions"] = result.Conclusions
 	data["recommendations"] = result.Recommendations
 	data["p1"] = result.P1
