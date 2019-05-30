@@ -20,7 +20,7 @@ func TestF004Success(t *testing.T) {
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{
 		"table_1": F004HeapBloat{
 			Num:               1,
@@ -84,6 +84,7 @@ func TestF004TotalExcess(t *testing.T) {
 		BloatRatioPercentAvg: 25.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{}
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
 	result := F004Process(report)
@@ -224,7 +225,7 @@ func TestF004Warnig(t *testing.T) {
 			BloatRatio:        2.46177370030581,
 		},
 	}
-
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
 	result := F004Process(report)
 	if !result.P2 {
@@ -247,7 +248,7 @@ func TestF004Critical(t *testing.T) {
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{
 		"table_1": F004HeapBloat{
 			Num:               1,
