@@ -59,7 +59,7 @@ func TestF005Success(t *testing.T) {
 			BloatRatio:        1.0,
 		},
 	}
-
+	hostResult.Data.DatabaseSizeBytes = 9828637208
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
 	if result.P1 || result.P2 || result.P3 {
@@ -81,8 +81,10 @@ func TestF005TotalExcess(t *testing.T) {
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 25.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
+		TableSizeBytesSum:    25526329344 * 5,
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{}
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
 	if !result.P1 {
@@ -105,7 +107,7 @@ func TestF005Warnig(t *testing.T) {
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
 			Num:               1,
@@ -167,7 +169,7 @@ func TestF005Critical(t *testing.T) {
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-
+	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
 			Num:               1,

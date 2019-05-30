@@ -44,6 +44,7 @@ type F005ReportHostResultData struct {
 	IndexBloat             map[string]F005IndexBloat `json:"Index_bloat"`
 	IndexBloatTotal        F005IndexBloatTotal       `json:"Index_bloat_total"`
 	OverridedSettingsCount int                       `json:"overrided_settings_count"`
+	DatabaseSizeBytes      int64                     `json:"database_size_bytes"`
 }
 
 type F005ReportHostResult struct {

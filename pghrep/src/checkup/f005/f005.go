@@ -33,8 +33,10 @@ func F005Process(report F005Report) checkup.ReportOutcome {
 	var warningIndexes []string
 	totalBloatIsCritical := false
 	var totalData F005IndexBloatTotal
+	var databaseSize int64
 	i := 0
 	for _, hostData := range report.Results {
+		databaseSize = hostData.Data.DatabaseSizeBytes
 		totalData = hostData.Data.IndexBloatTotal
 		if hostData.Data.IndexBloatTotal.BloatRatioPercentAvg > CRITICAL_TOTAL_BLOAT_RATIO {
 			totalBloatIsCritical = true
@@ -58,10 +60,10 @@ func F005Process(report F005Report) checkup.ReportOutcome {
 		result.AppendConclusion(MSG_TOTAL_BLOAT_EXCESS_CONCLUSION,
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
 			totalData.BloatRatioPercentAvg,
+			float64(float64(totalData.BloatSizeBytesSum)/float64(databaseSize)*100),
+			fmtutils.ByteFormat(float64(databaseSize-totalData.BloatSizeBytesSum), 2),
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
-			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
-			totalData.BloatRatioAvg,
-			strings.Join(top5Indexes, ""))
+			totalData.BloatRatioAvg)
 		result.P1 = true
 	} else {
 		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg,

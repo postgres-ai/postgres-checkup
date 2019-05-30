@@ -1,10 +1,9 @@
 package f004
 
 const MSG_NO_RECOMMENDATIONS string = "All good, no recommendations here.  \n"
-const MSG_TOTAL_BLOAT_EXCESS_CONCLUSION string = "[P1] Total table (heap) bloat estimation is %s, it is %.2f%% of overall DB size. " +
+const MSG_TOTAL_BLOAT_EXCESS_CONCLUSION string = "[P1] Total table (heap) bloat estimation is %s, it is %.2f%% of overall tables size and %.2f%% of the DB size. " +
 	"So removing the table bloat can help to reduce the total database size to ~%s and to increase the free disk space by %s. " +
-	"Notice that this is only an estimation, sometimes it may be significantly off. Total size of tables is %.2f times bigger than it could be. " +
-	"The most bloated tables are:  \n %s  \n"
+	"Notice that this is only an estimation, sometimes it may be significantly off. Total size of tables is %.2f times bigger than it could be.  \n"
 const MSG_TOTAL_BLOAT_LOW_CONCLUSION string = "The total table (heap) bloat estimate is quite low, just ~%.2f%% (~%s). Hooray! Keep watching it though.  \n"
 const MSG_BLOAT_CRITICAL_RECOMMENDATION string = "[P1] Reduce and prevent high level of table bloat:  \n" +
 	"    - tune autovacuum: consider more aggressive autovacuum settings (See F001)  \n" +

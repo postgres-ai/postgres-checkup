@@ -188,9 +188,8 @@ with data as (
     (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_avg",
     (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
     sum("extra_size_bytes") as "extra_size_bytes_sum",
-    sum("table_size_bytes") as "table_size_bytes_sum",
+    (select sum(ts.table_size_bytes) from (select distinct(table_name), table_size_bytes from data) ts) as "table_size_bytes_sum",
     sum("live_data_size_bytes") as "live_data_size_bytes_sum"
-
   from data
 )
 select
@@ -200,7 +199,9 @@ select
     'index_bloat_total',
     (select row_to_json(total_data) from total_data),
     'overrided_settings_count',
-    (select count(1) from limited_data where overrided_settings = true)
+    (select count(1) from limited_data where overrided_settings = true),
+    'database_size_bytes',
+    (select pg_database_size(current_database()))
 
   )
 SQL

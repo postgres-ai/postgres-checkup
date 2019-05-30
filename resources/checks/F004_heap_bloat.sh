@@ -150,7 +150,9 @@ select
     'heap_bloat_total',
     (select row_to_json(total_data) from total_data),
     'overrided_settings_count',
-    (select count(1) from limited_data where overrided_settings = true)
+    (select count(1) from limited_data where overrided_settings = true),
+    'database_size_bytes',
+    (select pg_database_size(current_database()))
   )
 SQL
 

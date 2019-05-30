@@ -28,23 +28,19 @@ func appendTable(list []string, tableBloatData F004HeapBloat) []string {
 func F004Process(report F004Report) checkup.ReportOutcome {
 	var result checkup.ReportOutcome
 	// check total values
-	var top5tables []string
 	var criticalTables []string
 	var warningTables []string
 	totalBloatIsCritical := false
 	var totalData F004HeapBloatTotal
-	i := 0
+	var databaseSize int64
 	for _, hostData := range report.Results {
+		databaseSize = hostData.Data.DatabaseSizeBytes
 		totalData = hostData.Data.HeapBloatTotal
 		if hostData.Data.HeapBloatTotal.BloatRatioPercentAvg > CRITICAL_TOTAL_BLOAT_RATIO {
 			totalBloatIsCritical = true
 			result.P1 = true
 		}
 		for _, heapBloatData := range hostData.Data.HeapBloat {
-			if totalBloatIsCritical && heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && i < 5 {
-				top5tables = appendTable(top5tables, heapBloatData)
-				i++
-			}
 			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
 				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) {
 				warningTables = appendTable(warningTables, heapBloatData)
@@ -58,10 +54,10 @@ func F004Process(report F004Report) checkup.ReportOutcome {
 		result.AppendConclusion(MSG_TOTAL_BLOAT_EXCESS_CONCLUSION,
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
 			totalData.BloatRatioPercentAvg,
+			float64(float64(totalData.BloatSizeBytesSum)/float64(databaseSize)*100),
+			fmtutils.ByteFormat(float64(databaseSize-totalData.BloatSizeBytesSum), 2),
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
-			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
-			totalData.BloatRatioAvg,
-			strings.Join(top5tables, ""))
+			totalData.BloatRatioAvg)
 		result.P1 = true
 	} else {
 		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg,
