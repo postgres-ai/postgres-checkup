@@ -115,32 +115,32 @@ well, but are not yet tested).
 #### 1. Install required programs
 
 Ubuntu/Debian:
-```
-sudo apt-get update
-sudo apt-get install git postgresql coreutils jq golang
+```bash
+sudo apt-get update -y
+sudo apt-get install -y git postgresql coreutils jq golang
 
 # Optional (to generate PDF/HTML reports)
-sudo apt-get install pandoc
+sudo apt-get install -y pandoc
 wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
-sudo apt-get install openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
+sudo apt-get install -y openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
 ```
 
 CentOS/RHEL:
-```
-sudo yum install git postgresql coreutils jq golang
+```bash
+sudo yum install -y git postgresql coreutils jq golang
 
 # Optional (to generate PDF/HTML reports)
-sudo yum install pandoc
+sudo yum install -y pandoc
 wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
-sudo yum install openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
+sudo yum install -y libpng libjpeg openssl icu libX11 libXext libXrender xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi
 ```
 
 MacOS (assuming that [Homebrew](https://brew.sh/) is installed):
-```
+```bash
 brew install postgresql coreutils jq golang git
 
 # Optional (to generate PDF/HTML reports)
@@ -150,9 +150,9 @@ brew install pandoc Caskroom/cask/wkhtmltopdf
 #### 2. Clone this repo
 
 ```bash
-git clone git@gitlab.com:postgres-ai/postgres-checkup.git
+git clone https://gitlab.com/postgres-ai/postgres-checkup.git
 # Use --branch to use specific release version. For example, to use version 1.1:
-#   git clone --branch 1.1 git@gitlab.com:postgres-ai/postgres-checkup.git
+#   git clone --branch 1.1 https://gitlab.com/postgres-ai/postgres-checkup.git
 cd postgres-checkup
 ```
 
