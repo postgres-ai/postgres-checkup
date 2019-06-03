@@ -1,57 +1,40 @@
-# Demo
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.1/md_reports/1_2019_05_30T18_32_32_+0000/0_Full_report.md) (based on CI, single node).
 
-Auto-generated demonstration based on the code in the master
-branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master.
-Go to `md_reports/TIMESTAMP` and then open `0_Full_report.md`.
+***Disclaimer: Conclusions, Recommendations – work in progress.**
+To treat the data correctly, you need deep Postgres knowledge. Each report
+consists of 3 sections: Observations, Conclusions, and Recommendations.
+Observations are filled automatically. As for Conclusions and Recommendations
+sections, as of June 2019, only several reports have autogeneration for them.*
 
-# Disclaimer: This Tool is Designed for DBA Experts
-
-Each report consists of 3 sections: Observations, Conclusions, and Recommendations.
-As of March 2019, only Observations are filled automatically. To treat the data
-correctly, you need deep Postgres knowledge.
-
-You can get Conclusions, and Recommendations from the Postgres.ai team for free,
-send us your .json and .md with filled Observations sections: checkup@postgres.ai.
-Limited time only. We're a small team, so "restrictions apply".
 
 # About
 
 Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
-is a new-generation diagnostics tool that allows users to collect  deep analysis
-of the health of a Postgres database. It aims to detect and describe all current
-and potential issues in the fields of database performance, scalability, and
-security, providing advices how to resolve or prevent them.
-
-Compared to a monitoring system, postgres-checkup goes deeper into the analysis
-of the database system and environment.  It combines numerous internal
-characteristics of the database with data about resources and OS, producing
-multiple comprehensive reports. These reports use formats which are easily
-readable both by humans and machines and which are extremely oriented to DBA
-problem-solving. Monitoring systems constantly collect telemetry, help to react
-to issues more quickly, and are useful for post-mortem analyses. At the same
-time, checkups are needed for a different purpose: detect issues at a very early
-stage, advising on how to prevent them. This procedure is to be done on a
-regular basis — weekly, monthly, or quarterly. Additionally, it is recommended
-to run it immediately before and after any major change in the database server.
+is a new-generation diagnostics tool that allows users to do a deep analysis
+of the health of Postgres databases. It helps to detect, predict and prevent
+technical issues.
 
 The three key principles behind postgres-checkup:
 
 - *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
 close to zero. It does not use any heavy queries, keeping resource usage
-very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology))
+very low, and avoiding having the [“observer effect”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology)).
+postgres-checkup reports were successfully tested on real-world databases
+containing 500,000+ tables and 1,000,000+ indexes.
 
 - *Zero install* (on observed machines): it is able to analyze any Linux
-machine (including virtual machines), as well as Cloud Postgres instances
+machine (including virtual machines), as well as cloud Postgres instances
 (such as Amazon RDs or Google Cloud SQL), not requiring any additional setup
-or any changes. It does, hovewer, require a privileged access (a DBA usually
-has it anyway).
+or any changes. It does, hovewer, require a privileged access that a DBA usually
+has anyway.
 
-- *Complex analysis*: unlike most monitoring tools, which provide raw data,
+- *Complex analysis*: unlike most monitoring tools, which provide just raw data,
 postgres-checkup combines data from various parts of the system (e.g.,
 internal Postgres stats are combined with knowledge about system resources
-in autovacuum setting and behavior analysis). Also, it analyzes the master
-database server together with all its replicas (e.g. to build the list of
-unused indexes).
+in autovacuum setting and behavior analysis) joining the data into well-formatted
+reports aimed to solve particular DBA problems. Also, it analyzes the master
+database server together with all its replicas, which is neccessary in such
+cases as index analysis or search for settings deviations.
 
 # Reports Structure
 
@@ -71,25 +54,28 @@ Each report consists of three sections:
 
 1. "Observations": automatically collected data. This is to be consumed by
 an expert DBA.
-1. "Conclusions": what we conclude from the Observations—what is good, what
-is bad (right now, it is to be manually filled for most checks).
+1. "Conclusions": what we conclude from the Observations, stated in plain English
+in the form that is convenient for engineers who are not DBA experts.
 1. "Recommendations": action items, what to do to fix the discovered issues.
+
 Both "Conclusions" and "Recommendations" are to be consumed by engineers who
-will make decisions what, how and when to optimize, and how to react to the
-findings.
+will make decisions what, how and when to optimize.
 
 # Installation and Usage
 
 ## Requirements
 
-The supported OS of the observer machine (those from which the tool is to be
-executed):
+For the operator machine (from where the tool will be executed), the following
+OS are supported:
 
 * Linux (modern RHEL/CentOS or Debian/Ubuntu; others should work as well, but
 are not yet tested);
 * MacOS.
 
-The following programs must be installed on the observer machine:
+There are known cases when postgres-checkup was successfully used on Windows,
+althought with some limitations.
+
+The following programs must be installed on the operator machine:
 
 * bash
 * psql
@@ -101,53 +87,66 @@ The following programs must be installed on the observer machine:
 * pandoc *
 * wkhtmltopdf >= 0.12.4 *
 
-Pandoc and wkhtmltopdf optional, they need for generating HTML and PDF versions
-of report (see `--pdf` and `--html`).
+pandoc and wkhtmltopdf are optional, they are neededed for generating HTML and 
+PDF versions of report (options `--html`, `--pdf`).
 
-Nothing special has to be installed on the observed machines. However, these
-machines must run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others
-should work as well, but are not yet tested).
+Nothing special has to be installed on the observed machines. However, they must
+run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others should work as
+well, but are not yet tested).
 
-:warning: Only Postgres version 9.6 and higher are currently supported.
+:warning: Only Postgres version 9.6 and higher are currently officially supported.
 
 ## How to Install
 
 #### 1. Install required programs
 
 Ubuntu/Debian:
-```
-sudo apt-get update
-sudo apt-get install git postgresql coreutils jq golang
-# Optional (if you need PDF/HTML)
-# Pandoc (needed for both HTML and PDF generation)
-sudo apt install pandoc
-# wkhtmltopdf (needed for PDF generation)
+```bash
+sudo apt-get update -y
+sudo apt-get install -y git postgresql coreutils jq golang
+
+# Optional (to generate PDF/HTML reports)
+sudo apt-get install -y pandoc
 wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
 sudo apt-get install -y openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
 ```
 
-MacOS (assuming that [Homebrew](https://brew.sh/) is installed):
+CentOS/RHEL:
+```bash
+sudo yum install -y git postgresql coreutils jq golang
+
+# Optional (to generate PDF/HTML reports)
+sudo yum install -y pandoc
+wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
+sudo yum install -y libpng libjpeg openssl icu libX11 libXext libXrender xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi
 ```
-brew install postgresql
-brew install coreutils
-brew install jq
-brew install golang
-brew install git
-# Optional
-brew install pandoc
-brew install Caskroom/cask/wkhtmltopdf
+
+MacOS (assuming that [Homebrew](https://brew.sh/) is installed):
+```bash
+brew install postgresql coreutils jq golang git
+
+# Optional (to generate PDF/HTML reports)
+brew install pandoc Caskroom/cask/wkhtmltopdf
 ```
 
 #### 2. Clone this repo
 
-Use `git clone`. This is the only method of installation currently supported.
+```bash
+git clone https://gitlab.com/postgres-ai/postgres-checkup.git
+# Use --branch to use specific release version. For example, to use version 1.1:
+#   git clone --branch 1.1 https://gitlab.com/postgres-ai/postgres-checkup.git
+cd postgres-checkup
+```
 
 ## Example of Use
 
-Let's make a report for a project named `prod1`:
-Cluster `slony` contains two servers - `db1.vpn.local` and `db1.vpn.local`.
+Let's make a report for a project named `prod1`. Assume that we have two servers,
+`db1.vpn.local` and `db1.vpn.local`.
+
 Postgres-checkup automatically detects which one is a master:
 
 ```bash
@@ -229,37 +228,14 @@ The check result can be found inside the `artifacts` folder in current directory
 
 ### Usage with `docker run`
 
-First of all we need a postgres. You can use any local or remote running instance.
-For this example we run postgres in a separate docker container:
-
-```bash
-docker run \
-    --name postgres \
-    -e POSTGRES_PASSWORD=postgres \
-    -d postgres
-```
-
-We need to know a hostname or an ip address of target database to be used with `-h` parameter:
-
-```bash
-PG_HOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' postgres)
-```
-
-You can use official images or build an image yourself. Run this command to build an image:
-
-```bash
-docker build -t postgres-checkup .
-```
-
-Then run a container with `postgres-checkup`. This command run the tool using
-Postgres connection only (without SSH):
+There is an option to run postgres-checkup in a Docker container:
 
 ```bash
 docker run --rm \
   --name postgres-checkup \
   -e PGPASSWORD="postgres" \
   -v `pwd`/artifacts:/artifacts \
-  postgres-checkup \
+  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
     ./checkup \
       -h hostname \
       -p 5432 \
@@ -276,14 +252,16 @@ target machine with Postgres database.
 
 If SSH connection to the Postgres server is available, it is possible to pass
 SSH keys to the docker container, so postgres-checkup will switch to working via
-remote SSH calls, generating all reports:
+remote SSH calls, generating all reports (this approach is known to have issues
+on Windows, but should work well on Linux and MacOS machines):
 
 ```bash
 docker run --rm \
   --name postgres-checkup \
   -v "$(pwd)/artifacts:/artifacts" \
   -v "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
-  postgres-checkup ./checkup \
+  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
+  ./checkup \
     -h sshusername@hostname \
     --username my_postgres_user \
     --dbname my_postgres_database \
@@ -295,19 +273,6 @@ If you try to check the local instance of postgres on your host from a container
 you cannot use `localhost` in `-h` parameter. You have to use a bridge between
 host OS and Docker Engine. By default, host IP is `172.17.0.1` in `docker0`
 network, but it vary depending on configuration. More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
-
-### Usage with `docker-compose`
-
-It will run an empty `postgres` database and `postgres-checkup` application
-that will stop once it's done. The local folder named `artifacts` will contain
-the `docker` subfolder with checkup reports.
-
-```bash
-docker-compose build
-docker-compose up -d
-
-docker-compose down
-```
 
 ## Credits
 
@@ -351,6 +316,7 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 - [ ] C004 Failover #32
 - [ ] C005 Switchover #33
 - [ ] C006 Delayed replica (replay of 1 day of WALs) - #34
+- [ ] C007 Replication slots. Lags. Standby feedbacks
 
 ## D. Monitoring / Troubleshooting
 
@@ -407,30 +373,4 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 - [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163
 - [ ] L002 (was: H004) Data types being used #53
 - [x] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
-
-## TODO:
-
-- [ ] DB schema, DDL, DB schema migrations
-
----
-
-# Ideas :bulb: :bulb: :bulb:  :thinking\_face:
-
-- analyze all FKs and check if data types of referencing column and referenced one match (same thing for multi-column FKs)
-- tables w/o PKs? tables not having even unique index?
-
-## PostgreSQL:
-
-- ready to archive WAL files (count) (need FS access) on master
-- standby lag in seconds
-
-## OS:
-
-- FS settings (mount command parsing)
-- meltdown/spectre patches
-- swap settings
-- memory pressure settings
-- overcommit settings
-- NUMA enabled?
-- Huge pages?
-- Transparent huge pages?
+- [ ] L004 Tables without PK/UK
