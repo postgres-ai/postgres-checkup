@@ -1,38 +1,24 @@
-# Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.1/md_reports/1_2019_05_30T18_32_32_+0000/0_Full_report.md) (based on CI, single node)
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.1/md_reports/1_2019_05_30T18_32_32_+0000/0_Full_report.md) (based on CI, single node).
 
-# Disclaimer: Conclusions, Recommendations – Work in Progress
-
-To treat the data correctly, you need deep Postgres knowledge.
-
-Each report consists of 3 sections: Observations, Conclusions, and Recommendations.
+***Disclaimer: Conclusions, Recommendations – work in progress.**
+To treat the data correctly, you need deep Postgres knowledge. Each report
+consists of 3 sections: Observations, Conclusions, and Recommendations.
 Observations are filled automatically. As for Conclusions and Recommendations
-sections, as of June 2019, only several reports have autogeneration for them.
+sections, as of June 2019, only several reports have autogeneration for them.*
+
 
 # About
 
 Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
 is a new-generation diagnostics tool that allows users to do a deep analysis
-of the health of Postgres databases. It aims to detect and describe all current
-and potential issues in the fields of database performance, scalability, and
-security, providing advices how to resolve or prevent them.
-
-Compared to a monitoring system, postgres-checkup goes deeper into the analysis
-of the database system and environment. It combines numerous internal
-characteristics of the database with data about resources and OS, producing
-multiple comprehensive reports. These reports use formats which are easily
-readable both by humans and machines and which are extremely oriented to DBA
-problem-solving. Monitoring systems constantly collect telemetry, help to react
-to issues more quickly, and are useful for post-mortem analyses. At the same
-time, checkups are needed for a different purpose: detect issues at a very early
-stage, advising on how to prevent them. This procedure is to be done on a
-regular basis — weekly, monthly, or quarterly. Additionally, it is recommended
-to run it immediately before and after any major change in the database server.
+of the health of Postgres databases. It helps to detect, predict and prevent
+technical issues.
 
 The three key principles behind postgres-checkup:
 
 - *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
 close to zero. It does not use any heavy queries, keeping resource usage
-very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology)).
+very low, and avoiding having the [“observer effect”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology)).
 postgres-checkup reports were successfully tested on real-world databases
 containing 500,000+ tables and 1,000,000+ indexes.
 
@@ -68,14 +54,14 @@ Each report consists of three sections:
 
 1. "Observations": automatically collected data. This is to be consumed by
 an expert DBA.
-1. "Conclusions": what we conclude from the Observations, human-friendly texts
-explaining strengths and weaknesses of the observed setup.
+1. "Conclusions": what we conclude from the Observations, stated in plain English
+in the form that is convenient for engineers who are not DBA experts.
 1. "Recommendations": action items, what to do to fix the discovered issues.
 
 Both "Conclusions" and "Recommendations" are to be consumed by engineers who
 will make decisions what, how and when to optimize.
 
-# Installation and Usage
+# Installation and Usag
 
 ## Requirements
 
@@ -388,4 +374,3 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 - [ ] L002 (was: H004) Data types being used #53
 - [x] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
 - [ ] L004 Tables without PK/UK
-- 
