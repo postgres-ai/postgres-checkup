@@ -3,7 +3,7 @@ package a008
 const MSG_NO_USAGE_RISKS_CONCLUSION string = "No significant risks of out-of-disk-space problem have been detected."
 const MSG_USAGE_WARNING_CONCLUSION string = "[P2] Disk `%s` on `%s` space usage is %s, it exceeds 70%%. There are some risks of out-of-disk-space problems."
 const MSG_USAGE_WARNING_RECOMMENDATION string = "[P2] Add more disk space to `%s` on `%s`. It is recommended to keep more than %d%% disk space free" +
-	"to reduce the risks of out-of-disk-space problems."
+	"to reduce the risk of out-of-disk-space problems."
 const MSG_USAGE_CRITICAL_CONCLUSION string = "Disk `%s` on `%s` space usage is %s, it exceeds 90%%. There are significant risks of the out-of-disk-space problem. " +
 	"In this case, PostgreSQL will stop working and a manual fix will be required."
 const MSG_USAGE_CRITICAL_RECOMMENDATION string = "[P1] Add more disk space to `%s` on `%s` as soon as possible to prevent outage."
