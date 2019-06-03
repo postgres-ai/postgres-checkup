@@ -1,8 +1,4 @@
-# Demo
-
-Auto-generated demonstration based on the code in the master
-branch (only single node analyzed): https://gitlab.com/postgres-ai-team/postgres-checkup-tests/tree/master/master.
-Go to `md_reports/TIMESTAMP` and then open `0_Full_report.md`.
+# Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.1/md_reports/1_2019_05_30T18_32_32_+0000/0_Full_report.md) (based on CI, single node)
 
 # Disclaimer: This Tool is Designed for DBA Experts
 
@@ -229,37 +225,14 @@ The check result can be found inside the `artifacts` folder in current directory
 
 ### Usage with `docker run`
 
-First of all we need a postgres. You can use any local or remote running instance.
-For this example we run postgres in a separate docker container:
-
-```bash
-docker run \
-    --name postgres \
-    -e POSTGRES_PASSWORD=postgres \
-    -d postgres
-```
-
-We need to know a hostname or an ip address of target database to be used with `-h` parameter:
-
-```bash
-PG_HOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' postgres)
-```
-
-You can use official images or build an image yourself. Run this command to build an image:
-
-```bash
-docker build -t postgres-checkup .
-```
-
-Then run a container with `postgres-checkup`. This command run the tool using
-Postgres connection only (without SSH):
+There is an option to run postgres-checkup in a Docker container:
 
 ```bash
 docker run --rm \
   --name postgres-checkup \
   -e PGPASSWORD="postgres" \
   -v `pwd`/artifacts:/artifacts \
-  postgres-checkup \
+  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
     ./checkup \
       -h hostname \
       -p 5432 \
@@ -276,14 +249,16 @@ target machine with Postgres database.
 
 If SSH connection to the Postgres server is available, it is possible to pass
 SSH keys to the docker container, so postgres-checkup will switch to working via
-remote SSH calls, generating all reports:
+remote SSH calls, generating all reports (this approach is known to have issues
+on Windows, but should work well on Linux and MacOS machines):
 
 ```bash
 docker run --rm \
   --name postgres-checkup \
   -v "$(pwd)/artifacts:/artifacts" \
   -v "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
-  postgres-checkup ./checkup \
+  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
+  ./checkup \
     -h sshusername@hostname \
     --username my_postgres_user \
     --dbname my_postgres_database \
@@ -295,19 +270,6 @@ If you try to check the local instance of postgres on your host from a container
 you cannot use `localhost` in `-h` parameter. You have to use a bridge between
 host OS and Docker Engine. By default, host IP is `172.17.0.1` in `docker0`
 network, but it vary depending on configuration. More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
-
-### Usage with `docker-compose`
-
-It will run an empty `postgres` database and `postgres-checkup` application
-that will stop once it's done. The local folder named `artifacts` will contain
-the `docker` subfolder with checkup reports.
-
-```bash
-docker-compose build
-docker-compose up -d
-
-docker-compose down
-```
 
 ## Credits
 
