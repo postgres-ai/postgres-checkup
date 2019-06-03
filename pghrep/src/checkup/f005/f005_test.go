@@ -11,12 +11,12 @@ func TestF005Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F005Report
 	var hostResult F005ReportHostResult
-	hostResult.Data.DatabaseSizeBytes = 9828637208
+	hostResult.Data.DatabaseSizeBytes = 102105317376
 	hostResult.Data.IndexBloatTotal = F005IndexBloatTotal{
 		Count:                104,
-		ExtraSizeBytesSum:    25526329344,
-		RealSizeBytesSum:     25526329344,
-		BloatSizeBytesSum:    25526329344,
+		ExtraSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
+		RealSizeBytesSum:     hostResult.Data.DatabaseSizeBytes / 4,
+		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
