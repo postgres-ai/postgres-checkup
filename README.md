@@ -61,7 +61,7 @@ in the form that is convenient for engineers who are not DBA experts.
 Both "Conclusions" and "Recommendations" are to be consumed by engineers who
 will make decisions what, how and when to optimize.
 
-# Installation and Usag
+# Installation and Usage
 
 ## Requirements
 
