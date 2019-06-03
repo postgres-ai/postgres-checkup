@@ -313,6 +313,7 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 - [ ] C004 Failover #32
 - [ ] C005 Switchover #33
 - [ ] C006 Delayed replica (replay of 1 day of WALs) - #34
+- [ ] C007 Replication slots. Lags. Standby feedbacks
 
 ## D. Monitoring / Troubleshooting
 
@@ -369,30 +370,5 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 - [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163
 - [ ] L002 (was: H004) Data types being used #53
 - [x] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
-
-## TODO:
-
-- [ ] DB schema, DDL, DB schema migrations
-
----
-
-# Ideas :bulb: :bulb: :bulb:  :thinking\_face:
-
-- analyze all FKs and check if data types of referencing column and referenced one match (same thing for multi-column FKs)
-- tables w/o PKs? tables not having even unique index?
-
-## PostgreSQL:
-
-- ready to archive WAL files (count) (need FS access) on master
-- standby lag in seconds
-
-## OS:
-
-- FS settings (mount command parsing)
-- meltdown/spectre patches
-- swap settings
-- memory pressure settings
-- overcommit settings
-- NUMA enabled?
-- Huge pages?
-- Transparent huge pages?
+- [ ] L004 Tables without PK/UK
+- 
