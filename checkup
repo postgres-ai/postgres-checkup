@@ -829,7 +829,8 @@ host_pre_start_checks() {
   # and determine NATIVE_HOSTNAME (a host key in JSON reports)
   if NATIVE_HOSTNAME=$(ssh $HOST "hostname" 2>/dev/null); then
     # ssh to remote host and use local psql (default)
-    export CHECK_HOST_CMD="ssh ${HOST}"
+    SSH_IDENTITY_FILE=${SSH_IDENTITY_FILE:-/home/${USER}/.ssh/id_rsa}
+    export CHECK_HOST_CMD="ssh ${HOST} -i ${SSH_IDENTITY_FILE}"
     export SSH_SUPPORT="true"
   else
     NATIVE_HOSTNAME="${HOST}"

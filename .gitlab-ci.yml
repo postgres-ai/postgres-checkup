@@ -7,7 +7,7 @@ stages:
 variables:
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: username # set username
-  POSTGRES_PASSWORD: ""  
+  POSTGRES_PASSWORD: ""
 
 .prepare:
   stage: test
@@ -49,7 +49,7 @@ variables:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
     - echo "H002 Passed"
-  
+
 test-general:
   stage: test
   extends: ".prepare"
@@ -71,17 +71,17 @@ test-general:
     - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
     - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
     #- echo "logging_collector = on" >> /etc/postgresql/11/main/postgresql.conf
-    - /etc/init.d/postgresql start 
+    - /etc/init.d/postgresql start
     - psql -U postgres -c 'create database dbname;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
     - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
     - psql -U postgres dbname -c "create role username superuser login;"
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
-    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config
     - apt-get -y install openssh-server
     - service ssh restart
-    
+
     #&& echo "  StrictHostKeyChecking no" >> ~/.ssh/config
   script:
     - bash -version
@@ -148,7 +148,7 @@ test-check-cli:
   script: |
     errcount=0
     printTail="                                                                      "
-    for f in tests/cli_*.sh; do
+    for f in tests/*.sh; do
       printf "$f${printTail:0:-${#f}}"
       bash "$f" -H
       status=$?
