@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
+	"../log"
 	"../orderedmap"
 	"../pyraconv"
 )
@@ -71,6 +73,17 @@ func LoadRawJsonReport(filePath string) []byte {
 	return jsonRaw
 }
 
+func LoadReport(data map[string]interface{}, report interface{}) bool {
+	filePath := pyraconv.ToString(data["source_path_full"])
+	jsonRaw := LoadRawJsonReport(filePath)
+	err := json.Unmarshal(jsonRaw, &report)
+	if err != nil {
+		log.Err("Cannot load json report to process")
+		return false
+	}
+	return true
+}
+
 func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions []string,
 	recommendations []string, p1 bool, p2 bool, p3 bool) {
 	filePath := pyraconv.ToString(data["source_path_full"])
@@ -125,7 +138,7 @@ func PrintConclusions(result ReportOutcome) {
 	}
 }
 
-func PrintReccomendations(result ReportOutcome) {
+func PrintRecommendations(result ReportOutcome) {
 	for _, recommendation := range result.Recommendations {
 		fmt.Println("R:  ", recommendation)
 	}
@@ -154,4 +167,22 @@ func LimitList(array []string) []string {
 		limitedArray = append(limitedArray, MSG_ETC_ITEM)
 		return limitedArray
 	}
+}
+
+func InList(items []string, item string) bool {
+	for _, itemValue := range items {
+		if strings.Trim(itemValue, " \n") == strings.Trim(item, " \n") {
+			return true
+		}
+	}
+	return false
+}
+
+func InListPartial(items []string, item string) bool {
+	for _, itemValue := range items {
+		if strings.Contains(strings.Trim(itemValue, " \n"), strings.Trim(item, " \n")) {
+			return true
+		}
+	}
+	return false
 }

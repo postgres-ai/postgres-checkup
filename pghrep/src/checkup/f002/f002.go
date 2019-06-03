@@ -1,11 +1,7 @@
 package f002
 
 import (
-	"encoding/json"
 	"strings"
-
-	"../../log"
-	"../../pyraconv"
 
 	checkup ".."
 )
@@ -40,12 +36,8 @@ func F002Process(report F002Report) checkup.ReportOutcome {
 }
 
 func F002PreprocessReportData(data map[string]interface{}) {
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report F002Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		log.Err("Cannot load json report to process")
+	if !checkup.LoadReport(data, report) {
 		return
 	}
 	result := F002Process(report)

@@ -1,15 +1,11 @@
 package f004
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
-	"../../log"
-
 	checkup ".."
 	"../../fmtutils"
-	"../../pyraconv"
 )
 
 const WARNING_BLOAT_RATIO float32 = 40.0
@@ -88,12 +84,8 @@ func F004Process(report F004Report) checkup.ReportOutcome {
 }
 
 func F004PreprocessReportData(data map[string]interface{}) {
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report F004Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		log.Err("Cannot load json report to process")
+	if !checkup.LoadReport(data, report) {
 		return
 	}
 	result := F004Process(report)

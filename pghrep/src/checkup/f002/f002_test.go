@@ -29,17 +29,20 @@ func TestF002Success(t *testing.T) {
 			Warning:      0,
 		},
 	}
-
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 ||
+		result.P2 ||
+		result.P3 ||
+		len(result.Conclusions) > 0 ||
+		len(result.Recommendations) > 0 {
 		t.Fatal("TestF002Success failed")
 	}
 	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintRecommendations(result)
 }
 
-func TestF002ChecDatabases(t *testing.T) {
+func TestF002CheckDatabases(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -61,17 +64,22 @@ func TestF002ChecDatabases(t *testing.T) {
 			Warning:      0,
 		},
 	}
-
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if !result.P1 {
-		t.Fatal("TestF002Sucess failed")
+	if !result.P1 ||
+		!checkup.InList(result.Conclusions, "[P1] Risks of transaction ID wraparound are high for:  \n"+
+			"    - database `database_1`  \n  \n"+
+			"Approaching 100% leads to downtime: the system will shut down and refuse to start any new transactions.") ||
+		!checkup.InList(result.Recommendations, "[P1] To minimize risks of transaction ID wraparound do the following:  \n"+
+			"1. Run `VACUUM FREEZE` for mentioned tables.  \n"+
+			"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details.") {
+		t.Fatal("TestF002CheckDatabases failed")
 	}
 	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintRecommendations(result)
 }
 
-func TestF002ChecTables(t *testing.T) {
+func TestF002CheckTables(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -115,17 +123,22 @@ func TestF002ChecTables(t *testing.T) {
 			OverridedSettings: false,
 		},
 	}
-
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if !result.P1 {
-		t.Fatal("TestF002Sucess failed")
+	if !result.P1 ||
+		!checkup.InList(result.Conclusions, "[P1] Risks of transaction ID wraparound are high for:  \n"+
+			"    - table `table_2`  \n  \n"+
+			"Approaching 100% leads to downtime: the system will shut down and refuse to start any new transactions.") ||
+		!checkup.InList(result.Recommendations, "[P1] To minimize risks of transaction ID wraparound do the following:  \n"+
+			"1. Run `VACUUM FREEZE` for mentioned tables.  \n"+
+			"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details.") {
+		t.Fatal("TestF002CheckTables failed")
 	}
 	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintRecommendations(result)
 }
 
-func TestF002ChecDatabaseTables(t *testing.T) {
+func TestF002CheckDatabaseTables(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -172,9 +185,15 @@ func TestF002ChecDatabaseTables(t *testing.T) {
 
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if !result.P1 {
-		t.Fatal("TestF002Sucess failed")
+	if !result.P1 ||
+		!checkup.InList(result.Conclusions, "[P1] Risks of transaction ID wraparound are high for:  \n"+
+			"    - database `database_1`  \n    - table `table_2`  \n  \n"+
+			"Approaching 100% leads to downtime: the system will shut down and refuse to start any new transactions.") ||
+		!checkup.InList(result.Recommendations, "[P1] To minimize risks of transaction ID wraparound do the following:  \n"+
+			"1. Run `VACUUM FREEZE` for mentioned tables.  \n"+
+			"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details.") {
+		t.Fatal("TestF002CheckDatabaseTables failed")
 	}
 	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintRecommendations(result)
 }

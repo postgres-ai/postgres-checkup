@@ -1,14 +1,11 @@
 package a008
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
 	checkup ".."
-	"../../log"
-	"../../pyraconv"
 	"github.com/dustin/go-humanize/english"
 )
 
@@ -112,15 +109,10 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 }
 
 func A008PreprocessReportData(data map[string]interface{}) {
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report A008Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		log.Err("Cannot load json report to process")
+	if !checkup.LoadReport(data, report) {
 		return
 	}
 	result := A008Process(report)
-	// update data and file
 	checkup.SaveConclusionsRecommendations(data, result)
 }

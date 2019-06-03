@@ -7,18 +7,6 @@ import (
 	checkup ".."
 )
 
-func printConclusions(result checkup.ReportOutcome) {
-	for _, conclusion := range result.Conclusions {
-		fmt.Println("C:  ", conclusion)
-	}
-}
-
-func printReccomendations(result checkup.ReportOutcome) {
-	for _, recommendation := range result.Recommendations {
-		fmt.Println("R:  ", recommendation)
-	}
-}
-
 func TestA008Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
@@ -35,11 +23,15 @@ func TestA008Success(t *testing.T) {
 	}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 ||
+		result.P2 ||
+		result.P3 ||
+		!checkup.InList(result.Conclusions, "No significant risks of out-of-disk-space problem have been detected.") ||
+		!checkup.InList(result.Recommendations, "No recommendations.") {
 		t.Fatal("TestA008Success failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintRecommendations(result)
 }
 
 func TestA008NfsFileSystem(t *testing.T) {
@@ -69,14 +61,16 @@ func TestA008NfsFileSystem(t *testing.T) {
 		}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P1 {
+	if !result.P1 ||
+		!checkup.InList(result.Conclusions, "[P1] `/home/nfs`, `/home/nfs2` on host `test-host` are located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption.") ||
+		!checkup.InList(result.Recommendations, "[P1] Do not use NFS for Postgres.") {
 		t.Fatal("TestNfsFileSystem failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintRecommendations(result)
 }
 
-func TestA008NotReqFileSystem(t *testing.T) {
+func TestA008NotRecommendedFileSystem(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
 	var hostResult A008ReportHostResult
@@ -104,14 +98,16 @@ func TestA008NotReqFileSystem(t *testing.T) {
 	}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P3 {
-		t.Fatal("TestNotReqFileSystem failed")
+	if !result.P3 ||
+		!checkup.InList(result.Conclusions, "[P3] `/home/zfs`, `/home/jfs` on host `test-host` are located on drives where the following filesystems are used: `zfs`, `jfs` respectively. This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4).") ||
+		!checkup.InList(result.Recommendations, "[P3] Consider using ext4 for all Postgres directories.") {
+		t.Fatal("TestA008NotRecommendedFileSystem failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintRecommendations(result)
 }
 
-func TestA008UserPercentCritical(t *testing.T) {
+func TestA008DiskUsageCritical(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
 	var hostResult A008ReportHostResult
@@ -127,14 +123,16 @@ func TestA008UserPercentCritical(t *testing.T) {
 	}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P1 {
-		t.Fatal("TestUserPercentCritical failed")
+	if !result.P1 ||
+		!checkup.InList(result.Conclusions, "[P1] Disk `/home/ext4` on `test-host` space usage is 130G, it exceeds 90%. There are significant risks of out-of-disk-space problem. In this case, PostgreSQL will stop working and manual fix will be required.") ||
+		!checkup.InList(result.Recommendations, "[P1] Add more disk space to `/home/ext4` on `test-host` as soon as possible to prevent outage.") {
+		t.Fatal("TestA008DiskUsageCritical failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintRecommendations(result)
 }
 
-func TestA008UserPercentProblem(t *testing.T) {
+func TestA008DiskUsageWarning(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
 	var hostResult A008ReportHostResult
@@ -150,9 +148,11 @@ func TestA008UserPercentProblem(t *testing.T) {
 	}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P2 {
-		t.Fatal("TestUserPercentProblem failed")
+	if !result.P2 ||
+		!checkup.InList(result.Conclusions, "[P2] Disk `/home/ext4` on `test-host` space usage is 130G, it exceeds 70%. There are some risks of out-of-disk-space problem.") ||
+		!checkup.InList(result.Recommendations, "[P2] Add more disk space to `/home/ext4` on `test-host`. It is recommended to keep free disk space more than 30% to reduce risks of out-of-disk-space problem.") {
+		t.Fatal("TestA008DiskUsageWarning failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintConclusions(result)
+	checkup.PrintRecommendations(result)
 }

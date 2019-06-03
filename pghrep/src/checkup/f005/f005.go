@@ -1,15 +1,11 @@
 package f005
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
-	"../../log"
-
 	checkup ".."
 	"../../fmtutils"
-	"../../pyraconv"
 )
 
 const WARNING_BLOAT_RATIO float32 = 40.0
@@ -65,6 +61,7 @@ func F005Process(report F005Report) checkup.ReportOutcome {
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
 			totalData.BloatRatioAvg)
 		result.P1 = true
+		result.AppendRecommendation(MSG_BLOAT_CRITICAL_RECOMMENDATION)
 	} else {
 		result.AppendConclusion(MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg,
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
@@ -72,7 +69,9 @@ func F005Process(report F005Report) checkup.ReportOutcome {
 	if len(criticalIndexes) > 0 {
 		result.AppendConclusion(MSG_BLOAT_CRITICAL_CONCLUSION, len(criticalIndexes), CRITICAL_BLOAT_RATIO,
 			strings.Join(checkup.LimitList(criticalIndexes), ""))
-		result.AppendRecommendation(MSG_BLOAT_CRITICAL_RECOMMENDATION)
+		if !checkup.InList(result.Recommendations, MSG_BLOAT_CRITICAL_RECOMMENDATION) {
+			result.AppendRecommendation(MSG_BLOAT_CRITICAL_RECOMMENDATION)
+		}
 		result.P1 = true
 	}
 	if len(warningIndexes) > 0 {
@@ -93,12 +92,8 @@ func F005Process(report F005Report) checkup.ReportOutcome {
 }
 
 func F005PreprocessReportData(data map[string]interface{}) {
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report F005Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		log.Err("Cannot load json report to process")
+	if !checkup.LoadReport(data, report) {
 		return
 	}
 	result := F005Process(report)

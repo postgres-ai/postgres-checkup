@@ -1,7 +1,6 @@
 package a002
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -11,7 +10,6 @@ import (
 
 	checkup ".."
 	"../../log"
-	"../../pyraconv"
 	"github.com/dustin/go-humanize/english"
 	"golang.org/x/net/html"
 )
@@ -249,12 +247,8 @@ func A002Process(report A002Report) checkup.ReportOutcome {
 }
 
 func A002PreprocessReportData(data map[string]interface{}) {
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report A002Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		log.Err("Cannot load json report to process")
+	if !checkup.LoadReport(data, report) {
 		return
 	}
 	result := A002Process(report)
