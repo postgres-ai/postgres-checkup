@@ -1,25 +1,23 @@
 # Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.1/md_reports/1_2019_05_30T18_32_32_+0000/0_Full_report.md) (based on CI, single node)
 
-# Disclaimer: This Tool is Designed for DBA Experts
+# Disclaimer: Conclusions, Recommendations – Work in Progress
+
+To treat the data correctly, you need deep Postgres knowledge.
 
 Each report consists of 3 sections: Observations, Conclusions, and Recommendations.
-As of March 2019, only Observations are filled automatically. To treat the data
-correctly, you need deep Postgres knowledge.
-
-You can get Conclusions, and Recommendations from the Postgres.ai team for free,
-send us your .json and .md with filled Observations sections: checkup@postgres.ai.
-Limited time only. We're a small team, so "restrictions apply".
+Observations are filled automatically. As for Conclusions and Recommendations
+sections, as of June 2019, only several reports have autogeneration for them.
 
 # About
 
 Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
-is a new-generation diagnostics tool that allows users to collect  deep analysis
-of the health of a Postgres database. It aims to detect and describe all current
+is a new-generation diagnostics tool that allows users to do a deep analysis
+of the health of Postgres databases. It aims to detect and describe all current
 and potential issues in the fields of database performance, scalability, and
 security, providing advices how to resolve or prevent them.
 
 Compared to a monitoring system, postgres-checkup goes deeper into the analysis
-of the database system and environment.  It combines numerous internal
+of the database system and environment. It combines numerous internal
 characteristics of the database with data about resources and OS, producing
 multiple comprehensive reports. These reports use formats which are easily
 readable both by humans and machines and which are extremely oriented to DBA
@@ -34,20 +32,23 @@ The three key principles behind postgres-checkup:
 
 - *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
 close to zero. It does not use any heavy queries, keeping resource usage
-very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology))
+very low, and avoiding having the [“observer effect.”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology)).
+postgres-checkup reports were successfully tested on real-world databases
+containing 500,000+ tables and 1,000,000+ indexes.
 
 - *Zero install* (on observed machines): it is able to analyze any Linux
-machine (including virtual machines), as well as Cloud Postgres instances
+machine (including virtual machines), as well as cloud Postgres instances
 (such as Amazon RDs or Google Cloud SQL), not requiring any additional setup
-or any changes. It does, hovewer, require a privileged access (a DBA usually
-has it anyway).
+or any changes. It does, hovewer, require a privileged access that a DBA usually
+has anyway.
 
-- *Complex analysis*: unlike most monitoring tools, which provide raw data,
+- *Complex analysis*: unlike most monitoring tools, which provide just raw data,
 postgres-checkup combines data from various parts of the system (e.g.,
 internal Postgres stats are combined with knowledge about system resources
-in autovacuum setting and behavior analysis). Also, it analyzes the master
-database server together with all its replicas (e.g. to build the list of
-unused indexes).
+in autovacuum setting and behavior analysis) joining the data into well-formatted
+reports aimed to solve particular DBA problems. Also, it analyzes the master
+database server together with all its replicas, which is neccessary in such
+cases as index analysis or search for settings deviations.
 
 # Reports Structure
 
@@ -67,25 +68,28 @@ Each report consists of three sections:
 
 1. "Observations": automatically collected data. This is to be consumed by
 an expert DBA.
-1. "Conclusions": what we conclude from the Observations—what is good, what
-is bad (right now, it is to be manually filled for most checks).
+1. "Conclusions": what we conclude from the Observations, human-friendly texts
+explaining strengths and weaknesses of the observed setup.
 1. "Recommendations": action items, what to do to fix the discovered issues.
+
 Both "Conclusions" and "Recommendations" are to be consumed by engineers who
-will make decisions what, how and when to optimize, and how to react to the
-findings.
+will make decisions what, how and when to optimize.
 
 # Installation and Usage
 
 ## Requirements
 
-The supported OS of the observer machine (those from which the tool is to be
-executed):
+For the operator machine (from where the tool will be executed), the following
+OS are supported:
 
 * Linux (modern RHEL/CentOS or Debian/Ubuntu; others should work as well, but
 are not yet tested);
 * MacOS.
 
-The following programs must be installed on the observer machine:
+There are known cases when postgres-checkup was successfully used on Windows,
+althought with some limitations.
+
+The following programs must be installed on the operator machine:
 
 * bash
 * psql
@@ -97,14 +101,14 @@ The following programs must be installed on the observer machine:
 * pandoc *
 * wkhtmltopdf >= 0.12.4 *
 
-Pandoc and wkhtmltopdf optional, they need for generating HTML and PDF versions
-of report (see `--pdf` and `--html`).
+pandoc and wkhtmltopdf are optional, they are neededed for generating HTML and 
+PDF versions of report (options `--html`, `--pdf`).
 
-Nothing special has to be installed on the observed machines. However, these
-machines must run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others
-should work as well, but are not yet tested).
+Nothing special has to be installed on the observed machines. However, they must
+run Linux (again: modern RHEL/CentOS or Debian/Ubuntu; others should work as
+well, but are not yet tested).
 
-:warning: Only Postgres version 9.6 and higher are currently supported.
+:warning: Only Postgres version 9.6 and higher are currently officially supported.
 
 ## How to Install
 
@@ -114,36 +118,49 @@ Ubuntu/Debian:
 ```
 sudo apt-get update
 sudo apt-get install git postgresql coreutils jq golang
-# Optional (if you need PDF/HTML)
-# Pandoc (needed for both HTML and PDF generation)
-sudo apt install pandoc
-# wkhtmltopdf (needed for PDF generation)
+
+# Optional (to generate PDF/HTML reports)
+sudo apt-get install pandoc
 wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
-sudo apt-get install -y openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
+sudo apt-get install openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
+```
+
+CentOS/RHEL:
+```
+sudo yum install git postgresql coreutils jq golang
+
+# Optional (to generate PDF/HTML reports)
+sudo yum install pandoc
+wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+tar xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+sudo mv wkhtmltox/bin/wkhtmlto* /usr/local/bin
+sudo yum install openssl libssl-dev libxrender-dev libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig
 ```
 
 MacOS (assuming that [Homebrew](https://brew.sh/) is installed):
 ```
-brew install postgresql
-brew install coreutils
-brew install jq
-brew install golang
-brew install git
-# Optional
-brew install pandoc
-brew install Caskroom/cask/wkhtmltopdf
+brew install postgresql coreutils jq golang git
+
+# Optional (to generate PDF/HTML reports)
+brew install pandoc Caskroom/cask/wkhtmltopdf
 ```
 
 #### 2. Clone this repo
 
-Use `git clone`. This is the only method of installation currently supported.
+```bash
+git clone git@gitlab.com:postgres-ai/postgres-checkup.git
+# Use --branch to use specific release version. For example, to use version 1.1:
+#   git clone --branch 1.1 git@gitlab.com:postgres-ai/postgres-checkup.git
+cd postgres-checkup
+```
 
 ## Example of Use
 
-Let's make a report for a project named `prod1`:
-Cluster `slony` contains two servers - `db1.vpn.local` and `db1.vpn.local`.
+Let's make a report for a project named `prod1`. Assume that we have two servers,
+`db1.vpn.local` and `db1.vpn.local`.
+
 Postgres-checkup automatically detects which one is a master:
 
 ```bash
