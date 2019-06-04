@@ -26,12 +26,12 @@ func TestA008Success(t *testing.T) {
 	if result.P1 ||
 		result.P2 ||
 		result.P3 ||
-		!checkup.InList(result.Conclusions, "No significant risks of out-of-disk-space problem have been detected.") ||
-		!checkup.InList(result.Recommendations, "No recommendations.") {
+		!checkup.ResultInList(result.Conclusions, A008_SPACE_USAGE_NORMAL) ||
+		len(result.Recommendations) > 0 {
 		t.Fatal("TestA008Success failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA008NfsFileSystem(t *testing.T) {
@@ -62,12 +62,12 @@ func TestA008NfsFileSystem(t *testing.T) {
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] `/home/nfs`, `/home/nfs2` on host `test-host` are located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption.") ||
-		!checkup.InList(result.Recommendations, "[P1] Do not use NFS for Postgres.") {
+		!checkup.ResultInList(result.Conclusions, A008_NFS_DISK) ||
+		!checkup.ResultInList(result.Recommendations, A008_NFS_DISK) {
 		t.Fatal("TestNfsFileSystem failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA008NotRecommendedFileSystem(t *testing.T) {
@@ -99,12 +99,12 @@ func TestA008NotRecommendedFileSystem(t *testing.T) {
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
 	if !result.P3 ||
-		!checkup.InList(result.Conclusions, "[P3] `/home/zfs`, `/home/jfs` on host `test-host` are located on drives where the following filesystems are used: `zfs`, `jfs` respectively. This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4).") ||
-		!checkup.InList(result.Recommendations, "[P3] Consider using ext4 for all Postgres directories.") {
+		!checkup.ResultInList(result.Conclusions, A008_NOT_RECOMMENDED_FS) ||
+		!checkup.ResultInList(result.Recommendations, A008_NOT_RECOMMENDED_FS) {
 		t.Fatal("TestA008NotRecommendedFileSystem failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA008DiskUsageCritical(t *testing.T) {
@@ -124,12 +124,12 @@ func TestA008DiskUsageCritical(t *testing.T) {
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] Disk `/home/ext4` on `test-host` space usage is 130G, it exceeds 90%. There are significant risks of out-of-disk-space problem. In this case, PostgreSQL will stop working and manual fix will be required.") ||
-		!checkup.InList(result.Recommendations, "[P1] Add more disk space to `/home/ext4` on `test-host` as soon as possible to prevent outage.") {
+		!checkup.ResultInList(result.Conclusions, A008_SPACE_USAGE_CRITICAL) ||
+		!checkup.ResultInList(result.Recommendations, A008_SPACE_USAGE_CRITICAL) {
 		t.Fatal("TestA008DiskUsageCritical failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA008DiskUsageWarning(t *testing.T) {
@@ -149,10 +149,10 @@ func TestA008DiskUsageWarning(t *testing.T) {
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
 	if !result.P2 ||
-		!checkup.InList(result.Conclusions, "[P2] Disk `/home/ext4` on `test-host` space usage is 130G, it exceeds 70%. There are some risks of out-of-disk-space problem.") ||
-		!checkup.InList(result.Recommendations, "[P2] Add more disk space to `/home/ext4` on `test-host`. It is recommended to keep free disk space more than 30% to reduce risks of out-of-disk-space problem.") {
+		!checkup.ResultInList(result.Conclusions, A008_SPACE_USAGE_WARNING) ||
+		!checkup.ResultInList(result.Recommendations, A008_SPACE_USAGE_WARNING) {
 		t.Fatal("TestA008DiskUsageWarning failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }

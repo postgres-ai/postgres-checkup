@@ -34,12 +34,12 @@ func TestA002Sucess(t *testing.T) {
 	if result.P1 ||
 		result.P2 ||
 		result.P3 ||
-		!checkup.InListPartial(result.Conclusions, "All nodes have the same Postgres version") ||
-		!checkup.InListPartial(result.Conclusions, "is the most up-to-date Postgres minor version in the branch") {
+		!checkup.ResultInList(result.Conclusions, A002_ALL_VERSIONS_SAME) ||
+		!checkup.ResultInList(result.Conclusions, A002_LAST_MINOR_VERSION) {
 		t.Fatal("TestA002Sucess failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002IsSame(t *testing.T) {
@@ -64,11 +64,11 @@ func TestA002IsSame(t *testing.T) {
 	if result.P1 ||
 		result.P2 ||
 		result.P3 ||
-		!checkup.InListPartial(result.Conclusions, "All nodes have the same Postgres version") {
+		!checkup.ResultInList(result.Conclusions, A002_ALL_VERSIONS_SAME) {
 		t.Fatal("TestA002IsSame failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002IsNotSame(t *testing.T) {
@@ -91,12 +91,11 @@ func TestA002IsNotSame(t *testing.T) {
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
 	result := A002Process(report)
 	if !result.P2 ||
-		!checkup.InListPartial(result.Conclusions, "[P2] Not all nodes have the same Postgres version") ||
-		!checkup.InList(result.Recommendations, "[P2] Please upgrade Postgres so its versions on all nodes match.") {
-		checkup.PrintConclusions(result)
-		checkup.PrintRecommendations(result)
+		!checkup.ResultInList(result.Conclusions, A002_NOT_ALL_VERSIONS_SAME) {
 		t.Fatal("TestA002IsNotSame failed")
 	}
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002WrongVersion(t *testing.T) {
@@ -112,12 +111,12 @@ func TestA002WrongVersion(t *testing.T) {
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
 	result := A002Process(report)
 	if !result.P1 ||
-		!checkup.InListPartial(result.Conclusions, "[P1] Unknown PostgreSQL version") ||
-		!checkup.InListPartial(result.Recommendations, "[P1] Check PostgreSQL version on") {
+		!checkup.ResultInList(result.Conclusions, A002_UNKNOWN_VERSION) ||
+		!checkup.ResultInList(result.Recommendations, A002_UNKNOWN_VERSION) {
 		t.Fatal("TestA002WrongVersion failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002LatestMajor(t *testing.T) {
@@ -133,9 +132,9 @@ func TestA002LatestMajor(t *testing.T) {
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
 	result := A002Process(report)
 	if !result.P3 ||
-		!checkup.InListPartial(result.Recommendations, "[P3] Consider upgrading to the newest major version") {
+		!checkup.ResultInList(result.Recommendations, A002_NOT_LAST_MAJOR_VERSION) {
 		t.Fatal("TestA002LatestMajor failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }

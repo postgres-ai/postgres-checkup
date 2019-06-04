@@ -2,8 +2,8 @@ package a002
 
 const VERSION_SOURCE_URL string = "https://git.postgresql.org/gitweb/?p=postgresql.git;a=tags"
 
-const MSG_WRONG_VERSION_CONCLUSION string = "[P1] Unknown PostgreSQL version `%s` on `%s`.  \n"
-const MSG_WRONG_VERSION_RECOMMENDATION string = "[P1] Check PostgreSQL version on `%s`.  \n"
+const MSG_UNKNOWN_VERSION_CONCLUSION string = "[P1] Unknown PostgreSQL version `%s` on `%s`.  \n"
+const MSG_UNKNOWN_VERSION_RECOMMENDATION string = "[P1] Check PostgreSQL version on `%s`.  \n"
 const MSG_NOT_SUPPORTED_VERSION_CONCLUSION string = "[P1] Postgres major version being used is `%s` and it is " +
 	"NOT supported by Postgres community and PGDG (supported ended `%s`). This is a major issue. New bugs and security " +
 	"issues will not be fixed by community and PGDG. You are on your own! Read more: " +

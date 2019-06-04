@@ -41,12 +41,42 @@ type ReportLastNodes struct {
 	//	LastCheck
 }
 
+type ReportResultItem struct {
+	Id      string
+	Message string
+}
+
+type ReportResult struct {
+	P1              bool
+	P2              bool
+	P3              bool
+	Conclusions     []ReportResultItem
+	Recommendations []ReportResultItem
+}
+
 type ReportOutcome struct {
 	P1              bool
 	P2              bool
 	P3              bool
 	Conclusions     []string
 	Recommendations []string
+}
+
+func (r *ReportResult) AppendConclusion(id string, conclusion string, a ...interface{}) {
+	r.Conclusions = append(r.Conclusions, ReportResultItem{
+		Id:      id,
+		Message: fmt.Sprintf(conclusion, a...),
+	})
+}
+
+func (r *ReportResult) AppendRecommendation(id string, reccomendation string,
+	a ...interface{}) {
+	if reccomendation != "" {
+		r.Recommendations = append(r.Recommendations, ReportResultItem{
+			Id:      id,
+			Message: fmt.Sprintf(reccomendation, a...),
+		})
+	}
 }
 
 func (r *ReportOutcome) AppendConclusion(conclusion string, a ...interface{}) {
@@ -82,6 +112,36 @@ func LoadReport(data map[string]interface{}, report interface{}) bool {
 		return false
 	}
 	return true
+}
+
+func SaveJsonReportResults(data map[string]interface{}, reportResult ReportResult) {
+	filePath := pyraconv.ToString(data["source_path_full"])
+	jsonData, err := ioutil.ReadFile(filePath) // just pass the file name
+	if err != nil {
+		return
+	}
+	orderedData := orderedmap.New()
+	if err := json.Unmarshal([]byte(jsonData), &orderedData); err != nil {
+		return
+	} else {
+		orderedData.Set("conclusions", reportResult.Conclusions)
+		orderedData.Set("recommendations", reportResult.Recommendations)
+		orderedData.Set("p1", reportResult.P1)
+		orderedData.Set("p2", reportResult.P2)
+		orderedData.Set("p3", reportResult.P3)
+		resultJson, merr := orderedData.MarshalJSON()
+		if merr != nil {
+			return
+		}
+		var out bytes.Buffer
+		json.Indent(&out, resultJson, "", "  ")
+		jfile, err := os.Create(filePath)
+		if err != nil {
+			return
+		}
+		defer jfile.Close()
+		out.WriteTo(jfile)
+	}
 }
 
 func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions []string,
@@ -129,6 +189,17 @@ func SaveConclusionsRecommendations(data map[string]interface{},
 	data["p2"] = result.P2
 	data["p3"] = result.P3
 	SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
+	return data
+}
+
+func SaveReportResult(data map[string]interface{},
+	result ReportResult) map[string]interface{} {
+	data["conclusions"] = result.Conclusions
+	data["recommendations"] = result.Recommendations
+	data["p1"] = result.P1
+	data["p2"] = result.P2
+	data["p3"] = result.P3
+	SaveJsonReportResults(data, result)
 	return data
 }
 
@@ -185,4 +256,25 @@ func InListPartial(items []string, item string) bool {
 		}
 	}
 	return false
+}
+
+func ResultInList(items []ReportResultItem, id string) bool {
+	for _, itemValue := range items {
+		if itemValue.Id == id {
+			return true
+		}
+	}
+	return false
+}
+
+func PrintResultConclusions(result ReportResult) {
+	for _, conclusion := range result.Conclusions {
+		fmt.Println("C:  ", conclusion.Message)
+	}
+}
+
+func PrintResultRecommendations(result ReportResult) {
+	for _, recommendation := range result.Recommendations {
+		fmt.Println("R:  ", recommendation.Message)
+	}
 }
