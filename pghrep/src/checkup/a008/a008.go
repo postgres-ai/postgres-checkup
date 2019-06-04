@@ -57,15 +57,15 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 	var notRecConclusions []string
 	for host, hostResult := range report.Results {
 		var notRecommendedFsDisks []string
-		var notRecommendedFsDisksFs []string
+		var notRecommendedFs []string
 		var networkFsDisks []string
 		for _, fsItemData := range hostResult.Data.DbData {
 			if isRecommendedFs(strings.ToLower(fsItemData.Fstype)) != true {
-				notRecommendedFsDisks = append(notRecommendedFsDisks, fsItemData.MountPoint)
-				notRecommendedFsDisksFs = append(notRecommendedFsDisksFs, fsItemData.Fstype)
+				notRecommendedFsDisks = append(notRecommendedFsDisks, "`"+fsItemData.MountPoint+"`")
+				notRecommendedFs = append(notRecommendedFs, "`"+fsItemData.Fstype+"`")
 			}
 			if strings.ToLower(fsItemData.Fstype[0:3]) == "nfs" {
-				networkFsDisks = append(networkFsDisks, fsItemData.MountPoint)
+				networkFsDisks = append(networkFsDisks, "`"+fsItemData.MountPoint+"`")
 			}
 			var warning, critical bool
 			warning, critical, result = checkFsItemUsage(host, fsItemData, result)
@@ -82,13 +82,13 @@ func A008Process(report A008Report) checkup.ReportOutcome {
 			result.P1 = true
 			nfsConclusions = append(nfsConclusions, fmt.Sprintf(english.PluralWord(len(networkFsDisks),
 				MSG_NETWORK_FS_CONCLUSION_1, MSG_NETWORK_FS_CONCLUSION_N),
-				strings.Join(networkFsDisks, "`, `"), host))
+				english.WordSeries(networkFsDisks, "and"), host))
 		}
 		if len(notRecommendedFsDisks) > 0 {
 			result.P3 = true
 			notRecConclusions = append(notRecConclusions, fmt.Sprintf(english.PluralWord(len(notRecommendedFsDisks),
 				MSG_NOT_RECOMMENDED_FS_CONCLUSION_1, MSG_NOT_RECOMMENDED_FS_CONCLUSION_N),
-				strings.Join(notRecommendedFsDisks, "`, `"), host, strings.Join(notRecommendedFsDisksFs, "`, `")))
+				english.WordSeries(notRecommendedFsDisks, "and"), host, english.WordSeries(notRecommendedFs, "and")))
 		}
 	}
 	if !usageWarning && !usageCritical && len(result.Recommendations) == 0 {

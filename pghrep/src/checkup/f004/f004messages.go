@@ -8,7 +8,7 @@ const MSG_TOTAL_BLOAT_LOW_CONCLUSION string = "The total table (heap) bloat esti
 const MSG_BLOAT_CRITICAL_RECOMMENDATION string = "[P1] Reduce and prevent high level of table bloat:  \n" +
 	"    - tune autovacuum: consider more aggressive autovacuum settings (See F001)  \n" +
 	"    - reduce table bloat using one of the approaches mentioned below.  \n"
-const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] To resolve the table bloat issue do both of the following action items:  \n" +
+const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] To resolve the table bloat issue, do both of the following actions:  \n" +
 	"    - to prevent high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);  \n" +
 	"    - get rid of current table bloat using one of the approaches mentioned below.  \n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloat numbers, clone the database, get table sizes, then apply " +
