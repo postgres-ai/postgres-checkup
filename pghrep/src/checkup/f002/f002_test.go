@@ -38,8 +38,8 @@ func TestF002Success(t *testing.T) {
 		len(result.Recommendations) > 0 {
 		t.Fatal("TestF002Success failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF002CheckDatabases(t *testing.T) {
@@ -67,16 +67,12 @@ func TestF002CheckDatabases(t *testing.T) {
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] Risks of transaction ID wraparound are high for:  \n"+
-			"    - database `database_1`  \n  \n"+
-			"Approaching 100% leads to downtime: the system will shut down and refuse to start any new transactions.") ||
-		!checkup.InList(result.Recommendations, "[P1] To minimize risks of transaction ID wraparound do the following:  \n"+
-			"1. Run `VACUUM FREEZE` for mentioned tables.  \n"+
-			"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details.") {
+		!checkup.ResultInList(result.Conclusions, F002_RISKS_ARE_HIGH) ||
+		!checkup.ResultInList(result.Recommendations, F002_RISKS_ARE_HIGH) {
 		t.Fatal("TestF002CheckDatabases failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF002CheckTables(t *testing.T) {
@@ -126,16 +122,12 @@ func TestF002CheckTables(t *testing.T) {
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] Risks of transaction ID wraparound are high for:  \n"+
-			"    - table `table_2`  \n  \n"+
-			"Approaching 100% leads to downtime: the system will shut down and refuse to start any new transactions.") ||
-		!checkup.InList(result.Recommendations, "[P1] To minimize risks of transaction ID wraparound do the following:  \n"+
-			"1. Run `VACUUM FREEZE` for mentioned tables.  \n"+
-			"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details.") {
+		!checkup.ResultInList(result.Conclusions, F002_RISKS_ARE_HIGH) ||
+		!checkup.ResultInList(result.Recommendations, F002_RISKS_ARE_HIGH) {
 		t.Fatal("TestF002CheckTables failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF002CheckDatabaseTables(t *testing.T) {
@@ -186,14 +178,10 @@ func TestF002CheckDatabaseTables(t *testing.T) {
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] Risks of transaction ID wraparound are high for:  \n"+
-			"    - database `database_1`  \n    - table `table_2`  \n  \n"+
-			"Approaching 100% leads to downtime: the system will shut down and refuse to start any new transactions.") ||
-		!checkup.InList(result.Recommendations, "[P1] To minimize risks of transaction ID wraparound do the following:  \n"+
-			"1. Run `VACUUM FREEZE` for mentioned tables.  \n"+
-			"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details.") {
+		!checkup.ResultInList(result.Conclusions, F002_RISKS_ARE_HIGH) ||
+		!checkup.ResultInList(result.Recommendations, F002_RISKS_ARE_HIGH) {
 		t.Fatal("TestF002CheckDatabaseTables failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }

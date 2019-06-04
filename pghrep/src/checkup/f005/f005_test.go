@@ -62,11 +62,11 @@ func TestF005Success(t *testing.T) {
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
 	if result.P1 || result.P2 || result.P3 &&
-		checkup.InList(result.Conclusions, "The total index bloat estimate is quite low, just ~5.37% (~23.78 GiB). Hooray! Keep watching it though.") {
+		checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_LOW) {
 		t.Fatal("TestF005Success failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF005TotalExcess(t *testing.T) {
@@ -88,12 +88,12 @@ func TestF005TotalExcess(t *testing.T) {
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] Total index bloat estimation is 23.78 GiB, it is 25.37% of overall indexes size and 25.00% of the DB size. So removing the index bloat can help to reduce the total database size to ~71.32 GiB and to increase the free disk space by 23.78 GiB. Notice that this is only an estimation, sometimes it may be significantly off. Total size of indexes is 1.04 times bigger than it could be.") ||
-		!checkup.InListPartial(result.Recommendations, "[P1] Reduce and prevent high level of index bloat:") {
+		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_EXCESS) ||
+		!checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {
 		t.Fatal("TestF005TotalExcess failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF005Warnig(t *testing.T) {
@@ -152,12 +152,12 @@ func TestF005Warnig(t *testing.T) {
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
 	if !result.P2 ||
-		!checkup.InListPartial(result.Conclusions, "[P2] There are 2 indexes with size > 1 MiB and index bloat estimate >= 40% and < 90%") ||
-		!checkup.InListPartial(result.Recommendations, "[P2] Reduce and prevent high level of index bloat") {
+		!checkup.ResultInList(result.Conclusions, F005_BLOAT_WARNING) ||
+		!checkup.ResultInList(result.Recommendations, F005_BLOAT_WARNING) {
 		t.Fatal("TestF005SWarnig failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF005Critical(t *testing.T) {
@@ -216,10 +216,10 @@ func TestF005Critical(t *testing.T) {
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
 	if !result.P1 ||
-		!checkup.InListPartial(result.Conclusions, "[P1] The following 1 indexes have significant size (>1 MiB) and bloat estimate > 90%") ||
-		!checkup.InListPartial(result.Recommendations, "[P1] Reduce and prevent high level of index bloat:") {
+		!checkup.ResultInList(result.Conclusions, F005_BLOAT_CRITICAL) ||
+		!checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {
 		t.Fatal("TestF005SWarnig failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }

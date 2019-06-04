@@ -28,7 +28,6 @@ const MSG_NOT_ALL_VERSIONS_SAME_RECOMMENDATION string = "[P2] Please upgrade Pos
 const MSG_ALL_VERSIONS_SAME_CONCLUSION string = "All nodes have the same Postgres version (`%s`).  \n"
 
 const MSG_NOT_LAST_MINOR_VERSION_RECOMMENDATION string = "[P2] Consider performing upgrade to the newest minor version: `%s`.  \n"
-const MSG_NO_RECOMMENDATION string = "No recommendations.  \n"
 const MSG_GENERAL_RECOMMENDATION_1 string = "For more information about minor and major upgrades see:  \n" +
 	"    - Official documentation: https://www.postgresql.org/docs/current/upgrading.html  \n"
 

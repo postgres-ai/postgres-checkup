@@ -1,6 +1,7 @@
 package a002
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -264,7 +265,9 @@ func A002Process(report A002Report) checkup.ReportResult {
 
 func A002PreprocessReportData(data map[string]interface{}) {
 	var report A002Report
-	if !checkup.LoadReport(data, report) {
+	filePath := data["source_path_full"].(string)
+	jsonRaw := checkup.LoadRawJsonReport(filePath)
+	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
 		return
 	}
 	result := A002Process(report)

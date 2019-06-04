@@ -67,12 +67,12 @@ func TestF004Success(t *testing.T) {
 	if result.P1 ||
 		result.P2 ||
 		result.P3 ||
-		!checkup.InList(result.Conclusions, "The total table (heap) bloat estimate is quite low, just ~5.37% (~23.78 GiB). Hooray! Keep watching it though.") ||
+		!checkup.ResultInList(result.Conclusions, F004_TOTAL_BLOAT_LOW) ||
 		len(result.Recommendations) != 0 {
 		t.Fatal("TestF004Success failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF004TotalExcess(t *testing.T) {
@@ -93,11 +93,11 @@ func TestF004TotalExcess(t *testing.T) {
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
 	result := F004Process(report)
 	if !result.P1 ||
-		!checkup.InList(result.Conclusions, "[P1] Total table (heap) bloat estimation is 23.78 GiB, it is 25.37% of overall tables size and 25.00% of the DB size. So removing the table bloat can help to reduce the total database size to ~71.32 GiB and to increase the free disk space by 23.78 GiB. Notice that this is only an estimation, sometimes it may be significantly off. Total size of tables is 1.04 times bigger than it could be.") {
+		!checkup.ResultInList(result.Conclusions, F004_TOTAL_BLOAT_EXCESS) {
 		t.Fatal("TestF004TotalExcess failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF004Warnig(t *testing.T) {
@@ -233,12 +233,12 @@ func TestF004Warnig(t *testing.T) {
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
 	result := F004Process(report)
 	if !result.P2 ||
-		!checkup.InListPartial(result.Conclusions, "[P2] There are 6 tables with size > 1 MiB and table bloat estimate >= 40% and < 90%") ||
-		!checkup.InListPartial(result.Recommendations, "[P2] To resolve the table bloat issue do both of the following action items") {
+		!checkup.ResultInList(result.Conclusions, F004_BLOAT_WARNING) ||
+		!checkup.ResultInList(result.Recommendations, F004_BLOAT_WARNING) {
 		t.Fatal("TestF004SWarnig failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF004Critical(t *testing.T) {
@@ -299,10 +299,10 @@ func TestF004Critical(t *testing.T) {
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
 	result := F004Process(report)
 	if !result.P1 ||
-		!checkup.InListPartial(result.Conclusions, "[P1] The following 1 tables have significant size (>1 MiB) and bloat estimate > 90%:") ||
-		!checkup.InListPartial(result.Recommendations, "[P1] Reduce and prevent high level of table bloat") {
+		!checkup.ResultInList(result.Conclusions, F004_BLOAT_CRITICAL) ||
+		!checkup.ResultInList(result.Recommendations, F004_BLOAT_CRITICAL) {
 		t.Fatal("TestF004SWarnig failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintRecommendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }

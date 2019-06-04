@@ -1,6 +1,7 @@
 package a008
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -42,7 +43,7 @@ func checkFsItemUsage(host string, fsItemData FsItem,
 	percent, _ := strconv.Atoi(usePercent)
 	if percent >= USAGE_WARNING && percent < USAGE_CRITICAL {
 		result.AppendConclusion(A008_SPACE_USAGE_WARNING, MSG_USAGE_WARNING_CONCLUSION, fsItemData.MountPoint, host, fsItemData.Used)
-		result.AppendRecommendation(A008_SPACE_USAGE_WARNING, fsItemData.MountPoint, host, 100-USAGE_WARNING)
+		result.AppendRecommendation(A008_SPACE_USAGE_WARNING, MSG_USAGE_WARNING_RECOMMENDATION, fsItemData.MountPoint, host, 100-USAGE_WARNING)
 		usageWarning = true
 		result.P2 = true
 	}
@@ -119,7 +120,9 @@ func A008Process(report A008Report) checkup.ReportResult {
 
 func A008PreprocessReportData(data map[string]interface{}) {
 	var report A008Report
-	if !checkup.LoadReport(data, report) {
+	filePath := data["source_path_full"].(string)
+	jsonRaw := checkup.LoadRawJsonReport(filePath)
+	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
 		return
 	}
 	result := A008Process(report)

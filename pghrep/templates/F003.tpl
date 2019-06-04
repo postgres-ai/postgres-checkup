@@ -50,6 +50,23 @@ Nothing found
 
 ## Conclusions ##
 
+{{- if .processed }}
+ {{- if .conclusions }}
+  {{ range $conclusion := .conclusions -}}
+   - {{ $conclusion.Message }}
+  {{ end }}
+ {{else}}
+ {{end}}
+{{ end }}
 
 ## Recommendations ##
 
+{{- if .processed }}
+ {{- if .recommendations }}
+  {{ range $recommendation := .recommendations -}}
+   - {{ $recommendation.Message }}
+  {{ end }}
+ {{else}}
+  All good, no recommendations here.
+ {{end}}
+{{ end }}
