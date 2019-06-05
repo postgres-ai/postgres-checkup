@@ -28,12 +28,12 @@
 {{- end -}}{{/* if per_instance exists */}}
 
 #### Tables in the observed database ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) 10 }}The list is limited to 10 items.{{ end }}
 
 | \# | Relation | Age | &#9660;&nbsp;Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid |
 |---|-------|-----|------------------|---------|-----------------|--------------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_database") "_keys") }}
-{{- if lt $i $.LISTLIMIT -}}
+{{- if lt $i 10 -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_database") $key) -}}
 | {{ $value.num }} |`{{ index $value "relation"}}`{{if $value.overrided_settings}}\*{{ end }} |
 {{- NumFormat (index $value "age") -1 }} |
