@@ -1016,7 +1016,7 @@ run_checks() {
   else
     ROLE="master"
   fi
-  declare -a skip_on_replica=("F001_autovacuum_settings" "F002_autovacuum_wraparound" "F003_autovacuum_dead_tuples"
+  declare -a skip_on_replica=("F002_autovacuum_wraparound" "F003_autovacuum_dead_tuples"
     "F004_heap_bloat" "F005_index_bloat" "F008_autovacuum_resource_usage" "H001_invalid_indexes" "H003_non_indexed_fks"
     "L001_table_sizes" "L003_integer_in_pk")
 
