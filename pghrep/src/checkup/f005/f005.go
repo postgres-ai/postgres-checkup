@@ -7,6 +7,7 @@ import (
 
 	checkup ".."
 	"../../fmtutils"
+	"github.com/dustin/go-humanize/english"
 )
 
 const F005_TOTAL_BLOAT_EXCESS string = "F005_TOTAL_BLOAT_EXCESS"
@@ -77,16 +78,20 @@ func F005Process(report F005Report) checkup.ReportResult {
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2))
 	}
 	if len(criticalIndexes) > 0 {
-		result.AppendConclusion(F005_BLOAT_CRITICAL, MSG_BLOAT_CRITICAL_CONCLUSION, len(criticalIndexes), CRITICAL_BLOAT_RATIO,
+		result.AppendConclusion(F005_BLOAT_CRITICAL,
+			english.PluralWord(len(criticalIndexes), MSG_BLOAT_CRITICAL_CONCLUSION_1, MSG_BLOAT_CRITICAL_CONCLUSION_N),
+			len(criticalIndexes), CRITICAL_BLOAT_RATIO,
 			strings.Join(checkup.LimitList(criticalIndexes), ""))
+
 		if !checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {
 			result.AppendRecommendation(F005_BLOAT_CRITICAL_INFO, MSG_BLOAT_CRITICAL_RECOMMENDATION)
 		}
 		result.P1 = true
 	}
 	if len(warningIndexes) > 0 {
-		result.AppendConclusion(F005_BLOAT_WARNING, MSG_BLOAT_WARNING_CONCLUSION, len(warningIndexes),
-			WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO, strings.Join(checkup.LimitList(warningIndexes), ""))
+		result.AppendConclusion(F005_BLOAT_WARNING, english.PluralWord(len(warningIndexes), MSG_BLOAT_WARNING_CONCLUSION_1,
+			MSG_BLOAT_WARNING_CONCLUSION_N), len(warningIndexes), WARNING_BLOAT_RATIO, CRITICAL_BLOAT_RATIO,
+			strings.Join(checkup.LimitList(warningIndexes), ""))
 		if !result.P1 {
 			result.AppendRecommendation(F005_BLOAT_WARNING, MSG_BLOAT_WARNING_RECOMMENDATION)
 		}
