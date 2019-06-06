@@ -15,8 +15,8 @@ const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] Reduce and prevent high le
 const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloat numbers, clone the database, get index sizes, then apply " +
 	"`VACUUM FULL` and get new index sizes. This will give the most reliable numbers.  \n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_2 string = "To reduce the index bloat, consider using one of the following:  \n" +
-	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/OUR_MAJOR_VERSION/sql-vacuum.html) (:warning:  requires downtime / maintenance window),  \n" +
-	"    - [`REINDEX`](https://www.postgresql.org/docs/OUR_MAJOR_VERSION/sql-reindex.html) (`REINDEX INDEX`, `REINDEX TABLE`; :warning:  requires downtime / maintenance window),  \n" +
+	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/current/sql-vacuum.html) (:warning:  requires downtime / maintenance window),  \n" +
+	"    - [`REINDEX`](https://www.postgresql.org/docs/current/sql-reindex.html) (`REINDEX INDEX`, `REINDEX TABLE`; :warning:  requires downtime / maintenance window),  \n" +
 	"    - recreating indexes online using `CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY` and renaming (not trivial for indexes supporting PK, FK) // Postgres 12 also provides `REINDEX CONCURRENTLY`,  \n" +
 	"    - one of the tools reducing the bloat online, without interrupting the operations:  \n" +
 	"        - [pg_repack](https://github.com/reorg/pg_repack),  \n" +

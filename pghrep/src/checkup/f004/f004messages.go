@@ -8,13 +8,13 @@ const MSG_TOTAL_BLOAT_LOW_CONCLUSION string = "The total table (heap) bloat esti
 const MSG_BLOAT_CRITICAL_RECOMMENDATION string = "[P1] Reduce and prevent high level of table bloat:  \n" +
 	"    - tune autovacuum: consider more aggressive autovacuum settings (See F001)  \n" +
 	"    - reduce table bloat using one of the approaches mentioned below.  \n"
-const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] To resolve the table bloat issue do both of the following action items:  \n" +
+const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] To resolve the table bloat issue, do both of the following actions:  \n" +
 	"    - to prevent high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);  \n" +
 	"    - get rid of current table bloat using one of the approaches mentioned below.  \n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloat numbers, clone the database, get table sizes, then apply " +
 	"`VACUUM FULL` and get new table sizes. This will give the most reliable numbers.  \n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_2 string = "To reduce the table bloat, consider using one of the following:  \n" +
-	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/OUR_MAJOR_VERSION/sql-vacuum.html) (:warning:  requires downtime / maintenance window),  \n" +
+	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/current/sql-vacuum.html) (:warning:  requires downtime / maintenance window),  \n" +
 	"    - one of the tools reducing the bloat online, without interrupting the operations:  \n" +
 	"        - [pg_repack](https://github.com/reorg/pg_repack),  \n" +
 	"        - [pg_squeeze](https://github.com/reorg/pg_repack),  \n" +

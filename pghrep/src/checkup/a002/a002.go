@@ -11,10 +11,22 @@ import (
 
 	checkup ".."
 	"../../log"
-	"../../pyraconv"
 	"github.com/dustin/go-humanize/english"
 	"golang.org/x/net/html"
 )
+
+// Case codes
+const A002_NOT_ALL_VERSIONS_SAME string = "A002_NOT_ALL_VERSIONS_SAME"
+const A002_ALL_VERSIONS_SAME string = "A002_ALL_VERSIONS_SAME"
+const A002_NOT_SUPPORTED_VERSION string = "A002_NOT_SUPPORTED_VERSION"
+const A002_LAST_YEAR_SUPPORTED_VERSION string = "A002_LAST_YEAR_SUPPORTED_VERSION"
+const A002_SUPPORTED_VERSION string = "A002_SUPPORTED_VERSION"
+const A002_NOT_LAST_MAJOR_VERSION string = "A002_NOT_LAST_MAJOR_VERSION"
+const A002_UNKNOWN_VERSION string = "A002_UNKNOWN_VERSION"
+const A002_LAST_MINOR_VERSION string = "A002_LAST_MINOR_VERSION"
+const A002_NOT_LAST_MINOR_VERSION string = "A002_NOT_LAST_MINOR_VERSION"
+const A002_GENERAL_INFO_OFFICIAL string = "A002_GENERAL_OFFICIAL"
+const A002_GENERAL_INFO_FULL string = "A002_GENERAL_FULL"
 
 type SupportedVersion struct {
 	FirstRelease  string
@@ -124,7 +136,7 @@ func A002PrepareVersionInfo() {
 }
 
 func A002CheckAllVersionsIsSame(report A002Report,
-	result checkup.ReportOutcome) checkup.ReportOutcome {
+	result checkup.ReportResult) checkup.ReportResult {
 	var version string
 	var hosts []string
 	var vers []string
@@ -141,18 +153,20 @@ func A002CheckAllVersionsIsSame(report A002Report,
 		vers = append(vers, majorVersion+"."+minorVersion)
 	}
 	if diff && len(hosts) > 1 {
-		result.AppendConclusion(english.PluralWord(len(hosts),
+		result.AppendConclusion(A002_NOT_ALL_VERSIONS_SAME, english.PluralWord(len(hosts),
 			MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_1, MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_N),
 			strings.Join(hosts, "`, `"), strings.Join(checkup.GetUniques(vers), "`, `"))
-		result.AppendRecommendation(MSG_NOT_ALL_VERSIONS_SAME_RECOMMENDATION)
+		result.AppendRecommendation(A002_NOT_ALL_VERSIONS_SAME, MSG_NOT_ALL_VERSIONS_SAME_RECOMMENDATION)
 		result.P2 = true
 	} else {
-		result.AppendConclusion(MSG_ALL_VERSIONS_SAME_CONCLUSION, version)
+		if len(hosts) > 0 {
+			result.AppendConclusion(A002_ALL_VERSIONS_SAME, MSG_ALL_VERSIONS_SAME_CONCLUSION, version)
+		}
 	}
 	return result
 }
 
-func A002CheckMajorVersions(report A002Report, result checkup.ReportOutcome) checkup.ReportOutcome {
+func A002CheckMajorVersions(report A002Report, result checkup.ReportResult) checkup.ReportResult {
 	var processed map[string]bool = map[string]bool{}
 	for host, hostData := range report.Results {
 		majorVersion, _ := getMajorMinorVersion(hostData.Data.ServerVersionNum)
@@ -164,8 +178,8 @@ func A002CheckMajorVersions(report A002Report, result checkup.ReportOutcome) che
 		}
 		ver, ok := SUPPORTED_VERSIONS[majorVersion]
 		if !ok {
-			result.AppendConclusion(MSG_WRONG_VERSION_CONCLUSION, hostData.Data.Version, host)
-			result.AppendRecommendation(MSG_WRONG_VERSION_RECOMMENDATION, host)
+			result.AppendConclusion(A002_UNKNOWN_VERSION, MSG_UNKNOWN_VERSION_CONCLUSION, hostData.Data.Version, host)
+			result.AppendRecommendation(A002_UNKNOWN_VERSION, MSG_UNKNOWN_VERSION_RECOMMENDATION, host)
 			result.P1 = true
 			continue
 		}
@@ -189,7 +203,8 @@ func A002CheckMajorVersions(report A002Report, result checkup.ReportOutcome) che
 			result.AppendConclusion(MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 		}
 		if MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1] > iMajorVersion {
-			result.AppendRecommendation(MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1])/100.0)
+			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1])/100.0)
+			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
 			result.P3 = true
 		}
 		processed[majorVersion] = true
@@ -197,7 +212,7 @@ func A002CheckMajorVersions(report A002Report, result checkup.ReportOutcome) che
 	return result
 }
 
-func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) checkup.ReportOutcome {
+func A002CheckMinorVersions(report A002Report, result checkup.ReportResult) checkup.ReportResult {
 	var updateHosts []string
 	var curVersions []string
 	var updateVersions []string
@@ -210,8 +225,8 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 		}
 		ver, ok := SUPPORTED_VERSIONS[majorVersion]
 		if !ok {
-			result.AppendConclusion(MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
-			result.AppendRecommendation(MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
+			result.AppendConclusion(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
+			result.AppendRecommendation(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
 			result.P1 = true
 			continue
 		}
@@ -219,7 +234,7 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 		lastVersion := ver.MinorVersions[len(ver.MinorVersions)-1]
 		intMinorVersion, _ := strconv.Atoi(minorVersion)
 		if intMinorVersion >= lastVersion {
-			result.AppendConclusion(MSG_LAST_MINOR_VERSION_CONCLUSION,
+			result.AppendConclusion(A002_LAST_MINOR_VERSION, MSG_LAST_MINOR_VERSION_CONCLUSION,
 				majorVersion+"."+minorVersion, majorVersion)
 			processed[minorVersion] = true
 		} else {
@@ -230,17 +245,17 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportOutcome) che
 	}
 	curVersions = checkup.GetUniques(curVersions)
 	if len(curVersions) > 0 {
-		result.AppendConclusion(english.PluralWord(len(curVersions),
+		result.AppendConclusion(A002_NOT_LAST_MINOR_VERSION, english.PluralWord(len(curVersions),
 			MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1, MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N),
 			strings.Join(curVersions, "`, `"), updateVersions[0])
-		result.AppendRecommendation(MSG_NOT_LAST_MINOR_VERSION_RECOMMENDATION, updateVersions[0])
+		result.AppendRecommendation(A002_NOT_LAST_MINOR_VERSION, MSG_NOT_LAST_MINOR_VERSION_RECOMMENDATION, updateVersions[0])
 		result.P2 = true
 	}
 	return result
 }
 
-func A002Process(report A002Report) checkup.ReportOutcome {
-	var result checkup.ReportOutcome
+func A002Process(report A002Report) checkup.ReportResult {
+	var result checkup.ReportResult
 	A002PrepareVersionInfo()
 	result = A002CheckAllVersionsIsSame(report, result)
 	result = A002CheckMajorVersions(report, result)
@@ -249,24 +264,20 @@ func A002Process(report A002Report) checkup.ReportOutcome {
 }
 
 func A002PreprocessReportData(data map[string]interface{}) {
-	filePath := pyraconv.ToString(data["source_path_full"])
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
 	var report A002Report
-	err := json.Unmarshal(jsonRaw, &report)
-	if err != nil {
-		log.Err("Cannot load json report to process")
+	filePath := data["source_path_full"].(string)
+	jsonRaw := checkup.LoadRawJsonReport(filePath)
+	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
 		return
 	}
 	result := A002Process(report)
-	if len(result.Recommendations) == 0 {
-		result.AppendRecommendation(MSG_NO_RECOMMENDATION)
-	} else {
+	if len(result.Recommendations) > 0 {
 		if !result.P3 {
-			result.AppendRecommendation(MSG_GENERAL_RECOMMENDATION_1)
+			result.AppendRecommendation(A002_GENERAL_INFO_OFFICIAL, MSG_GENERAL_RECOMMENDATION_1)
 		} else {
-			result.AppendRecommendation(MSG_GENERAL_RECOMMENDATION_1 + MSG_GENERAL_RECOMMENDATION_2)
+			result.AppendRecommendation(A002_GENERAL_INFO_FULL, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
 		}
 	}
 	// update data and file
-	checkup.SaveConclusionsRecommendations(data, result)
+	checkup.SaveReportResult(data, result)
 }

@@ -14,5 +14,3 @@ const MSG_RISKS_ARE_HIGH_CONCLUSION_2 string = "More on this topic:  \n" +
 const MSG_RISKS_ARE_HIGH_RECOMMENDATION string = "[P1] To minimize risks of transaction ID wraparound do the following:  \n" +
 	"1. Run `VACUUM FREEZE` for mentioned tables.  \n" +
 	"1. Perform autovacuum tuning to ensure that autovacuum has enough resources and runs often enough to minimize risks of transaction ID wraparound. Read articles provided in the \"Conclusions\" section for more details. "
-
-const MSG_NO_RECOMMENDATIONS string = "No recommendations."

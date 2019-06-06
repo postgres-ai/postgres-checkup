@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
+	"../log"
 	"../orderedmap"
 	"../pyraconv"
 )
@@ -39,22 +41,33 @@ type ReportLastNodes struct {
 	//	LastCheck
 }
 
-type ReportOutcome struct {
+type ReportResultItem struct {
+	Id      string
+	Message string
+}
+
+type ReportResult struct {
 	P1              bool
 	P2              bool
 	P3              bool
-	Conclusions     []string
-	Recommendations []string
+	Conclusions     []ReportResultItem
+	Recommendations []ReportResultItem
 }
 
-func (r *ReportOutcome) AppendConclusion(conclusion string, a ...interface{}) {
-	r.Conclusions = append(r.Conclusions, fmt.Sprintf(conclusion, a...))
+func (r *ReportResult) AppendConclusion(id string, conclusion string, a ...interface{}) {
+	r.Conclusions = append(r.Conclusions, ReportResultItem{
+		Id:      id,
+		Message: fmt.Sprintf(conclusion, a...),
+	})
 }
 
-func (r *ReportOutcome) AppendRecommendation(reccomendation string,
+func (r *ReportResult) AppendRecommendation(id string, reccomendation string,
 	a ...interface{}) {
 	if reccomendation != "" {
-		r.Recommendations = append(r.Recommendations, fmt.Sprintf(reccomendation, a...))
+		r.Recommendations = append(r.Recommendations, ReportResultItem{
+			Id:      id,
+			Message: fmt.Sprintf(reccomendation, a...),
+		})
 	}
 }
 
@@ -71,8 +84,15 @@ func LoadRawJsonReport(filePath string) []byte {
 	return jsonRaw
 }
 
-func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions []string,
-	recommendations []string, p1 bool, p2 bool, p3 bool) {
+func CheckUnmarshalResult(err error) bool {
+	if err != nil {
+		log.Err("Cannot load json report to process")
+		return false
+	}
+	return true
+}
+
+func SaveJsonReportResults(data map[string]interface{}, reportResult ReportResult) {
 	filePath := pyraconv.ToString(data["source_path_full"])
 	jsonData, err := ioutil.ReadFile(filePath) // just pass the file name
 	if err != nil {
@@ -82,11 +102,12 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 	if err := json.Unmarshal([]byte(jsonData), &orderedData); err != nil {
 		return
 	} else {
-		orderedData.Set("conclusions", conclusions)
-		orderedData.Set("recommendations", recommendations)
-		orderedData.Set("p1", p1)
-		orderedData.Set("p2", p2)
-		orderedData.Set("p3", p3)
+		orderedData.Set("processed", true)
+		orderedData.Set("conclusions", reportResult.Conclusions)
+		orderedData.Set("recommendations", reportResult.Recommendations)
+		orderedData.Set("p1", reportResult.P1)
+		orderedData.Set("p2", reportResult.P2)
+		orderedData.Set("p3", reportResult.P3)
 		resultJson, merr := orderedData.MarshalJSON()
 		if merr != nil {
 			return
@@ -102,33 +123,15 @@ func SaveJsonConclusionsRecommendations(data map[string]interface{}, conclusions
 	}
 }
 
-func SaveConclusionsRecommendations(data map[string]interface{},
-	result ReportOutcome) map[string]interface{} {
-	if len(result.Conclusions) == 0 {
-		result.AppendConclusion(MSG_ALL_GOOD_CONCLUSION)
-	}
-	if len(result.Recommendations) == 0 {
-		result.AppendRecommendation(MSG_NO_RECOMMENDATION)
-	}
+func SaveReportResult(data map[string]interface{},
+	result ReportResult) map[string]interface{} {
 	data["conclusions"] = result.Conclusions
 	data["recommendations"] = result.Recommendations
 	data["p1"] = result.P1
 	data["p2"] = result.P2
 	data["p3"] = result.P3
-	SaveJsonConclusionsRecommendations(data, result.Conclusions, result.Recommendations, result.P1, result.P2, result.P3)
+	SaveJsonReportResults(data, result)
 	return data
-}
-
-func PrintConclusions(result ReportOutcome) {
-	for _, conclusion := range result.Conclusions {
-		fmt.Println("C:  ", conclusion)
-	}
-}
-
-func PrintReccomendations(result ReportOutcome) {
-	for _, recommendation := range result.Recommendations {
-		fmt.Println("R:  ", recommendation)
-	}
 }
 
 func GetUniques(array []string) []string {
@@ -153,5 +156,44 @@ func LimitList(array []string) []string {
 		limitedArray := array[0:RECOMMENDATION_ITEMS_LIMIT]
 		limitedArray = append(limitedArray, MSG_ETC_ITEM)
 		return limitedArray
+	}
+}
+
+func InList(items []string, item string) bool {
+	for _, itemValue := range items {
+		if strings.Trim(itemValue, " \n") == strings.Trim(item, " \n") {
+			return true
+		}
+	}
+	return false
+}
+
+func InListPartial(items []string, item string) bool {
+	for _, itemValue := range items {
+		if strings.Contains(strings.Trim(itemValue, " \n"), strings.Trim(item, " \n")) {
+			return true
+		}
+	}
+	return false
+}
+
+func ResultInList(items []ReportResultItem, id string) bool {
+	for _, itemValue := range items {
+		if itemValue.Id == id {
+			return true
+		}
+	}
+	return false
+}
+
+func PrintResultConclusions(result ReportResult) {
+	for _, conclusion := range result.Conclusions {
+		fmt.Println("C:  ", conclusion.Message)
+	}
+}
+
+func PrintResultRecommendations(result ReportResult) {
+	for _, recommendation := range result.Recommendations {
+		fmt.Println("R:  ", recommendation.Message)
 	}
 }

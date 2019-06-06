@@ -85,16 +85,23 @@ Output of `df -TPh` (follows symlinks)
 
 ## Conclusions ##
 
-{{- if .conclusions }}
-{{ range $conclusion := .conclusions -}}
-- {{ $conclusion }}
-{{ end }}
+{{- if .processed }}
+ {{- if .conclusions }}
+  {{ range $conclusion := .conclusions -}}
+   - {{ $conclusion.Message }}
+  {{ end }}
+ {{else}}
+ {{end}}
 {{ end }}
 
 ## Recommendations ##
 
-{{- if .recommendations }}
-{{ range $recommendation := .recommendations -}}
-- {{ $recommendation }}
-{{ end }}
+{{- if .processed }}
+ {{- if .recommendations }}
+  {{ range $recommendation := .recommendations -}}
+   - {{ $recommendation.Message }}
+  {{ end }}
+ {{else}}
+  All good, no recommendations here.
+ {{end}}
 {{ end }}

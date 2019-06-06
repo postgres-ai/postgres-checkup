@@ -51,17 +51,23 @@ Nothing found
 
 ## Conclusions ##
 
-{{- if .conclusions }}
-{{ range $conclusion := .conclusions -}}
-- {{ $conclusion }}
-{{ end }}
+{{- if .processed }}
+ {{- if .conclusions }}
+  {{ range $conclusion := .conclusions -}}
+   - {{ $conclusion.Message }}
+  {{ end }}
+ {{else}}
+ {{end}}
 {{ end }}
 
 ## Recommendations ##
 
-{{- if .recommendations }}
-{{ range $recommendation := .recommendations -}}
-- {{ $recommendation }}
+{{- if .processed }}
+ {{- if .recommendations }}
+  {{ range $recommendation := .recommendations -}}
+   - {{ $recommendation.Message }}
+  {{ end }}
+ {{else}}
+  All good, no recommendations here.
+ {{end}}
 {{ end }}
-{{ end }}
-

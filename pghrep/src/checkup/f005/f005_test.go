@@ -11,16 +11,16 @@ func TestF005Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F005Report
 	var hostResult F005ReportHostResult
+	hostResult.Data.DatabaseSizeBytes = 102105317376
 	hostResult.Data.IndexBloatTotal = F005IndexBloatTotal{
 		Count:                104,
-		ExtraSizeBytesSum:    25526329344,
-		RealSizeBytesSum:     25526329344,
-		BloatSizeBytesSum:    25526329344,
+		ExtraSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
+		RealSizeBytesSum:     hostResult.Data.DatabaseSizeBytes / 4,
+		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
 			Num:               1,
@@ -59,55 +59,57 @@ func TestF005Success(t *testing.T) {
 			BloatRatio:        1.0,
 		},
 	}
-	hostResult.Data.DatabaseSizeBytes = 9828637208
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 || result.P2 || result.P3 &&
+		checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_LOW) {
 		t.Fatal("TestF005Success failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF005TotalExcess(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F005Report
 	var hostResult F005ReportHostResult
+	hostResult.Data.DatabaseSizeBytes = 102105317376
 	hostResult.Data.IndexBloatTotal = F005IndexBloatTotal{
 		Count:                104,
-		ExtraSizeBytesSum:    25526329344,
-		RealSizeBytesSum:     25526329344,
-		BloatSizeBytesSum:    25526329344,
-		LiveDataSizeBytesSum: 457681690624,
+		ExtraSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
+		RealSizeBytesSum:     hostResult.Data.DatabaseSizeBytes / 4,
+		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
+		LiveDataSizeBytesSum: hostResult.Data.DatabaseSizeBytes / 4,
 		BloatRatioPercentAvg: 25.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 		TableSizeBytesSum:    25526329344 * 5,
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{}
-	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
-	if !result.P1 {
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_EXCESS) ||
+		!checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {
 		t.Fatal("TestF005TotalExcess failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF005Warnig(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F005Report
 	var hostResult F005ReportHostResult
+	hostResult.Data.DatabaseSizeBytes = 102105317376
 	hostResult.Data.IndexBloatTotal = F005IndexBloatTotal{
 		Count:                104,
-		ExtraSizeBytesSum:    25526329344,
-		RealSizeBytesSum:     25526329344,
-		BloatSizeBytesSum:    25526329344,
+		ExtraSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
+		RealSizeBytesSum:     hostResult.Data.DatabaseSizeBytes / 4,
+		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
 			Num:               1,
@@ -149,27 +151,29 @@ func TestF005Warnig(t *testing.T) {
 
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
-	if !result.P2 {
+	if !result.P2 ||
+		!checkup.ResultInList(result.Conclusions, F005_BLOAT_WARNING) ||
+		!checkup.ResultInList(result.Recommendations, F005_BLOAT_WARNING) {
 		t.Fatal("TestF005SWarnig failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestF005Critical(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F005Report
 	var hostResult F005ReportHostResult
+	hostResult.Data.DatabaseSizeBytes = 102105317376
 	hostResult.Data.IndexBloatTotal = F005IndexBloatTotal{
 		Count:                104,
-		ExtraSizeBytesSum:    25526329344,
-		RealSizeBytesSum:     25526329344,
-		BloatSizeBytesSum:    25526329344,
+		ExtraSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
+		RealSizeBytesSum:     hostResult.Data.DatabaseSizeBytes / 4,
+		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
 		BloatRatioAvg:        1.0389965180727816,
 	}
-	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
 			Num:               1,
@@ -211,9 +215,11 @@ func TestF005Critical(t *testing.T) {
 
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
-	if !result.P1 {
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, F005_BLOAT_CRITICAL) ||
+		!checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {
 		t.Fatal("TestF005SWarnig failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
