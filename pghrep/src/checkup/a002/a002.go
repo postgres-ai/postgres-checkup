@@ -204,7 +204,7 @@ func A002CheckMajorVersions(report A002Report, result checkup.ReportResult) chec
 		}
 		if MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1] > iMajorVersion {
 			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1])/100.0)
-			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
+			result.AppendRecommendation(A002_GENERAL_INFO_FULL, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
 			result.P3 = true
 		}
 		processed[majorVersion] = true
@@ -271,12 +271,8 @@ func A002PreprocessReportData(data map[string]interface{}) {
 		return
 	}
 	result := A002Process(report)
-	if len(result.Recommendations) > 0 {
-		if !result.P3 {
-			result.AppendRecommendation(A002_GENERAL_INFO_OFFICIAL, MSG_GENERAL_RECOMMENDATION_1)
-		} else {
-			result.AppendRecommendation(A002_GENERAL_INFO_FULL, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
-		}
+	if len(result.Recommendations) > 0 && !checkup.ResultInList(result.Recommendations, A002_GENERAL_INFO_FULL) {
+		result.AppendRecommendation(A002_GENERAL_INFO_OFFICIAL, MSG_GENERAL_RECOMMENDATION_1)
 	}
 	// update data and file
 	checkup.SaveReportResult(data, result)
