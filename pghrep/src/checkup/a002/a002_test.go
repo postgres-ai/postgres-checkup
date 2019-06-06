@@ -3,6 +3,7 @@ package a002
 import (
 	"fmt"
 	"testing"
+    "strings"
 
 	checkup ".."
 )
@@ -137,4 +138,38 @@ func TestA002LatestMajor(t *testing.T) {
 	}
 	checkup.PrintResultConclusions(result)
 	checkup.PrintResultRecommendations(result)
+}
+
+func TestA002RecommendationDuplicates(t *testing.T) {
+	fmt.Println(t.Name())
+	var report A002Report
+	var host1Result A002ReportHostResult
+	var host2Result A002ReportHostResult
+	host1Result.Data = A002ReportHostResultData{
+		Version:          "PostgreSQL 9.6.12 on x86_64-pc-linux-gnu (Ubuntu 9.6.11-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
+		ServerVersionNum: "90612",
+		ServerMajorVer:   "9.6",
+		ServerMinorVer:   "12",
+	}
+	host2Result.Data = A002ReportHostResultData{
+		Version:          "PostgreSQL 9.6.11 on x86_64-pc-linux-gnu (Ubuntu 9.6.11-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
+		ServerVersionNum: "90611",
+		ServerMajorVer:   "9.6",
+		ServerMinorVer:   "11",
+	}
+	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
+	result := A002Process(report)
+	for i, recommendation := range result.Recommendations {
+		message := recommendation.Message
+		for j, recom := range result.Recommendations {
+			msg := recom.Message
+			if i == j {
+				continue
+			}
+			if strings.Contains(strings.Trim(msg, " \n"), strings.Trim(message, " \n")) ||
+				strings.Contains(strings.Trim(message, " \n"), strings.Trim(msg, " \n")) {
+				t.Fatal("TestA002RecommendationDuplicates failed.\nRecommendation: \n" + msg + "\nsimilar to: \n" + message)
+			}
+		}
+	}
 }
