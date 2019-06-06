@@ -1,5 +1,5 @@
 # {{ .checkId }} Autovacuum: Transaction ID Wraparound Check #
-
+{{ $TABLE_LIST_LIMIT := 10 }}
 ## Observations ##
 - Data collected: {{ DtFormat .timestamptz }}
 - Current database: {{ .database }}
@@ -28,7 +28,7 @@
 {{- end -}}{{/* if per_instance exists */}}
 
 #### Tables in the observed database ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) 10 }}The list is limited to 10 items.{{ end }}
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) $TABLE_LIST_LIMIT }}The list is limited to {{ $TABLE_LIST_LIMIT }} items.{{ end }}
 
 | \# | Relation | Age | &#9660;&nbsp;Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid |
 |---|-------|-----|------------------|---------|-----------------|--------------------|
