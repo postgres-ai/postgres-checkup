@@ -8,6 +8,7 @@ import (
 )
 
 func TestGetMajorMinorVersion(t *testing.T) {
+	fmt.Println(t.Name())
 	major, minor := getMajorMinorVersion("110003")
 	if major != "11" || minor != "3" {
 		t.Fatal("TestGetMajorMinorVersion failed")
@@ -30,11 +31,15 @@ func TestA002Sucess(t *testing.T) {
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
 	result := A002Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 ||
+		result.P2 ||
+		result.P3 ||
+		!checkup.ResultInList(result.Conclusions, A002_ALL_VERSIONS_SAME) ||
+		!checkup.ResultInList(result.Conclusions, A002_LAST_MINOR_VERSION) {
 		t.Fatal("TestA002Sucess failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002IsSame(t *testing.T) {
@@ -56,11 +61,14 @@ func TestA002IsSame(t *testing.T) {
 	}
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
 	result := A002Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 ||
+		result.P2 ||
+		result.P3 ||
+		!checkup.ResultInList(result.Conclusions, A002_ALL_VERSIONS_SAME) {
 		t.Fatal("TestA002IsSame failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002IsNotSame(t *testing.T) {
@@ -82,11 +90,12 @@ func TestA002IsNotSame(t *testing.T) {
 	}
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
 	result := A002Process(report)
-	if !result.P2 {
+	if !result.P2 ||
+		!checkup.ResultInList(result.Conclusions, A002_NOT_ALL_VERSIONS_SAME) {
 		t.Fatal("TestA002IsNotSame failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002WrongVersion(t *testing.T) {
@@ -101,11 +110,13 @@ func TestA002WrongVersion(t *testing.T) {
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
 	result := A002Process(report)
-	if !result.P1 {
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, A002_UNKNOWN_VERSION) ||
+		!checkup.ResultInList(result.Recommendations, A002_UNKNOWN_VERSION) {
 		t.Fatal("TestA002WrongVersion failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA002LatestMajor(t *testing.T) {
@@ -120,9 +131,10 @@ func TestA002LatestMajor(t *testing.T) {
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
 	result := A002Process(report)
-	if !result.P3 {
+	if !result.P3 ||
+		!checkup.ResultInList(result.Recommendations, A002_NOT_LAST_MAJOR_VERSION) {
 		t.Fatal("TestA002LatestMajor failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
