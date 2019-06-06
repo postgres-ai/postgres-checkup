@@ -7,18 +7,6 @@ import (
 	checkup ".."
 )
 
-func printConclusions(result checkup.ReportOutcome) {
-	for _, conclusion := range result.Conclusions {
-		fmt.Println("C:  ", conclusion)
-	}
-}
-
-func printReccomendations(result checkup.ReportOutcome) {
-	for _, recommendation := range result.Recommendations {
-		fmt.Println("R:  ", recommendation)
-	}
-}
-
 func TestA008Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
@@ -35,11 +23,15 @@ func TestA008Success(t *testing.T) {
 	}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 ||
+		result.P2 ||
+		result.P3 ||
+		!checkup.ResultInList(result.Conclusions, A008_SPACE_USAGE_NORMAL) ||
+		len(result.Recommendations) > 0 {
 		t.Fatal("TestA008Success failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestA008NfsFileSystem(t *testing.T) {
@@ -69,14 +61,16 @@ func TestA008NfsFileSystem(t *testing.T) {
 		}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P1 {
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, A008_NFS_DISK) ||
+		!checkup.ResultInList(result.Recommendations, A008_NFS_DISK) {
 		t.Fatal("TestNfsFileSystem failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
-func TestA008NotReqFileSystem(t *testing.T) {
+func TestA008NotRecommendedFileSystem(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
 	var hostResult A008ReportHostResult
@@ -104,14 +98,16 @@ func TestA008NotReqFileSystem(t *testing.T) {
 	}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P3 {
-		t.Fatal("TestNotReqFileSystem failed")
+	if !result.P3 ||
+		!checkup.ResultInList(result.Conclusions, A008_NOT_RECOMMENDED_FS) ||
+		!checkup.ResultInList(result.Recommendations, A008_NOT_RECOMMENDED_FS) {
+		t.Fatal("TestA008NotRecommendedFileSystem failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
-func TestA008UserPercentCritical(t *testing.T) {
+func TestA008DiskUsageCritical(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
 	var hostResult A008ReportHostResult
@@ -127,14 +123,16 @@ func TestA008UserPercentCritical(t *testing.T) {
 	}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P1 {
-		t.Fatal("TestUserPercentCritical failed")
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, A008_SPACE_USAGE_CRITICAL) ||
+		!checkup.ResultInList(result.Recommendations, A008_SPACE_USAGE_CRITICAL) {
+		t.Fatal("TestA008DiskUsageCritical failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
-func TestA008UserPercentProblem(t *testing.T) {
+func TestA008DiskUsageWarning(t *testing.T) {
 	fmt.Println(t.Name())
 	var report A008Report
 	var hostResult A008ReportHostResult
@@ -150,9 +148,11 @@ func TestA008UserPercentProblem(t *testing.T) {
 	}}
 	report.Results = A008ReportHostsResults{"test-host": hostResult}
 	result := A008Process(report)
-	if !result.P2 {
-		t.Fatal("TestUserPercentProblem failed")
+	if !result.P2 ||
+		!checkup.ResultInList(result.Conclusions, A008_SPACE_USAGE_WARNING) ||
+		!checkup.ResultInList(result.Recommendations, A008_SPACE_USAGE_WARNING) {
+		t.Fatal("TestA008DiskUsageWarning failed")
 	}
-	printConclusions(result)
-	printReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }

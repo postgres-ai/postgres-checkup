@@ -29,17 +29,20 @@ func TestF002Success(t *testing.T) {
 			Warning:      0,
 		},
 	}
-
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if result.P1 || result.P2 || result.P3 {
+	if result.P1 ||
+		result.P2 ||
+		result.P3 ||
+		len(result.Conclusions) > 0 ||
+		len(result.Recommendations) > 0 {
 		t.Fatal("TestF002Success failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
-func TestF002ChecDatabases(t *testing.T) {
+func TestF002CheckDatabases(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -61,17 +64,18 @@ func TestF002ChecDatabases(t *testing.T) {
 			Warning:      0,
 		},
 	}
-
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if !result.P1 {
-		t.Fatal("TestF002Sucess failed")
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, F002_RISKS_ARE_HIGH) ||
+		!checkup.ResultInList(result.Recommendations, F002_RISKS_ARE_HIGH) {
+		t.Fatal("TestF002CheckDatabases failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
-func TestF002ChecTables(t *testing.T) {
+func TestF002CheckTables(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -115,17 +119,18 @@ func TestF002ChecTables(t *testing.T) {
 			OverridedSettings: false,
 		},
 	}
-
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if !result.P1 {
-		t.Fatal("TestF002Sucess failed")
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, F002_RISKS_ARE_HIGH) ||
+		!checkup.ResultInList(result.Recommendations, F002_RISKS_ARE_HIGH) {
+		t.Fatal("TestF002CheckTables failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
-func TestF002ChecDatabaseTables(t *testing.T) {
+func TestF002CheckDatabaseTables(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F002Report
 	var hostResult F002ReportHostResult
@@ -172,9 +177,11 @@ func TestF002ChecDatabaseTables(t *testing.T) {
 
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
 	result := F002Process(report)
-	if !result.P1 {
-		t.Fatal("TestF002Sucess failed")
+	if !result.P1 ||
+		!checkup.ResultInList(result.Conclusions, F002_RISKS_ARE_HIGH) ||
+		!checkup.ResultInList(result.Recommendations, F002_RISKS_ARE_HIGH) {
+		t.Fatal("TestF002CheckDatabaseTables failed")
 	}
-	checkup.PrintConclusions(result)
-	checkup.PrintReccomendations(result)
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
