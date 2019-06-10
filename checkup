@@ -827,7 +827,8 @@ host_pre_start_checks() {
   # choise host connection command
   # while checking ssh support
   # and determine NATIVE_HOSTNAME (a host key in JSON reports)
-  if NATIVE_HOSTNAME=$(ssh $HOST "hostname" 2>/dev/null); then
+  if NATIVE_HOSTNAME=$(ssh $HOST "hostname" 2>/dev/null) &&
+    [[ $HOST != "localhost" ]] && [[ $HOST != "127.0.0.1" ]];  then
     # ssh to remote host and use local psql (default)
     export CHECK_HOST_CMD="ssh ${HOST}"
     export SSH_SUPPORT="true"
