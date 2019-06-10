@@ -43,13 +43,15 @@ func F005Process(report F005Report) checkup.ReportResult {
 	var databaseSize int64
 	i := 0
 	for _, hostData := range report.Results {
+		sortedIndexes := checkup.GetItemsSortedByNum(hostData.Data.IndexBloat)
 		databaseSize = hostData.Data.DatabaseSizeBytes
 		totalData = hostData.Data.IndexBloatTotal
 		if hostData.Data.IndexBloatTotal.BloatRatioPercentAvg > CRITICAL_TOTAL_BLOAT_RATIO {
 			totalBloatIsCritical = true
 			result.P1 = true
 		}
-		for _, indexBloatData := range hostData.Data.IndexBloat {
+		for _, index := range sortedIndexes {
+			indexBloatData := hostData.Data.IndexBloat[index]
 			if totalBloatIsCritical && indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE && i < 5 {
 				top5Indexes = appendIndex(top5Indexes, indexBloatData)
 				i++
