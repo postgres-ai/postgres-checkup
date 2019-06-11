@@ -198,3 +198,17 @@ func PrintResultRecommendations(result ReportResult) {
 		fmt.Println("R:  ", recommendation.Message)
 	}
 }
+
+func GetMasterHostName(hosts ReportHosts) string {
+	var firstHostName string = ""
+	for hostName, host := range hosts {
+		if firstHostName == "" {
+			firstHostName = hostName
+		}
+
+		if host.Role == "master" {
+			return hostName
+		}
+	}
+	return firstHostName
+}
