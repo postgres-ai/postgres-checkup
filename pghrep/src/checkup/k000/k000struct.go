@@ -9,86 +9,6 @@ type K000Table struct {
 	CurrentMaxValue int64  `json:"Current max value"`
 }
 
-/*type K00Query struct {
-	RowNum                    int64   `json:"rownum"`
-	DiffCalls                 int64   `json:"diff_calls"`
-	PerSecCalls               float64 `json:"per_sec_calls"`
-	PerCallCalls              int64   `json:"per_call_calls"`
-	RatioCalls                float64 `json:"ratio_calls"`
-	DiffTotalTime             float64 `json:"diff_total_time"`
-	PerSecTotalTime           float64 `json:"per_sec_total_time"`
-	PerCallTotalTime          float64 `json:"per_call_total_time"`
-	RatioTotalTime            float64 `json:"ratio_total_time"`
-	DiffRows                  int64   `json:"diff_rows"`
-	PerSecRows                float64 `json:"per_sec_rows"`
-	PerCallRows               int64   `json:"per_call_rows"`
-	RatioRows                 float64 `json:"ratio_rows"`
-	DiffSharedBlksHit         int64   `json:"diff_shared_blks_hit"`
-	PerSecSharedBlksHit       float64 `json:"per_sec_shared_blks_hit"`
-	PerCallSharedBlksHit      float64 `json:"per_call_shared_blks_hit"`
-	RatioSharedBlksHit        float64 `json:"ratio_shared_blks_hit"`
-	DiffSharedBlksRead        int64   `json:"diff_shared_blks_read"`
-	PerSecSharedBlksRead      float64 `json:"per_sec_shared_blks_read"`
-	PerCallSharedBlksRead     float64 `json:"per_call_shared_blks_read",`
-	RatioSharedBlksRead       float64 `json:"ratio_shared_blks_read"`
-	DiffSharedBlksDirtied     int64   `json:"diff_shared_blks_dirtied"`
-	PerSecSharedBlksDirtied   float64 `json:"per_sec_shared_blks_dirtied"`
-	PerCallSharedBlksDirtied  float64 `json:"per_call_shared_blks_dirtied"`
-	RatioSharedBlksDirtied    float64 `json:"ratio_shared_blks_dirtied"`
-	DiffSharedBlksWritten     int64   `json:"diff_shared_blks_written"`
-	PerSecSharedBlksWritten   int64   `json:"per_sec_shared_blks_written"`
-	PerCallSharedBlksWritten  int64   `json:"per_call_shared_blks_written"`
-	RatioSharedBlksWritten    float64 `json:"ratio_shared_blks_written"`
-	DiffLocalBlksHit          int64   `json:"diff_local_blks_hit"`
-	PerSecLocalBlksHit        int64   `json:"per_sec_local_blks_hit"`
-	PerCallLocalBlksHit       int64   `json:"per_call_local_blks_hit"`
-	RatioLocalBlksHit         float64 `json:"ratio_local_blks_hit"`
-	DiffLocalBlksRead         int64   `json:"diff_local_blks_read"`
-	PerSecLocalBlksRead       int64   `json:"per_sec_local_blks_read"`
-	PerCallLocalBlksRead      int64   `json:"per_call_local_blks_read"`
-	RatioLocalBlksRead        float64 `json:"ratio_local_blks_read"`
-	DiffLocalBlksDirtied      int64   `json:"diff_local_blks_dirtied"`
-	PerSecLocalBlksDirtied    int64   `json:"per_sec_local_blks_dirtied"`
-	PerCallLocalBlksDirtied   int64   `json:"per_call_local_blks_dirtied"`
-	RatioLocalBlksDirtied     float64 `json:"ratio_local_blks_dirtied"`
-	DiffLocalBlksWritten      int64   `json:"diff_local_blks_written"`
-	PerSecLocalBlksWritten    int64   `json:"per_sec_local_blks_written"`
-	PerCallLocalBlksWritten   int64   `json:"per_call_local_blks_written"`
-	RatioLocalBlksWritten     float64 `json:"ratio_local_blks_written"`
-	DiffTempBlksRead          int64   `json:"diff_temp_blks_read"`
-	PerSecTempBlksRead        int64   `json:"per_sec_temp_blks_read"`
-	PerCallTempBlksRead       int64   `json:"per_call_temp_blks_read"`
-	RatioTempBlksRead         float64 `json:"ratio_temp_blks_read"`
-	DiffTempBlksWritten       int64   `json:"diff_temp_blks_written"`
-	PerSecTempBlksWritten     int64   `json:"per_sec_temp_blks_written"`
-	PerCallTempBlksWritten    int64   `json:"per_call_temp_blks_written"`
-	RatioTempBlksWritten      float64 `json:"ratio_temp_blks_written"`
-	DiffBlkReadTime           float64 `json:"diff_blk_read_time"`
-	PerSecBlkReadTime         float64 `json:"per_sec_blk_read_time"`
-	PerCallBlkReadTime        float64 `json:"per_call_blk_read_time"`
-	RatioBlkReadTime          float64 `json:"ratio_blk_read_time"`
-	DiffBlkWriteTime          int64   `json:"diff_blk_write_time"`
-	PerSecBlkWriteTime        int64   `json:"per_sec_blk_write_time"`
-	PerCallBlkWriteTime       int64   `json:"per_call_blk_write_time"`
-	RatioBlkWriteTime         float64 `json:"ratio_blk_write_time"`
-	DiffKcacheReads           int64   `json:"diff_kcache_reads"`
-	PerSecKcacheReads         int64   `json:"per_sec_kcache_reads"`
-	PerCallKcacheReads        int64   `json:"per_call_kcache_reads"`
-	RatioKcacheReads          float64 `json:"ratio_kcache_reads"`
-	DiffKcacheWrites          int64   `json:"diff_kcache_writes"`
-	PerSecKcacheWrites        int64   `json:"per_sec_kcache_writes"`
-	PerCallKcacheWrites       int64   `json:"per_call_kcache_writes"`
-	RatioKcacheWrites         float64 `json:"ratio_kcache_writes"`
-	DiffKcacheUserTimeMs      int64   `json:"diff_kcache_user_time_ms"`
-	PerSecKcacheUserTimeMs    int64   `json:"per_sec_kcache_user_time_ms"`
-	PerCallKcacheUserTimeMs   int64   `json:"per_call_kcache_user_time_ms"`
-	RatioKcacheUserTimeMs     float64 `json:"ratio_kcache_user_time_ms"`
-	DiffKcacheSystemTimeMs    int64   `json:"diff_kcache_system_time_ms"`
-	PerSecKcacheSystemTimeMs  int64   `json:"per_sec_kcache_system_time_ms"`
-	PerCallKcacheSystemTimeMs int64   `json:"per_call_kcache_system_time_ms"`
-	RatioKcacheSystemTimeMs   float64 `json:"ratio_kcache_system_time_ms"`
-}*/
-
 type K00Query struct {
 	RowNum                    int64   `json:"rownum"`
 	DiffCalls                 float64 `json:"diff_calls"`
@@ -167,11 +87,12 @@ type K00Query struct {
 	PerSecKcacheSystemTimeMs  float64 `json:"per_sec_kcache_system_time_ms"`
 	PerCallKcacheSystemTimeMs float64 `json:"per_call_kcache_system_time_ms"`
 	RatioKcacheSystemTimeMs   float64 `json:"ratio_kcache_system_time_ms"`
-	Md5                       string  `json:"md5"`
-	Queryid                   string  `json:"queryid"`
-	Query                     string  `json:"query"`
-	Link                      string  `json:"link"`
-	ReadableQueryid           string  `json:"readable_queryid"`
+
+	Md5             string `json:"md5"`
+	Queryid         string `json:"queryid"`
+	Query           string `json:"query"`
+	Link            string `json:"link"`
+	ReadableQueryid string `json:"readable_queryid"`
 }
 
 type K000HostData struct {

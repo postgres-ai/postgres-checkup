@@ -33,13 +33,13 @@ type F001Settings struct {
 	TableSettings  map[string]F001TableSetting  `json:"table_settings"`
 }
 
-type F001ReportHostData struct {
+type F001ReportHostResultData struct {
 	Settings F001Settings `json:"settings"`
 }
 
 type F001ReportHostResult struct {
-	Data      F001ReportHostData      `json:"data"`
-	NodesJson checkup.ReportLastNodes `json:"nodes.json"`
+	Data      F001ReportHostResultData `json:"data"`
+	NodesJson checkup.ReportLastNodes  `json:"nodes.json"`
 }
 
 type F001ReportHostsResults map[string]F001ReportHostResult

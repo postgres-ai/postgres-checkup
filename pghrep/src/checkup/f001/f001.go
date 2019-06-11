@@ -7,6 +7,9 @@ import (
 	"../../log"
 )
 
+// Case codes
+const F001_AUTOVACUUM_NOT_TUNED string = "F001_AUTOVACUUM_NOT_TUNED"
+
 func F001Process(report F001Report) checkup.ReportResult {
 	var result checkup.ReportResult
 	for host, hostData := range report.Results {
