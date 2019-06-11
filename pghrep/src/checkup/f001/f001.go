@@ -15,7 +15,7 @@ const F001_AUTOVACUUM_TUNE_RECOMMENDATION string = "F001_AUTOVACUUM_TUNE_RECOMME
 func F001Process(report F001Report) checkup.ReportResult {
 	var result checkup.ReportResult
 
-	for _, hostData := range report.Results {
+	for host, hostData := range report.Results {
 		autovacuumVacuumScaleFactor := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_scale_factor"]
 		autovacuumVacuumThreshold := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_threshold"]
 		autovacuumAnalyzeScaleFactor := hostData.Data.Settings.GlobalSettings["autovacuum_analyze_scale_factor"]
@@ -47,8 +47,8 @@ func F001Process(report F001Report) checkup.ReportResult {
 
 		if len(defaultValues) > 0 {
 			result.P1 = true
-			result.AppendConclusion(F001_AUTOVACUUM_NOT_TUNED, MSG_AUTOVACUUM_NOT_TUNED_CONCLUSION, strings.Join(checkup.LimitList(defaultValues), ""))
-			result.AppendRecommendation(F001_AUTOVACUUM_NOT_TUNED, MSG_AUTOVACUUM_NOT_TUNED_RECOMMENDATION)
+			result.AppendConclusion(F001_AUTOVACUUM_NOT_TUNED, MSG_AUTOVACUUM_NOT_TUNED_CONCLUSION, host, strings.Join(checkup.LimitList(defaultValues), ""))
+			result.AppendRecommendation(F001_AUTOVACUUM_NOT_TUNED, MSG_AUTOVACUUM_NOT_TUNED_RECOMMENDATION, host)
 		}
 	}
 
@@ -63,12 +63,16 @@ func F001PreprocessReportData(data map[string]interface{}) {
 	var report F001Report
 	filePath := data["source_path_full"].(string)
 	jsonRaw := checkup.LoadRawJsonReport(filePath)
+
 	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
 		return
 	}
+
 	result := F001Process(report)
+
 	if len(result.Recommendations) > 0 {
 	}
+
 	// update data and file
 	checkup.SaveReportResult(data, result)
 }

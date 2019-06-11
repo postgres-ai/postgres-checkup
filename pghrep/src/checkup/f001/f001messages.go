@@ -1,7 +1,7 @@
 package f001
 
-const MSG_AUTOVACUUM_NOT_TUNED_CONCLUSION string = "[P1] Autovacuum is not tuned. The following parameters are default, meaning that autovacuum behavior is far from optimal for an OLTP workload leading to higher levels of bloat in tables and indexes, lagging statistics:  \n%s  \n"
-const MSG_AUTOVACUUM_NOT_TUNED_RECOMMENDATION string = "[P1] Autovacuum is not tuned. Consider its tuning for your workload.  \n"
+const MSG_AUTOVACUUM_NOT_TUNED_CONCLUSION string = "[P1] Autovacuum is not tuned on server `%s`. The following parameters are default, meaning that autovacuum behavior is far from optimal for an OLTP workload leading to higher levels of bloat in tables and indexes, lagging statistics:  \n%s  \n"
+const MSG_AUTOVACUUM_NOT_TUNED_RECOMMENDATION string = "[P1] Autovacuum is not tuned on server `%s`. Consider its tuning for your workload.  \n"
 const MSG_AUTOVACUUM_TUNE_RECOMMENDATION string = "Useful links related to autovacuum tuning:  \n" +
 	"    - [PostgreSQL Documentation. 19.10. Automatic Vacuuming](https://www.postgresql.org/docs/current/runtime-config-autovacuum.html)  \n" +
 	"    - [Autovacuum Tuning Basics](https://www.2ndquadrant.com/en/blog/autovacuum-tuning-basics/) (2ndQuadrant, 2017)  \n" +
