@@ -130,6 +130,7 @@ func SaveReportResult(data map[string]interface{},
 	data["p1"] = result.P1
 	data["p2"] = result.P2
 	data["p3"] = result.P3
+	data["processed"] = true
 	SaveJsonReportResults(data, result)
 	return data
 }
