@@ -37,7 +37,7 @@ func TestG001Success(t *testing.T) {
 
 	if result.P1 || result.P2 || result.P3 &&
 		checkup.ResultInList(result.Conclusions, G001_SHARED_BUFFERS_NOT_OPTIMAL) {
-		t.Fatal("TestG001Success failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
@@ -75,7 +75,7 @@ func TestG001Low(t *testing.T) {
 		!checkup.ResultInList(result.Conclusions, G001_SHARED_BUFFERS_NOT_OPTIMAL) ||
 		!checkup.ResultInList(result.Recommendations, G001_SHARED_BUFFERS_NOT_OPTIMAL) ||
 		!checkup.ResultInList(result.Recommendations, G001_TUNE_SHARED_BUFFERS) {
-		t.Fatal("TestG001Low failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
@@ -113,7 +113,7 @@ func TestG001High(t *testing.T) {
 		!checkup.ResultInList(result.Conclusions, G001_SHARED_BUFFERS_NOT_OPTIMAL) ||
 		!checkup.ResultInList(result.Recommendations, G001_SHARED_BUFFERS_NOT_OPTIMAL) ||
 		!checkup.ResultInList(result.Recommendations, G001_TUNE_SHARED_BUFFERS) {
-		t.Fatal("TestG001High failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)

@@ -6,13 +6,13 @@ import (
 	checkup ".."
 )
 
-func A001LoadReportData(filePath string) (bool, A001Report) {
+func A001LoadReportData(filePath string) (A001Report, bool) {
 	var report A001Report
 	jsonRaw := checkup.LoadRawJsonReport(filePath)
 
 	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
-		return false, report
+		return report, false
 	}
 
-	return true, report
+	return report, true
 }

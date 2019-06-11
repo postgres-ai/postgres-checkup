@@ -47,7 +47,8 @@ func G001Process(report G001Report, a001 a001.A001Report) checkup.ReportResult {
 		var hostMemTotal int64
 
 		hostMemTotal = getHostMemTotal(a001, host)
-		recommendedValue := fmtutils.ByteFormat(float64(hostMemTotal/100*MIDDLE_PERCENT), 2)
+		recommendedBytes := hostMemTotal / 100 * MIDDLE_PERCENT
+		recommendedValue := fmtutils.ByteFormat(float64(recommendedBytes), 2)
 
 		if hostMemTotal == -1 {
 			continue
@@ -109,7 +110,7 @@ func G001PreprocessReportData(data map[string]interface{}) {
 	i := strings.LastIndex(filePath, string(os.PathSeparator))
 	path := filePath[:i+1]
 	a001FilePath := path + string(os.PathSeparator) + "A001_system_info.json"
-	ok, a001 := a001.A001LoadReportData(a001FilePath)
+	a001, ok := a001.A001LoadReportData(a001FilePath)
 
 	if !ok {
 		return
