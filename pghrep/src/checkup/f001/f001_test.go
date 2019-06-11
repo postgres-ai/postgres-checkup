@@ -56,7 +56,7 @@ func TestF001Successful(t *testing.T) {
 	result := F001Process(report)
 
 	if result.P1 || result.P2 || result.P3 {
-		t.Fatal("TestF001Successful failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
@@ -109,7 +109,7 @@ func TestF001AllCases(t *testing.T) {
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
-		t.Fatal("TestA002AllCases failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
@@ -161,7 +161,7 @@ func TestF001FirstCase(t *testing.T) {
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
-		t.Fatal("TestA002FirstCase failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
@@ -214,7 +214,7 @@ func TestF001SecondCase(t *testing.T) {
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
-		t.Fatal("TestA002SecondCase failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
@@ -267,7 +267,7 @@ func TestF001ThirdCase(t *testing.T) {
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
-		t.Fatal("TestA002ThirdCase failed")
+		t.Fatal()
 	}
 
 	checkup.PrintResultConclusions(result)
