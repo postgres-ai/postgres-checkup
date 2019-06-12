@@ -9,3 +9,6 @@ const MSG_TUNE_SHARED_BUFFERS_RECOMMENDATION string = "Useful links related to `
 	"    - [PostgreSQL documentation. 19.4. Resource Consumption](https://www.postgresql.org/docs/current/runtime-config-resource.html)  \n" +
 	"    - [Tuning Your PostgreSQL Server](https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server#shared_buffers) (PostgreSQL Wiki)  \n" +
 	"    - [annotated.conf](https://github.com/jberkus/annotated.conf) (Josh Berkus, 2018)  \n"
+
+const MSG_OOM_BASE_CONCLUSION string = "[P1] Potentially high risks of OOM. Memory-related settings on `%s` server look dangerous: there are potentially high risks to have [OOO (out of memory)](https://en.wikipedia.org/wiki/Out_of_memory).  \n"
+const MSG_OOM_BASE_RECOMMENDATION string = "[P1] Potentially high risks of OOM. Reconsider memory-related settings to minimize risks of OOM."
