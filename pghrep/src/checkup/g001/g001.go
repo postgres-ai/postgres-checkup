@@ -20,6 +20,7 @@ const OOM_PERCENT int64 = 90
 const G001_SHARED_BUFFERS_NOT_OPTIMAL string = "G001_SHARED_BUFFERS_NOT_OPTIMAL"
 const G001_TUNE_SHARED_BUFFERS string = "G001_TUNE_SHARED_BUFFERS"
 const G001_OOM string = "G001_OOM"
+const G001_TUNE_MEMORY string = "G001_TUNE_MEMORY"
 
 func getHostMemTotal(a001 a001.A001Report, host string) (int64, error) {
 	var result int64 = -1
@@ -146,6 +147,7 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 			result.P1 = true
 			result.AppendConclusion(G001_OOM, MSG_OOM_BASE_CONCLUSION, host)
 			result.AppendRecommendation(G001_OOM, MSG_OOM_BASE_RECOMMENDATION)
+			result.AppendRecommendation(G001_TUNE_MEMORY, MSG_TUNE_MEMORY_RECOMMENDATION)
 		}
 	}
 
