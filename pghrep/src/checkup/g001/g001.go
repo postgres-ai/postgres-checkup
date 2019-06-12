@@ -110,9 +110,9 @@ func G001PreprocessReportData(data map[string]interface{}) {
 	i := strings.LastIndex(filePath, string(os.PathSeparator))
 	path := filePath[:i+1]
 	a001FilePath := path + string(os.PathSeparator) + "A001_system_info.json"
-	a001, ok := a001.A001LoadReportData(a001FilePath)
+	a001, err := a001.A001LoadReportData(a001FilePath)
 
-	if !ok {
+	if err != nil {
 		return
 	}
 
