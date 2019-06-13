@@ -266,6 +266,7 @@ func G001PreprocessReportData(data map[string]interface{}) {
 	}
 
 	result, err := G001Process(report, a001)
+
 	if err == nil || (err != nil && len(result.Recommendations) > 0) {
 		// update data and file only if processed successful or some recommendations found
 		checkup.SaveReportResult(data, result)

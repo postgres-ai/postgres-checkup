@@ -58,7 +58,6 @@ var HostData map[string]G001Setting = map[string]G001Setting{
 	},
 }
 
-
 func TestG001OOM(t *testing.T) {
 	fmt.Println(t.Name())
 	// G001
