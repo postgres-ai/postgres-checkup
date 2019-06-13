@@ -2,17 +2,25 @@ package f001
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
 	checkup ".."
 )
 
+const AUTOVACUUM_VACUUM_SCALE_FACTOR_DEFAULT float64 = 0.2
+const AUTOVACUUM_VACUUM_THRESHOLD_DEFAULT float64 = 50
+const AUTOVACUUM_ANALYZE_SCALE_FACTOR_DEFAULT float64 = 0.1
+const AUTOVACUUM_ANALYZE_THRESHOLD_DEFAULT float64 = 50
+const AUTOVACUUM_VACUUM_COST_DELAY_DEFAULT float64 = 20
+const AUTOVACUUM_VACUUM_COST_LIMIT_DEFAULT float64 = -1
+
 // Case codes
 const F001_AUTOVACUUM_NOT_TUNED string = "F001_AUTOVACUUM_NOT_TUNED"
 const F001_AUTOVACUUM_TUNE_RECOMMENDATION string = "F001_AUTOVACUUM_TUNE_RECOMMENDATION"
 
-func F001Process(report F001Report) checkup.ReportResult {
+func F001Process(report F001Report) (checkup.ReportResult, error) {
 	var result checkup.ReportResult
 	var masterHostName string = checkup.GetMasterHostName(report.LastNodesJson.Hosts)
 
@@ -21,32 +29,42 @@ func F001Process(report F001Report) checkup.ReportResult {
 			continue
 		}
 
-		autovacuumVacuumScaleFactor := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_scale_factor"]
-		autovacuumVacuumThreshold := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_threshold"]
-		autovacuumAnalyzeScaleFactor := hostData.Data.Settings.GlobalSettings["autovacuum_analyze_scale_factor"]
-		autovacuumAnalyzeThreshold := hostData.Data.Settings.GlobalSettings["autovacuum_analyze_threshold"]
-		autovacuumVacuumCostDelay := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_cost_delay"]
-		autovacuumVacuumCostLimit := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_cost_limit"]
+		autovacuumVacuumScaleFactor, found1 := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_scale_factor"]
+		autovacuumVacuumThreshold, found2 := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_threshold"]
+		autovacuumAnalyzeScaleFactor, found3 := hostData.Data.Settings.GlobalSettings["autovacuum_analyze_scale_factor"]
+		autovacuumAnalyzeThreshold, found4 := hostData.Data.Settings.GlobalSettings["autovacuum_analyze_threshold"]
+		autovacuumVacuumCostDelay, found5 := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_cost_delay"]
+		autovacuumVacuumCostLimit, found6 := hostData.Data.Settings.GlobalSettings["autovacuum_vacuum_cost_limit"]
 
-		autovacuumVacuumScaleFactorValue, _ := strconv.ParseFloat(autovacuumVacuumScaleFactor.Setting, 64)
-		autovacuumVacuumThresholdValue, _ := strconv.ParseFloat(autovacuumVacuumThreshold.Setting, 64)
-		autovacuumAnalyzeScaleFactorValue, _ := strconv.ParseFloat(autovacuumAnalyzeScaleFactor.Setting, 64)
-		autovacuumAnalyzeThresholdValue, _ := strconv.ParseFloat(autovacuumAnalyzeThreshold.Setting, 64)
-		autovacuumVacuumCostDelayValue, _ := strconv.ParseFloat(autovacuumVacuumCostDelay.Setting, 64)
-		autovacuumVacuumCostLimitValue, _ := strconv.ParseFloat(autovacuumVacuumCostLimit.Setting, 64)
+		if !found1 || !found2 || !found3 || !found4 || !found5 || !found6 {
+			return result, fmt.Errorf("Data loading error")
+		}
+
+		autovacuumVacuumScaleFactorValue, err1 := strconv.ParseFloat(autovacuumVacuumScaleFactor.Setting, 64)
+		autovacuumVacuumThresholdValue, err2 := strconv.ParseFloat(autovacuumVacuumThreshold.Setting, 64)
+		autovacuumAnalyzeScaleFactorValue, err3 := strconv.ParseFloat(autovacuumAnalyzeScaleFactor.Setting, 64)
+		autovacuumAnalyzeThresholdValue, err4 := strconv.ParseFloat(autovacuumAnalyzeThreshold.Setting, 64)
+		autovacuumVacuumCostDelayValue, err5 := strconv.ParseFloat(autovacuumVacuumCostDelay.Setting, 64)
+		autovacuumVacuumCostLimitValue, err6 := strconv.ParseFloat(autovacuumVacuumCostLimit.Setting, 64)
+
+		if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
+			return result, fmt.Errorf("Data loading error")
+		}
 
 		var defaultValues []string
 
-		if autovacuumVacuumScaleFactorValue == 0.2 && autovacuumVacuumThresholdValue == 50 {
+		if autovacuumVacuumScaleFactorValue == AUTOVACUUM_VACUUM_SCALE_FACTOR_DEFAULT &&
+			autovacuumVacuumThresholdValue == AUTOVACUUM_VACUUM_THRESHOLD_DEFAULT {
 			defaultValues = append(defaultValues, "    - `autovacuum_vacuum_scale_factor` = 0.2 and `autovacuum_vacuum_threshold` = 50  ")
-
 		}
 
-		if autovacuumAnalyzeScaleFactorValue == 0.1 && autovacuumAnalyzeThresholdValue == 50 {
+		if autovacuumAnalyzeScaleFactorValue == AUTOVACUUM_ANALYZE_SCALE_FACTOR_DEFAULT &&
+			autovacuumAnalyzeThresholdValue == AUTOVACUUM_ANALYZE_THRESHOLD_DEFAULT {
 			defaultValues = append(defaultValues, "    - `autovacuum_analyze_scale_factor` = 0.1 and `autovacuum_analyze_threshold` = 50  ")
 		}
 
-		if autovacuumVacuumCostDelayValue == 20 && autovacuumVacuumCostLimitValue == -1 {
+		if autovacuumVacuumCostDelayValue == AUTOVACUUM_VACUUM_COST_DELAY_DEFAULT &&
+			autovacuumVacuumCostLimitValue == AUTOVACUUM_VACUUM_COST_LIMIT_DEFAULT {
 			defaultValues = append(defaultValues, "    - `autovacuum_vacuum_cost_delay` = 20 and `autovacuum_vacuum_cost_limit` = -1  ")
 		}
 
@@ -63,7 +81,7 @@ func F001Process(report F001Report) checkup.ReportResult {
 		result.AppendRecommendation(F001_AUTOVACUUM_TUNE_RECOMMENDATION, MSG_AUTOVACUUM_TUNE_RECOMMENDATION)
 	}
 
-	return result
+	return result, nil
 }
 
 func F001PreprocessReportData(data map[string]interface{}) {
@@ -75,11 +93,9 @@ func F001PreprocessReportData(data map[string]interface{}) {
 		return
 	}
 
-	result := F001Process(report)
+	result, err := F001Process(report)
 
-	if len(result.Recommendations) > 0 {
+	if err == nil {
+		checkup.SaveReportResult(data, result)
 	}
-
-	// update data and file
-	checkup.SaveReportResult(data, result)
 }

@@ -53,9 +53,9 @@ func TestF001Successful(t *testing.T) {
 
 	report.Results = F001ReportHostsResults{"test-host": hostResult}
 	report.LastNodesJson = TestLastNodesJson
-	result := F001Process(report)
+	result, err := F001Process(report)
 
-	if result.P1 || result.P2 || result.P3 {
+	if err != nil || result.P1 || result.P2 || result.P3 {
 		t.Fatal()
 	}
 
@@ -101,11 +101,9 @@ func TestF001AllCases(t *testing.T) {
 
 	report.Results = F001ReportHostsResults{"test-host": hostResult}
 	report.LastNodesJson = TestLastNodesJson
-	result := F001Process(report)
+	result, err := F001Process(report)
 
-	if !result.P1 ||
-		result.P2 ||
-		result.P3 ||
+	if err != nil || !result.P1 || result.P2 || result.P3 ||
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
@@ -153,11 +151,9 @@ func TestF001FirstCase(t *testing.T) {
 	}
 	report.Results = F001ReportHostsResults{"test-host": hostResult}
 	report.LastNodesJson = TestLastNodesJson
-	result := F001Process(report)
+	result, err := F001Process(report)
 
-	if !result.P1 ||
-		result.P2 ||
-		result.P3 ||
+	if err != nil || !result.P1 || result.P2 || result.P3 ||
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
@@ -204,13 +200,11 @@ func TestF001SecondCase(t *testing.T) {
 		},
 	}
 
-	report.Results = F001ReportHostsResults{"test-host": hostResult}	
+	report.Results = F001ReportHostsResults{"test-host": hostResult}
 	report.LastNodesJson = TestLastNodesJson
-	result := F001Process(report)
+	result, err := F001Process(report)
 
-	if !result.P1 ||
-		result.P2 ||
-		result.P3 ||
+	if err != nil || !result.P1 || result.P2 || result.P3 ||
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
@@ -259,11 +253,9 @@ func TestF001ThirdCase(t *testing.T) {
 
 	report.Results = F001ReportHostsResults{"test-host": hostResult}
 	report.LastNodesJson = TestLastNodesJson
-	result := F001Process(report)
+	result, err := F001Process(report)
 
-	if !result.P1 ||
-		result.P2 ||
-		result.P3 ||
+	if err != nil || !result.P1 || result.P2 || result.P3 ||
 		!checkup.ResultInList(result.Conclusions, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_NOT_TUNED) ||
 		!checkup.ResultInList(result.Recommendations, F001_AUTOVACUUM_TUNE_RECOMMENDATION) {
