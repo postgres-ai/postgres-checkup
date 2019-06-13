@@ -86,9 +86,10 @@ func getSettingValue(hostResult G001ReportHostResult, settingName string) (int64
 	}
 }
 
-func G001CheckSharedBuffers(report G001Report, a001 a001.A001Report, result checkup.ReportResult) checkup.ReportResult {
+func G001CheckSharedBuffers(report G001Report, a001 a001.A001Report, result checkup.ReportResult) (checkup.ReportResult, error) {
 	var conclusions []string
 	var recommendations []string
+	var processed int = 0
 
 	for host, hostData := range report.Results {
 		sharedBufferValue, err1 := getSettingValue(hostData, "shared_buffers")
@@ -121,6 +122,7 @@ func G001CheckSharedBuffers(report G001Report, a001 a001.A001Report, result chec
 				host, recommendedValue, MIDDLE_PERCENT, fmtutils.ByteFormat(float64(minLevel), 2),
 				MIN_PERCENT, fmtutils.ByteFormat(float64(maxLevel), 2), MAX_PERCENT))
 		}
+		processed++
 	}
 
 	if len(conclusions) > 0 {
@@ -133,11 +135,16 @@ func G001CheckSharedBuffers(report G001Report, a001 a001.A001Report, result chec
 		result.AppendRecommendation(G001_TUNE_SHARED_BUFFERS, MSG_TUNE_SHARED_BUFFERS_RECOMMENDATION)
 	}
 
-	return result
+	if processed == 0 && len(report.Results) > 0 {
+		return result, fmt.Errorf("Nothing processed")
+	} else {
+		return result, nil
+	}
 }
 
-func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.ReportResult) checkup.ReportResult {
+func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.ReportResult) (checkup.ReportResult, error) {
 	var masterHostName string = checkup.GetMasterHostName(report.LastNodesJson.Hosts)
+	var processed int = 0
 
 	for host, hostData := range report.Results {
 		if host != masterHostName {
@@ -155,7 +162,7 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 		hostSwapEnabled, err7 := getHostSwapEnabled(a001, host)
 
 		if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
-			return result
+			return result, fmt.Errorf("Prepare data error")
 		}
 
 		if autovacuumWorkMemBytes != -1 {
@@ -174,7 +181,7 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 			maxConnectionsWorkMemTerm := (maxConnections * 2 * workMemBytes) > (hostMemTotal * TERM_MEMORY_LEVEL / 100)
 			maxConnectionsWorkMemPercent := (maxConnections * 2 * workMemBytes) * 100 / hostMemTotal
 			autovacuumWorkMemTerm := (autovacuumWorkMemEffectiveBytes * autovacuumMaxWorkers) > (hostMemTotal * TERM_MEMORY_LEVEL / 100)
-			autovacuumWorkMemPercen := (autovacuumWorkMemEffectiveBytes * autovacuumMaxWorkers) * 100 / hostMemTotal
+			autovacuumWorkMemPercent := (autovacuumWorkMemEffectiveBytes * autovacuumMaxWorkers) * 100 / hostMemTotal
 
 			result.P1 = true
 			conclusion := fmt.Sprintf(MSG_OOM_BASE_CONCLUSION, host)
@@ -206,7 +213,7 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 				}
 				conclusion = conclusion + " " + fmt.Sprintf(MSG_OOM_AUTIVACUUM_WORKMEM_END, autovacuumMaxWorkers,
 					fmtutils.ByteFormat(float64(autovacuumWorkMemEffectiveBytes*autovacuumMaxWorkers), 2),
-					autovacuumWorkMemPercen)
+					autovacuumWorkMemPercent)
 				recommendation = recommendation + "    - `autovacuum_work_mem/autovacuum_max_workers` pair  \n"
 			}
 
@@ -218,16 +225,26 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 			result.AppendRecommendation(G001_OOM, recommendation)
 			result.AppendRecommendation(G001_TUNE_MEMORY, MSG_TUNE_MEMORY_RECOMMENDATION)
 		}
+		processed++
 	}
 
-	return result
+	if processed == 0 && len(report.Results) > 0 {
+		return result, fmt.Errorf("Nothing processed")
+	} else {
+		return result, nil
+	}
 }
 
-func G001Process(report G001Report, a001 a001.A001Report) checkup.ReportResult {
+func G001Process(report G001Report, a001 a001.A001Report) (checkup.ReportResult, error) {
 	var result checkup.ReportResult
-	result = G001CheckSharedBuffers(report, a001, result)
-	result = G001CheckOOMRisk(report, a001, result)
-	return result
+	var err1, err2 error
+	result, err1 = G001CheckSharedBuffers(report, a001, result)
+	result, err2 = G001CheckOOMRisk(report, a001, result)
+	if err1 != nil || err2 != nil {
+		return result, fmt.Errorf("Errors during analyze data")
+	} else {
+		return result, nil
+	}
 }
 
 func G001PreprocessReportData(data map[string]interface{}) {
@@ -248,8 +265,9 @@ func G001PreprocessReportData(data map[string]interface{}) {
 		return
 	}
 
-	result := G001Process(report, a001)
-
-	// update data and file
-	checkup.SaveReportResult(data, result)
+	result, err := G001Process(report, a001)
+	if err == nil || (err != nil && len(result.Recommendations) > 0) {
+		// update data and file only if processed successful or some recommendations found
+		checkup.SaveReportResult(data, result)
+	}
 }
