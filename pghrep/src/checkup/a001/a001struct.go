@@ -6,7 +6,8 @@ type A001ReportCpu struct {
 }
 
 type A001ReportRam struct {
-	MemTotal string `json:"MemTotal"`
+	MemTotal  string `json:"MemTotal"`
+	SwapTotal string `json:"SwapTotal"`
 }
 
 type A001ReportSystem struct {

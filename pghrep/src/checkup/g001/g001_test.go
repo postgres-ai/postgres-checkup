@@ -36,7 +36,8 @@ func TestG001Success(t *testing.T) {
 	var a001HostResult a001.A001ReportHostResult
 	a001HostResult.Data = a001.A001ReportHostResultData{
 		Ram: a001.A001ReportRam{
-			MemTotal: "65888240 kB",
+			MemTotal:  "65888240 kB",
+			SwapTotal: "0 kb",
 		},
 	}
 	a001Report.Results = a001.A001ReportHostsResults{"test-host": a001HostResult}
@@ -72,7 +73,8 @@ func TestG001SharedBuffersLow(t *testing.T) {
 	var a001HostResult a001.A001ReportHostResult
 	a001HostResult.Data = a001.A001ReportHostResultData{
 		Ram: a001.A001ReportRam{
-			MemTotal: "65888240 kB",
+			MemTotal:  "65888240 kB",
+			SwapTotal: "0 kb",
 		},
 	}
 	a001Report.Results = a001.A001ReportHostsResults{"test-host": a001HostResult}
@@ -110,7 +112,8 @@ func TestG001SharedBuffersHigh(t *testing.T) {
 	var a001HostResult a001.A001ReportHostResult
 	a001HostResult.Data = a001.A001ReportHostResultData{
 		Ram: a001.A001ReportRam{
-			MemTotal: "65888240 kB",
+			MemTotal:  "65888240 kB",
+			SwapTotal: "0 kb",
 		},
 	}
 	a001Report.Results = a001.A001ReportHostsResults{"test-host": a001HostResult}
@@ -157,7 +160,7 @@ func TestG001OOM(t *testing.T) {
 		},
 		"maintenance_work_mem": G001Setting{
 			Name:    "maintenance_work_mem",
-			Setting: "2097152",
+			Setting: "4097152",
 			Unit:    "kB",
 		},
 		"max_connections": G001Setting{
@@ -184,7 +187,8 @@ func TestG001OOM(t *testing.T) {
 	var a001HostResult a001.A001ReportHostResult
 	a001HostResult.Data = a001.A001ReportHostResultData{
 		Ram: a001.A001ReportRam{
-			MemTotal: "65888240 kB",
+			MemTotal:  "65888240 kB",
+			SwapTotal: "65888240 kb",
 		},
 	}
 	a001Report.Results = a001.A001ReportHostsResults{"test-host": a001HostResult}
