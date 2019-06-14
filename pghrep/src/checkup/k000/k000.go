@@ -8,7 +8,7 @@ import (
 	"github.com/dustin/go-humanize/english"
 )
 
-const MAX_QUERY_TOTAL_TIME float64 = 30
+const MAX_QUERY_TOTAL_TIME float64 = 30 // Percents from all workload during the analyzed period
 
 const K000_EXCESS_QUERY_TOTAL_TIME string = "K000_EXCESS_QUERY_TOTAL_TIME"
 
