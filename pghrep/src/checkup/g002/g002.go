@@ -18,11 +18,11 @@ func G002Process(report G002Report) (checkup.ReportResult, error) {
 		for _, settingData := range hostData.Data {
 			if settingData.CurrentState == "idle in transaction" && settingData.TxMore1h > 0 {
 				result.P1 = true
-				hosts = append(hosts, host)
+				hosts = append(hosts, "`"+host+"`")
 			}
 
 			if settingData.CurrentState == "active" && settingData.TxMore1h > 0 {
-				hosts = append(hosts, host)
+				hosts = append(hosts, "`"+host+"`")
 				result.P1 = true
 			}
 		}
