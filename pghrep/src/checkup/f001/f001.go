@@ -55,17 +55,23 @@ func F001Process(report F001Report) (checkup.ReportResult, error) {
 
 		if autovacuumVacuumScaleFactorValue == AUTOVACUUM_VACUUM_SCALE_FACTOR_DEFAULT &&
 			autovacuumVacuumThresholdValue == AUTOVACUUM_VACUUM_THRESHOLD_DEFAULT {
-			defaultValues = append(defaultValues, "    - `autovacuum_vacuum_scale_factor` = 0.2 and `autovacuum_vacuum_threshold` = 50  ")
+			defaultValues = append(defaultValues, fmt.Sprintf(
+				"    - `autovacuum_vacuum_scale_factor` = %.1f and `autovacuum_vacuum_threshold` = %.0f  \n",
+				AUTOVACUUM_VACUUM_SCALE_FACTOR_DEFAULT, AUTOVACUUM_VACUUM_THRESHOLD_DEFAULT))
 		}
 
 		if autovacuumAnalyzeScaleFactorValue == AUTOVACUUM_ANALYZE_SCALE_FACTOR_DEFAULT &&
 			autovacuumAnalyzeThresholdValue == AUTOVACUUM_ANALYZE_THRESHOLD_DEFAULT {
-			defaultValues = append(defaultValues, "    - `autovacuum_analyze_scale_factor` = 0.1 and `autovacuum_analyze_threshold` = 50  ")
+			defaultValues = append(defaultValues, fmt.Sprintf(
+				"    - `autovacuum_analyze_scale_factor` = %.1f and `autovacuum_analyze_threshold` = %.f  \n",
+				AUTOVACUUM_ANALYZE_SCALE_FACTOR_DEFAULT, AUTOVACUUM_ANALYZE_THRESHOLD_DEFAULT))
 		}
 
 		if autovacuumVacuumCostDelayValue == AUTOVACUUM_VACUUM_COST_DELAY_DEFAULT &&
 			autovacuumVacuumCostLimitValue == AUTOVACUUM_VACUUM_COST_LIMIT_DEFAULT {
-			defaultValues = append(defaultValues, "    - `autovacuum_vacuum_cost_delay` = 20 and `autovacuum_vacuum_cost_limit` = -1  ")
+			defaultValues = append(defaultValues, fmt.Sprintf(
+				"    - `autovacuum_vacuum_cost_delay` = %.0f and `autovacuum_vacuum_cost_limit` = %.0f  \n",
+				AUTOVACUUM_VACUUM_COST_DELAY_DEFAULT, AUTOVACUUM_VACUUM_COST_LIMIT_DEFAULT))
 		}
 
 		if len(defaultValues) > 0 {
