@@ -9,7 +9,7 @@ import (
 
 func TestG002Success(t *testing.T) {
 	fmt.Println(t.Name())
-	// G001
+
 	var report G002Report
 	var hostResult G002ReportHostResult
 	hostResult.Data = map[string]G002Connection{
@@ -40,7 +40,7 @@ func TestG002Success(t *testing.T) {
 
 func TestG002IdleInTransaction(t *testing.T) {
 	fmt.Println(t.Name())
-	// G001
+
 	var report G002Report
 	var hostResult G002ReportHostResult
 	hostResult.Data = map[string]G002Connection{
@@ -67,7 +67,7 @@ func TestG002IdleInTransaction(t *testing.T) {
 
 func TestG002ActiveTransaction(t *testing.T) {
 	fmt.Println(t.Name())
-	// G001
+
 	var report G002Report
 	var hostResult G002ReportHostResult
 	hostResult.Data = map[string]G002Connection{
@@ -94,7 +94,7 @@ func TestG002ActiveTransaction(t *testing.T) {
 
 func TestG002ActiveTransactionNodes(t *testing.T) {
 	fmt.Println(t.Name())
-	// G001
+
 	var report G002Report
 	var hostResult G002ReportHostResult
 	hostResult.Data = map[string]G002Connection{
