@@ -39,13 +39,15 @@ func F004Process(report F004Report) checkup.ReportResult {
 	var totalData F004HeapBloatTotal
 	var databaseSize int64
 	for _, hostData := range report.Results {
+		sortedTables := checkup.GetItemsSortedByNum(hostData.Data.HeapBloat)
 		databaseSize = hostData.Data.DatabaseSizeBytes
 		totalData = hostData.Data.HeapBloatTotal
 		if hostData.Data.HeapBloatTotal.BloatRatioPercentAvg > CRITICAL_TOTAL_BLOAT_RATIO {
 			totalBloatIsCritical = true
 			result.P1 = true
 		}
-		for _, heapBloatData := range hostData.Data.HeapBloat {
+		for _, table := range sortedTables {
+			heapBloatData := hostData.Data.HeapBloat[table]
 			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
 				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) {
 				warningTables = appendTable(warningTables, heapBloatData)
