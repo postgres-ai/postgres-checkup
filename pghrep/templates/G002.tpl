@@ -13,7 +13,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
     {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-| {{ $key }} |{{ if eq (Trim (Trim $value.User "*") " ") "ALL users" }}{{ Trim (Trim $value.User "*") " " }}{{else}}`{{ Trim (Trim $value.User "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.DB "*") " ") "ALL databases" }}{{ Trim (Trim $value.DB "*") " " }}{{else}}`{{ Trim (Trim $value.DB "*") " " }}`{{end}}| {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }} | {{ index $value "Tx age >1m" }} | {{ index $value "Tx age >1h" }} | 
+| {{ $key }} |{{ if eq (Trim (Trim $value.user "*") " ") "ALL users" }}{{ Trim (Trim $value.user "*") " " }}{{else}}`{{ Trim (Trim $value.user "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.database "*") " ") "ALL databases" }}{{ Trim (Trim $value.database "*") " " }}{{else}}`{{ Trim (Trim $value.database "*") " " }}`{{end}}| {{ Trim (Trim (index $value "current_state") "*") " " }} | {{ $value.Count }} | {{ index $value "state_changed_more_1m_ago" }} | {{ index $value "state_changed_more_1h_ago" }} | {{ index $value "tx_age_more_1m" }} | {{ index $value "tx_age_more_1h" }} | 
 {{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
 {{ end }}{{/* if .host.master data */}}
@@ -32,7 +32,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}
-| {{ $key }} |{{ if eq (Trim (Trim $value.User "*") " ") "ALL users" }}{{ Trim (Trim $value.User "*") " " }}{{else}}`{{ Trim (Trim $value.User "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.DB "*") " ") "ALL databases" }}{{ Trim (Trim $value.DB "*") " " }}{{else}}`{{ Trim (Trim $value.DB "*") " " }}`{{end}}| {{ Trim (Trim (index $value "Current State") "*") " " }} | {{ $value.Count }} | {{ index $value "State changed >1m ago" }} | {{ index $value "State changed >1h ago" }} | {{ index $value "Tx age >1m" }} | {{ index $value "Tx age >1h" }} |{{/* if limit   list */}}{{ end }}
+| {{ $key }} |{{ if eq (Trim (Trim $value.user "*") " ") "ALL users" }}{{ Trim (Trim $value.user "*") " " }}{{else}}`{{ Trim (Trim $value.user "*") " " }}`{{end}}|{{ if eq (Trim (Trim $value.database "*") " ") "ALL databases" }}{{ Trim (Trim $value.database "*") " " }}{{else}}`{{ Trim (Trim $value.database "*") " " }}`{{end}}| {{ Trim (Trim (index $value "сurrent_state") "*") " " }} | {{ $value.count }} | {{ index $value "state_changed_more_1m_ago" }} | {{ index $value "state_changed_more_1h_ago" }} | {{ index $value "tx_age_more_1m" }} | {{ index $value "tx_age_more_1h" }} |{{/* if limit   list */}}{{ end }}
 {{ end }}{{/* data range */}}
 {{- else -}}{{/* if $.results $host */}}
 Nothing found
@@ -42,6 +42,23 @@ Nothing found
 
 ## Conclusions ##
 
+{{- if .processed }}
+ {{- if .conclusions }}
+  {{ range $conclusion := .conclusions -}}
+   - {{ $conclusion.Message }}
+  {{ end }}
+ {{else}}
+ {{end}}
+{{ end }}
 
 ## Recommendations ##
 
+{{- if .processed }}
+ {{- if .recommendations }}
+  {{ range $recommendation := .recommendations -}}
+   - {{ $recommendation.Message }}
+  {{ end }}
+ {{else}}
+  All good, no recommendations here.
+ {{end}}
+{{ end }}
