@@ -201,6 +201,22 @@ func PrintResultRecommendations(result ReportResult) {
 	}
 }
 
+func GetMasterHostName(hosts ReportHosts) string {
+	var firstHostName string = ""
+	
+	for hostName, host := range hosts {
+		if firstHostName == "" {
+			firstHostName = hostName
+		}
+
+		if host.Role == "master" {
+			return hostName
+		}
+	}
+	
+	return firstHostName
+}
+
 // Get map keys sorted by field num inside struct
 func GetItemsSortedByNum(data interface{}) []string {
 	var result []string
