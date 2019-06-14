@@ -30,6 +30,7 @@ import (
 	"./checkup/f005"
 	"./checkup/g001"
 	"./checkup/h001"
+    "./checkup/k000"
 
 	"./log"
 	"./orderedmap"
@@ -429,7 +430,8 @@ func preprocessReportData(checkId string, data map[string]interface{}) {
 		f005.F005PreprocessReportData(data)
 	case "G001":
 		g001.G001PreprocessReportData(data)
-
+	case "K000":
+		k000.K000PreprocessReportData(data)
 	}
 	return
 }
