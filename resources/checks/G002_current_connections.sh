@@ -2,14 +2,14 @@
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   select
-    coalesce(usename, '** ALL users **') as "User",
-    coalesce(datname, '** ALL databases **') as "DB",
-    coalesce(state, '** ALL states **') as "Current State",
-    count(*) as "Count",
-    count(*) filter (where state_change < now() - interval '1 minute') as "State changed >1m ago",
-    count(*) filter (where state_change < now() - interval '1 hour') as "State changed >1h ago",
-    count(*) filter (where xact_start < now() - interval '1 minute') as "Tx age >1m",
-    count(*) filter (where xact_start < now() - interval '1 hour') as "Tx age >1h"
+    coalesce(usename, '** ALL users **') as "user",
+    coalesce(datname, '** ALL databases **') as "database",
+    coalesce(state, '** ALL states **') as "current_state",
+    count(*) as "count",
+    count(*) filter (where state_change < now() - interval '1 minute') as "state_changed_more_1m_ago",
+    count(*) filter (where state_change < now() - interval '1 hour') as "state_changed_more_1h_ago",
+    count(*) filter (where xact_start < now() - interval '1 minute') as "tx_age_more_1m",
+    count(*) filter (where xact_start < now() - interval '1 hour') as "tx_age_more_1h"
   from pg_stat_activity
   group by grouping sets ((datname, usename, state), (usename, state), ())
   order by
