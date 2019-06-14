@@ -16,6 +16,7 @@ const AUTOVACUUM_MAX_WORKERS_DEFAULT int = 3
 const AUTOVACUUM_VACUUM_COST_LIMIT_DEFAULT int = -1
 const VACUUM_COST_LIMIT_DEFAULT int = 200
 const AUTOVACUUM_VACUUM_COST_DELAY_DEFAULT int = 20
+const CPU_COUNT int = 16
 
 const F008_MAX_WORKERS_LOW string = "F008_MAX_WORKERS_LOW"
 const F008_DELAY_NOT_TUNED string = "F008_DELAY_NOT_TUNED"
@@ -64,7 +65,7 @@ func F008CheckMaxWorkers(report F008Report, a001Report a001.A001Report,
 			return result, fmt.Errorf("Data loading error")
 		}
 
-		if cpuCount < 16 {
+		if cpuCount < CPU_COUNT {
 			continue
 		} else {
 			if maxWorkersCount == AUTOVACUUM_MAX_WORKERS_DEFAULT {
@@ -85,7 +86,6 @@ func F008CheckAutovacuumCost(report F008Report, a002Report a002.A002Report,
 	for host, hostData := range report.Results {
 		majorVersion, err1 := getMajorVersion(a002Report, host)
 		autovacuumVacuumCostLimit, found1 := hostData.Data["autovacuum_vacuum_cost_limit"]
-		//vacuumCostLimit, found2 := hostData.Data["vacuum_cost_limit"]
 		autovacuumVacuumCostDelay, found3 := hostData.Data["autovacuum_vacuum_cost_delay"]
 
 		if err1 != nil || !found1 || !found3 {
@@ -124,7 +124,7 @@ func F008Process(report F008Report, a001Report a001.A001Report,
 	result, err2 = F008CheckAutovacuumCost(report, a002Report, result)
 
 	if err1 != nil || err2 != nil {
-		return result, fmt.Errorf("Errors during analyze data")
+		return result, fmt.Errorf("Error during analyze data")
 	} else {
 		return result, nil
 	}
