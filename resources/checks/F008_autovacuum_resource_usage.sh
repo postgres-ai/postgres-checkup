@@ -13,6 +13,9 @@ ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
              'shared_buffers',
              'max_connections',
              'maintenance_work_mem',
-             'log_autovacuum_min_duration'
+             'log_autovacuum_min_duration',
+             'autovacuum_vacuum_cost_limit',
+             'vacuum_cost_limit',
+             'autovacuum_vacuum_cost_delay'
              )
 SQL

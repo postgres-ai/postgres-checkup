@@ -25,11 +25,15 @@ import (
 	"./checkup/a002"
 	"./checkup/a006"
 	"./checkup/a008"
+	"./checkup/f001"
 	"./checkup/f002"
 	"./checkup/f004"
 	"./checkup/f005"
+    "./checkup/f008"
 	"./checkup/g001"
+	"./checkup/g002"
 	"./checkup/h001"
+    "./checkup/k000"
 
 	"./log"
 	"./orderedmap"
@@ -421,15 +425,22 @@ func preprocessReportData(checkId string, data map[string]interface{}) {
 		a008.A008PreprocessReportData(data)
 	case "H001":
 		h001.H001PreprocessReportData(data)
+	case "F001":
+		f001.F001PreprocessReportData(data)
 	case "F002":
 		f002.F002PreprocessReportData(data)
 	case "F004":
 		f004.F004PreprocessReportData(data)
 	case "F005":
 		f005.F005PreprocessReportData(data)
+	case "F008":
+		f008.F008PreprocessReportData(data)
 	case "G001":
 		g001.G001PreprocessReportData(data)
-
+	case "G002":
+		g002.G002PreprocessReportData(data)
+	case "K000":
+		k000.K000PreprocessReportData(data)
 	}
 	return
 }

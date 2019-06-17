@@ -25,8 +25,8 @@ const MSG_BLOAT_PX_RECOMMENDATION string = "Read more on this topic:  \n" +
 	"    - [PostgreSQL Bloat: origins, monitoring and managing](https://www.compose.com/articles/postgresql-bloat-origins-monitoring-and-managing/) (2016, Compose)  \n" +
 	"    - [Dealing with significant Postgres database bloat — what are your options?](https://medium.com/compass-true-north/dealing-with-significant-postgres-database-bloat-what-are-your-options-a6c1814a03a5) (2018, Compass)  \n" +
 	"    - [Postgres database bloat analysis](https://about.gitlab.com/handbook/engineering/infrastructure/blueprint/201901-postgres-bloat/) (2019, GitLab)  \n"
-const MSG_BLOAT_WARNING_CONCLUSION_1 string = "[P2] There are %d table with size > 1 MiB and table bloat estimate >= %.0f%% and < %.0f%%:  \n%s  \n"
-const MSG_BLOAT_CRITICAL_CONCLUSION_1 string = "[P1] The following %d table have significant size (>1 MiB) and bloat estimate > %.0f%%:  \n%s  \n"
+const MSG_BLOAT_WARNING_CONCLUSION_1 string = "[P2] There is %d table with size > 1 MiB and table bloat estimate >= %.0f%% and < %.0f%%:  \n%s  \n"
+const MSG_BLOAT_CRITICAL_CONCLUSION_1 string = "[P1] The following %d table has significant size (>1 MiB) and bloat estimate > %.0f%%:  \n%s  \n"
 const MSG_BLOAT_WARNING_CONCLUSION_N string = "[P2] There are %d tables with size > 1 MiB and table bloat estimate >= %.0f%% and < %.0f%%:  \n%s  \n"
 const MSG_BLOAT_CRITICAL_CONCLUSION_N string = "[P1] The following %d tables have significant size (>1 MiB) and bloat estimate > %.0f%%:  \n%s  \n"
 const TABLE_DETAILS string = "    - `%s`: size %s, can be reduced %.2f times, by ~%s (~%.0f%%)  \n"

@@ -2,6 +2,7 @@ package a002
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -263,13 +264,24 @@ func A002Process(report A002Report) checkup.ReportResult {
 	return result
 }
 
-func A002PreprocessReportData(data map[string]interface{}) {
+func A002LoadReportData(filePath string) (A002Report, error) {
 	var report A002Report
-	filePath := data["source_path_full"].(string)
 	jsonRaw := checkup.LoadRawJsonReport(filePath)
+
 	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
+		return report, fmt.Errorf("Unable to load A002 report.")
+	}
+
+	return report, nil
+}
+
+func A002PreprocessReportData(data map[string]interface{}) {
+	report, err := A002LoadReportData(data["source_path_full"].(string))
+
+	if err != nil {
 		return
 	}
+
 	result := A002Process(report)
 	if len(result.Recommendations) > 0 && !checkup.ResultInList(result.Recommendations, A002_GENERAL_INFO_FULL) {
 		result.AppendRecommendation(A002_GENERAL_INFO_OFFICIAL, MSG_GENERAL_RECOMMENDATION_1)
