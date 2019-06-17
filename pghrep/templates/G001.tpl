@@ -22,11 +22,11 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
-| Setting name | Value |
-|-------------|-------|
+| Setting name | Value | Unit | Pretty value |
+|-------------|-------|------|--------------|
 {{ range $i, $key := (index (index (index $.results $host) "data") "_keys") }}
 {{- $value := (index (index (index $.results $host) "data") $key) -}}
-| [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ UnitValue $value.setting $value.unit}} |
+| [{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }}) | {{ $value.setting }}| {{ $value.unit }} | {{ UnitValue $value.setting $value.unit}} |
 {{ end }}
 {{- else -}}
 Nothing found
