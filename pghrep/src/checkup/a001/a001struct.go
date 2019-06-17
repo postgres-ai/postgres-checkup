@@ -3,10 +3,12 @@ package a001
 import checkup ".."
 
 type A001ReportCpu struct {
+	CpuCount string `json:"CPU(s)"`
 }
 
 type A001ReportRam struct {
-	MemTotal string `json:"MemTotal"`
+	MemTotal  string `json:"MemTotal"`
+	SwapTotal string `json:"SwapTotal"`
 }
 
 type A001ReportSystem struct {
