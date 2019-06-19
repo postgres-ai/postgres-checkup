@@ -16,6 +16,8 @@ import (
 	"golang.org/x/net/html"
 )
 
+const VERSION_SOURCE_URL string = "https://git.postxxxxgresql.org/gitweb/?p=postgresql.git;a=tags"
+
 // Case codes
 const A002_NOT_ALL_VERSIONS_SAME string = "A002_NOT_ALL_VERSIONS_SAME"
 const A002_ALL_VERSIONS_SAME string = "A002_ALL_VERSIONS_SAME"

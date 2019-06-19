@@ -1,7 +1,5 @@
 package a002
 
-const VERSION_SOURCE_URL string = "https://git.postgresql.org/gitweb/?p=postgresql.git;a=tags"
-
 const MSG_UNKNOWN_VERSION_CONCLUSION string = "[P1] Unknown PostgreSQL version `%s` on `%s`.  \n"
 const MSG_UNKNOWN_VERSION_RECOMMENDATION string = "[P1] Check PostgreSQL version on `%s`.  \n"
 const MSG_NOT_SUPPORTED_VERSION_CONCLUSION string = "[P1] Postgres major version being used is `%s` and it is " +
