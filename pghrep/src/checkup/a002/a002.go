@@ -29,41 +29,8 @@ const A002_NOT_LAST_MINOR_VERSION string = "A002_NOT_LAST_MINOR_VERSION"
 const A002_GENERAL_INFO_OFFICIAL string = "A002_GENERAL_OFFICIAL"
 const A002_GENERAL_INFO_FULL string = "A002_GENERAL_FULL"
 
-type SupportedVersion struct {
-	FirstRelease  string
-	FinalRelease  string
-	MinorVersions []int
-}
-
 var MAJOR_VERSIONS []int
-
-var SUPPORTED_VERSIONS map[string]SupportedVersion = map[string]SupportedVersion{
-	"11": SupportedVersion{
-		FirstRelease:  "2018-10-18",
-		FinalRelease:  "2023-11-09",
-		MinorVersions: []int{3},
-	},
-	"10": SupportedVersion{
-		FirstRelease:  "2017-10-05",
-		FinalRelease:  "2022-11-10",
-		MinorVersions: []int{8},
-	},
-	"9.6": SupportedVersion{
-		FirstRelease:  "2016-09-29",
-		FinalRelease:  "2021-11-11",
-		MinorVersions: []int{13},
-	},
-	"9.5": SupportedVersion{
-		FirstRelease:  "2016-01-07",
-		FinalRelease:  "2021-02-11",
-		MinorVersions: []int{17},
-	},
-	"9.4": SupportedVersion{
-		FirstRelease:  "2014-12-18",
-		FinalRelease:  "2020-02-13",
-		MinorVersions: []int{22},
-	},
-}
+var SUPPORTED_VERSIONS map[string]SupportedVersion
 
 func getMajorMinorVersion(serverVersion string) (string, string) {
 	var minorVersion string
@@ -78,62 +45,6 @@ func getMajorMinorVersion(serverVersion string) (string, string) {
 		majorVersion = serverVersion[0:2]
 	}
 	return majorVersion, minorVersion
-}
-
-func A002PrepareVersionInfo() {
-	var majorVersions map[int]bool
-	majorVersions = make(map[int]bool)
-	url := VERSION_SOURCE_URL
-	log.Dbg("HTML code of %s ...\n", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	htmlCode, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	domDocTest := html.NewTokenizer(strings.NewReader(string(htmlCode)))
-	for tokenType := domDocTest.Next(); tokenType != html.ErrorToken; {
-		if tokenType != html.TextToken {
-			tokenType = domDocTest.Next()
-			continue
-		}
-		rel := strings.TrimSpace(html.UnescapeString(string(domDocTest.Text())))
-		if len(rel) > 3 && rel[0:3] == "REL" {
-			if strings.Contains(rel, "BETA") || strings.Contains(rel, "RC") ||
-				strings.Contains(rel, "ALPHA") {
-				continue
-			}
-			ver := strings.Split(rel, "_")
-			if len(ver) > 2 {
-				majorVersion := strings.Replace(ver[0], "REL", "", 1)
-				if majorVersion != "" {
-					majorVersion = majorVersion + "."
-				}
-				majorVersion = majorVersion + ver[1]
-				intMajorVersion := strings.Replace(majorVersion, ".", "0", 1)
-				if len(intMajorVersion) < 3 {
-					intMajorVersion = intMajorVersion + "00"
-				}
-				iMVer, _ := strconv.Atoi(intMajorVersion)
-				majorVersions[iMVer] = true
-				minorVersion := ver[2]
-				ver, ok := SUPPORTED_VERSIONS[majorVersion]
-				if ok {
-					mVer, _ := strconv.Atoi(minorVersion)
-					ver.MinorVersions = append(ver.MinorVersions, mVer)
-					SUPPORTED_VERSIONS[majorVersion] = ver
-				}
-			}
-		}
-		tokenType = domDocTest.Next()
-	}
-	for ver, _ := range majorVersions {
-		MAJOR_VERSIONS = append(MAJOR_VERSIONS, ver)
-	}
-	sort.Ints(MAJOR_VERSIONS)
 }
 
 func A002CheckAllVersionsIsSame(report A002Report,
