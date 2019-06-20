@@ -9,7 +9,7 @@ import (
 	"time"
 
 	checkup ".."
-	"../config"
+	"../cfg"
 
 	"github.com/dustin/go-humanize/english"
 )
@@ -72,14 +72,12 @@ func A002CheckAllVersionsIsSame(report A002Report, result checkup.ReportResult) 
 	return result
 }
 
-func A002CheckMajorVersions(report A002Report, config config.Config,
+func A002CheckMajorVersions(report A002Report, config cfg.Config,
 	result checkup.ReportResult) checkup.ReportResult {
 	var processed map[string]bool = map[string]bool{}
 	for host, hostData := range report.Results {
 		majorVersion, _ := getMajorMinorVersion(hostData.Data.ServerVersionNum)
-		fmt.Printf("majorVersion: %s", majorVersion)
-		/*mjVersion := hostData.Data.ServerVersionNum[0 : len(hostData.Data.ServerVersionNum)-2]
-		iMajorVersion, _ := strconv.Atoi(mjVersion)*/
+		majorVersionNum, _ := getVersionNum(majorVersion)
 
 		if _, vok := processed[majorVersion]; vok {
 			// Version already checked.
@@ -111,12 +109,13 @@ func A002CheckMajorVersions(report A002Report, config config.Config,
 			result.AppendConclusion(MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 		}
 
-		// TODO(anatoly)
-		/*if MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1] > iMajorVersion {
-			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1])/100.0)
+		latestMajorVersionNum, _ := getLatestMajorVersionNum(config)
+
+		if majorVersionNum < latestMajorVersionNum {
+			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(latestMajorVersionNum)/100.0)
 			result.AppendRecommendation(A002_GENERAL_INFO_FULL, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
 			result.P3 = true
-		}*/
+		}
 
 		processed[majorVersion] = true
 	}
@@ -124,7 +123,7 @@ func A002CheckMajorVersions(report A002Report, config config.Config,
 	return result
 }
 
-func A002CheckMinorVersions(report A002Report, config config.Config,
+func A002CheckMinorVersions(report A002Report, config cfg.Config,
 	result checkup.ReportResult) checkup.ReportResult {
 	var updateHosts []string
 	var curVersions []string
@@ -167,7 +166,7 @@ func A002CheckMinorVersions(report A002Report, config config.Config,
 	return result
 }
 
-func A002PreprocessReportData(data map[string]interface{}, config config.Config) {
+func A002PreprocessReportData(data map[string]interface{}, config cfg.Config) {
 	report, err := A002LoadReportData(data["source_path_full"].(string))
 
 	if err != nil {
@@ -193,10 +192,38 @@ func A002LoadReportData(filePath string) (A002Report, error) {
 	return report, nil
 }
 
-func A002Process(report A002Report, config config.Config) checkup.ReportResult {
+func A002Process(report A002Report, config cfg.Config) checkup.ReportResult {
 	var result checkup.ReportResult
 	result = A002CheckAllVersionsIsSame(report, result)
 	result = A002CheckMajorVersions(report, config, result)
 	result = A002CheckMinorVersions(report, config, result)
 	return result
+}
+
+func getLatestMajorVersionNum(config cfg.Config) (int, error) {
+	versions := config.Versions
+	latest := 0
+	for majorVersion, _ := range versions {
+		current, err := getVersionNum(majorVersion)
+		if err != nil {
+			return 0, err
+		}
+
+		if current > latest {
+			latest = current
+		}
+	}
+
+	fmt.Printf("Latest version: %d", latest)
+
+	return latest, nil
+}
+
+// Convert version information to machine-readable version. Example: 9.6 -> 90600.
+func getVersionNum(version string) (int, error) {
+	versionNum := strings.Replace(version, ".", "0", 1)
+	if len(versionNum) < 3 {
+		versionNum = versionNum + "00"
+	}
+	return strconv.Atoi(versionNum)
 }

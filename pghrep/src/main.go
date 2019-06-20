@@ -25,7 +25,7 @@ import (
 	"./checkup/a002"
 	"./checkup/a006"
 	"./checkup/a008"
-	"./checkup/config"
+	"./checkup/cfg"
 	"./checkup/f001"
 	"./checkup/f002"
 	"./checkup/f004"
@@ -403,7 +403,7 @@ func main() {
 	determineMasterReplica(resultData)
 	reorderHosts(resultData)
 
-	config := config.Config{}
+	config := cfg.Config{}
 	err := config.Load()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("ERROR: Can't load configuration: %v", err))
@@ -423,7 +423,7 @@ func main() {
 	}
 }
 
-func preprocessReportData(checkId string, config config.Config,
+func preprocessReportData(checkId string, config cfg.Config,
 	data map[string]interface{}) {
 	switch checkId {
 	case "A002":

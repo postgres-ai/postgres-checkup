@@ -4,7 +4,7 @@
 2019 © Postgres.ai
 */
 
-package config
+package cfg
 
 import (
 	"io"
@@ -242,13 +242,4 @@ func fillVersions(versions map[string]Version, releases []string) error {
 	}
 
 	return nil
-}
-
-// Convert version information to machine-readable version. Example: 9.6 -> 90600.
-func getVersionNum(version string) (int, error) {
-	versionNum := strings.Replace(version, ".", "0", 1)
-	if len(versionNum) < 3 {
-		versionNum = versionNum + "00"
-	}
-	return strconv.Atoi(versionNum)
 }
