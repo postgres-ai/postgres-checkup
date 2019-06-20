@@ -27,21 +27,6 @@ const A002_NOT_LAST_MINOR_VERSION string = "A002_NOT_LAST_MINOR_VERSION"
 const A002_GENERAL_INFO_OFFICIAL string = "A002_GENERAL_OFFICIAL"
 const A002_GENERAL_INFO_FULL string = "A002_GENERAL_FULL"
 
-func getMajorMinorVersion(serverVersion string) (string, string) {
-	var minorVersion string
-	var majorVersion string
-	minorVersion = serverVersion[len(serverVersion)-2 : len(serverVersion)]
-	i, _ := strconv.Atoi(minorVersion)
-	minorVersion = strconv.Itoa(i)
-	if serverVersion[0:1] == "9" {
-		majorVersion = serverVersion[0:3]
-		majorVersion = strings.Replace(majorVersion, "0", ".", 1)
-	} else {
-		majorVersion = serverVersion[0:2]
-	}
-	return majorVersion, minorVersion
-}
-
 func A002CheckAllVersionsIsSame(report A002Report, result checkup.ReportResult) checkup.ReportResult {
 	var version string
 	var hosts []string
@@ -97,16 +82,16 @@ func A002CheckMajorVersions(report A002Report, config cfg.Config,
 		today := time.Now()
 		if final.Before(today) {
 			// Already not supported versions.
-			result.AppendConclusion(MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
-			result.AppendRecommendation(MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
+			result.AppendConclusion(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
+			result.AppendRecommendation(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
 			result.P1 = true
 		} else if yearBeforeFinal.Before(today) {
 			// Supported last year.
-			result.AppendConclusion(MSG_LAST_YEAR_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
+			result.AppendConclusion(A002_LAST_YEAR_SUPPORTED_VERSION, MSG_LAST_YEAR_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 			result.P2 = true
 		} else if start.Before(today) {
 			// Ok
-			result.AppendConclusion(MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
+			result.AppendConclusion(A002_SUPPORTED_VERSION, MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 		}
 
 		latestMajorVersionNum, _ := getLatestMajorVersionNum(config)
@@ -200,6 +185,21 @@ func A002Process(report A002Report, config cfg.Config) checkup.ReportResult {
 	return result
 }
 
+func getMajorMinorVersion(serverVersion string) (string, string) {
+	var minorVersion string
+	var majorVersion string
+	minorVersion = serverVersion[len(serverVersion)-2 : len(serverVersion)]
+	i, _ := strconv.Atoi(minorVersion)
+	minorVersion = strconv.Itoa(i)
+	if serverVersion[0:1] == "9" {
+		majorVersion = serverVersion[0:3]
+		majorVersion = strings.Replace(majorVersion, "0", ".", 1)
+	} else {
+		majorVersion = serverVersion[0:2]
+	}
+	return majorVersion, minorVersion
+}
+
 func getLatestMajorVersionNum(config cfg.Config) (int, error) {
 	versions := config.Versions
 	latest := 0
@@ -213,8 +213,6 @@ func getLatestMajorVersionNum(config cfg.Config) (int, error) {
 			latest = current
 		}
 	}
-
-	fmt.Printf("Latest version: %d", latest)
 
 	return latest, nil
 }
