@@ -406,7 +406,7 @@ func main() {
 	config := config.Config{}
 	err := config.Load()
 	if err != nil {
-		log.Fatal("ERROR: Can't load configuration.")
+		log.Fatal(fmt.Sprintf("ERROR: Can't load configuration: %v", err))
 	}
 	preprocessReportData(checkId, config, resultData)
 

@@ -7,6 +7,7 @@
 package config
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -180,6 +181,10 @@ func loadPostgresReleases() ([]string, error) {
 		tokenType := tokenizer.Next()
 
 		if tokenType == html.ErrorToken {
+			if tokenizer.Err() == io.EOF {
+				break
+			}
+
 			return []string{}, tokenizer.Err()
 		}
 
@@ -199,7 +204,7 @@ func loadPostgresReleases() ([]string, error) {
 	return releases, nil
 }
 
-// TODO(anatoly): Write tests.
+// TODO(anatoly): Test.
 func fillVersions(versions map[string]Version, releases []string) error {
 	// Samples: REL9_6_14, REL_10_9, REL_11_4, REL_11_BETA4.
 	for _, release := range releases {
@@ -225,12 +230,7 @@ func fillVersions(versions map[string]Version, releases []string) error {
 
 		version, ok := versions[majorVersion]
 		if !ok {
-			versions[majorVersion] = Version{
-				FirstRelease:  "",
-				FinalRelease:  "",
-				MinorVersions: []int{},
-			}
-			version, _ = versions[majorVersion]
+			continue
 		}
 
 		minorVersionInt, err := strconv.Atoi(minorVersion)

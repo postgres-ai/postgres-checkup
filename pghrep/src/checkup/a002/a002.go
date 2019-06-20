@@ -77,10 +77,12 @@ func A002CheckMajorVersions(report A002Report, config config.Config,
 	var processed map[string]bool = map[string]bool{}
 	for host, hostData := range report.Results {
 		majorVersion, _ := getMajorMinorVersion(hostData.Data.ServerVersionNum)
+		fmt.Printf("majorVersion: %s", majorVersion)
 		/*mjVersion := hostData.Data.ServerVersionNum[0 : len(hostData.Data.ServerVersionNum)-2]
 		iMajorVersion, _ := strconv.Atoi(mjVersion)*/
+
 		if _, vok := processed[majorVersion]; vok {
-			// version already checked
+			// Version already checked.
 			continue
 		}
 		ver, ok := config.Versions[majorVersion]
@@ -90,33 +92,35 @@ func A002CheckMajorVersions(report A002Report, config config.Config,
 			result.P1 = true
 			continue
 		}
-		from, _ := time.Parse("2006-01-02", ver.FirstRelease)
-		to, _ := time.Parse("2006-01-02", ver.FinalRelease)
-		yearBeforeFinal := to.AddDate(-1, 0, 0)
+
+		start, _ := time.Parse("2006-01-02", ver.FirstRelease)
+		final, _ := time.Parse("2006-01-02", ver.FinalRelease)
+		yearBeforeFinal := final.AddDate(-1, 0, 0)
 		today := time.Now()
-		if today.After(to) {
-			// already not supported versions
+		if final.Before(today) {
+			// Already not supported versions.
 			result.AppendConclusion(MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 			result.AppendRecommendation(MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
 			result.P1 = true
-		}
-		if today.After(yearBeforeFinal) && today.Before(to) {
-			// supported last year
+		} else if yearBeforeFinal.Before(today) {
+			// Supported last year.
 			result.AppendConclusion(MSG_LAST_YEAR_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 			result.P2 = true
-		}
-		if today.After(from) && today.After(to) {
-			// ok
+		} else if start.Before(today) {
+			// Ok
 			result.AppendConclusion(MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 		}
+
 		// TODO(anatoly)
 		/*if MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1] > iMajorVersion {
 			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1])/100.0)
 			result.AppendRecommendation(A002_GENERAL_INFO_FULL, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
 			result.P3 = true
 		}*/
+
 		processed[majorVersion] = true
 	}
+
 	return result
 }
 
