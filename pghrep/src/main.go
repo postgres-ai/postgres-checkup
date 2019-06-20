@@ -427,7 +427,7 @@ func preprocessReportData(checkId string, config config.Config,
 	data map[string]interface{}) {
 	switch checkId {
 	case "A002":
-		a002.A002PreprocessReportData(data)
+		a002.A002PreprocessReportData(data, config)
 	case "A006":
 		a006.A006PreprocessReportData(data)
 	case "A008":

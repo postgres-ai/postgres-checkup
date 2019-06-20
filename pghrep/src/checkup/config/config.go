@@ -31,7 +31,7 @@ const POSTGRES_RELEASES_URL string = "https://git.postgresql.org/gitweb/?p=postg
 const RELEASE_CODE = "REL"
 
 // TODO(anatoly): Fill up 12 version on release or load this information automatically.
-const VERSIONS_META map[string]Version = map[string]Version{
+var versionsDefault map[string]Version = map[string]Version{
 	"11": Version{
 		FirstRelease:  "2018-10-18",
 		FinalRelease:  "2023-11-09",
@@ -145,12 +145,14 @@ const VERSIONS_META map[string]Version = map[string]Version{
 }
 
 func (c *Config) Load() error {
+	c.Versions = versionsDefault
+
 	releases, err := loadPostgresReleases()
 	if err != nil {
 		return err
 	}
 
-	err = fillVersions(&c.Versions, releases)
+	err = fillVersions(c.Versions, releases)
 	if err != nil {
 		return err
 	}
@@ -197,6 +199,7 @@ func loadPostgresReleases() ([]string, error) {
 	return releases, nil
 }
 
+// TODO(anatoly): Write tests.
 func fillVersions(versions map[string]Version, releases []string) error {
 	// Samples: REL9_6_14, REL_10_9, REL_11_4, REL_11_BETA4.
 	for _, release := range releases {

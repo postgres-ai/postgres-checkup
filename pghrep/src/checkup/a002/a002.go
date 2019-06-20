@@ -3,19 +3,15 @@ package a002
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	checkup ".."
-	"../../log"
 	"../config"
 
 	"github.com/dustin/go-humanize/english"
-	"golang.org/x/net/html"
 )
 
 // Case codes
@@ -81,8 +77,8 @@ func A002CheckMajorVersions(report A002Report, config config.Config,
 	var processed map[string]bool = map[string]bool{}
 	for host, hostData := range report.Results {
 		majorVersion, _ := getMajorMinorVersion(hostData.Data.ServerVersionNum)
-		mjVersion := hostData.Data.ServerVersionNum[0 : len(hostData.Data.ServerVersionNum)-2]
-		iMajorVersion, _ := strconv.Atoi(mjVersion)
+		/*mjVersion := hostData.Data.ServerVersionNum[0 : len(hostData.Data.ServerVersionNum)-2]
+		iMajorVersion, _ := strconv.Atoi(mjVersion)*/
 		if _, vok := processed[majorVersion]; vok {
 			// version already checked
 			continue
@@ -195,7 +191,6 @@ func A002LoadReportData(filePath string) (A002Report, error) {
 
 func A002Process(report A002Report, config config.Config) checkup.ReportResult {
 	var result checkup.ReportResult
-	A002PrepareVersionInfo()
 	result = A002CheckAllVersionsIsSame(report, result)
 	result = A002CheckMajorVersions(report, config, result)
 	result = A002CheckMinorVersions(report, config, result)
