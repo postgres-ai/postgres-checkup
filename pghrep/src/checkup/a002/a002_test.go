@@ -2,8 +2,8 @@ package a002
 
 import (
 	"fmt"
+	"strings"
 	"testing"
-    "strings"
 
 	checkup ".."
 )

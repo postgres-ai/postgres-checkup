@@ -25,15 +25,16 @@ import (
 	"./checkup/a002"
 	"./checkup/a006"
 	"./checkup/a008"
+	"./checkup/config"
 	"./checkup/f001"
 	"./checkup/f002"
 	"./checkup/f004"
 	"./checkup/f005"
-    "./checkup/f008"
+	"./checkup/f008"
 	"./checkup/g001"
 	"./checkup/g002"
 	"./checkup/h001"
-    "./checkup/k000"
+	"./checkup/k000"
 
 	"./log"
 	"./orderedmap"
@@ -401,7 +402,14 @@ func main() {
 	loadDependencies(resultData)
 	determineMasterReplica(resultData)
 	reorderHosts(resultData)
-	preprocessReportData(checkId, resultData)
+
+	config := config.Config{}
+	err := config.Load()
+	if err != nil {
+		log.Fatal("ERROR: Can't load configuration.")
+	}
+	preprocessReportData(checkId, config, resultData)
+
 	resultData["LISTLIMIT"] = LISTLIMIT
 	var outputDir string
 	if len(*outDirPtr) == 0 {
@@ -415,7 +423,8 @@ func main() {
 	}
 }
 
-func preprocessReportData(checkId string, data map[string]interface{}) {
+func preprocessReportData(checkId string, config config.Config,
+	data map[string]interface{}) {
 	switch checkId {
 	case "A002":
 		a002.A002PreprocessReportData(data)
