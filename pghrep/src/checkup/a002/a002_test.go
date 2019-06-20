@@ -25,10 +25,10 @@ func TestA002Sucess(t *testing.T) {
 	var report A002Report
 	var hostResult A002ReportHostResult
 	hostResult.Data = A002ReportHostResultData{
-		Version:          "PostgreSQL 11.3 on x86_64-pc-linux-gnu (Ubuntu 11.22-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
-		ServerVersionNum: "110003",
+		Version:          "PostgreSQL 11.4 on x86_64-pc-linux-gnu (Ubuntu 11.22-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
+		ServerVersionNum: "110004",
 		ServerMajorVer:   "11",
-		ServerMinorVer:   "3",
+		ServerMinorVer:   "4",
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
 	result := A002Process(report)
@@ -49,16 +49,16 @@ func TestA002IsSame(t *testing.T) {
 	var host1Result A002ReportHostResult
 	var host2Result A002ReportHostResult
 	host1Result.Data = A002ReportHostResultData{
-		Version:          "PostgreSQL 11.3 on x86_64-pc-linux-gnu (Ubuntu 11.3-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
-		ServerVersionNum: "110003",
+		Version:          "PostgreSQL 11.4 on x86_64-pc-linux-gnu (Ubuntu 11.3-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
+		ServerVersionNum: "110004",
 		ServerMajorVer:   "11",
-		ServerMinorVer:   "3",
+		ServerMinorVer:   "4",
 	}
 	host2Result.Data = A002ReportHostResultData{
-		Version:          "PostgreSQL 11.3 on x86_64-pc-linux-gnu (Ubuntu 11.3-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
-		ServerVersionNum: "110003",
+		Version:          "PostgreSQL 11.4 on x86_64-pc-linux-gnu (Ubuntu 11.3-1.pgdg16.04+1), compiled by gcc (Ubuntu 5.4.0-6ubuntu1~16.04.10) 5.4.0 20160609, 64-bit",
+		ServerVersionNum: "110004",
 		ServerMajorVer:   "11",
-		ServerMinorVer:   "3",
+		ServerMinorVer:   "4",
 	}
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
 	result := A002Process(report)
