@@ -145,7 +145,13 @@ var versionsDefault map[string]Version = map[string]Version{
 	},
 }
 
-func (c *Config) Load() error {
+func NewConfig() Config {
+	config := Config{
+	}
+	return config
+}
+
+func (c *Config) LoadVersions() error {
 	c.Versions = versionsDefault
 
 	releases, err := loadPostgresReleases()
