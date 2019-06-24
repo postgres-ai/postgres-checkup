@@ -382,7 +382,7 @@ func main() {
 	if FileExists(checkData) {
 		resultData = LoadJsonFile(checkData)
 		if resultData == nil {
-			log.Fatal("ERROR: File given by --checkdata content wrong json data.")
+			log.Err("ERROR: File given by --checkdata content wrong json data.")
 			return
 		}
 		resultData["source_path_full"] = checkData
@@ -395,7 +395,8 @@ func main() {
 	if resultData != nil {
 		checkId = pyraconv.ToString(resultData["checkId"])
 	} else {
-		log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
+		log.Err("ERROR: Content given by --checkdata is wrong json content.")
+		return
 	}
 
 	config := cfg.NewConfig()
@@ -404,7 +405,11 @@ func main() {
 	loadDependencies(resultData)
 	determineMasterReplica(resultData)
 	reorderHosts(resultData)
-	preprocessReportData(checkId, config, resultData)
+	err := preprocessReportData(checkId, config, resultData)
+	if err != nil {
+		log.Err(err)
+		return
+	}
 
 	resultData["LISTLIMIT"] = LISTLIMIT
 	var outputDir string
@@ -415,18 +420,20 @@ func main() {
 	}
 	reportDone := generateMdReports(checkId, resultData, outputDir)
 	if !reportDone {
-		log.Fatal("Cannot generate report. Data file or template is wrong.")
+		log.Err("Cannot generate report. Data file or template is wrong.")
+		return
 	}
 }
 
 func preprocessReportData(checkId string, config cfg.Config,
-	data map[string]interface{}) {
+	data map[string]interface{}) error {
 	switch checkId {
 	case "A002":
 		err := config.LoadVersions()
 		if err != nil {
-			log.Fatal(fmt.Sprintf("ERROR: Can't load actual Postgres versions: %v", err))
+			return err
 		}
+
 		a002.A002PreprocessReportData(data, config)
 	case "A006":
 		a006.A006PreprocessReportData(data)
@@ -451,5 +458,6 @@ func preprocessReportData(checkId string, config cfg.Config,
 	case "K000":
 		k000.K000PreprocessReportData(data)
 	}
-	return
+
+	return nil
 }
