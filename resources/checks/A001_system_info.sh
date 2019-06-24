@@ -44,8 +44,12 @@ function get_mem_info() {
 
 function get_system_info() {
   local sys_info="$(${CHECK_HOST_CMD} "uname -a")"
+  local kernel_name="$(${CHECK_HOST_CMD} "uname -s")"
+  local kernel_version="$(${CHECK_HOST_CMD} "uname -v")"
+  local kernel_release="$(${CHECK_HOST_CMD} "uname -r")"
+  local operating_system="$(${CHECK_HOST_CMD} "uname -o")"
   #local sys_info="$(uname -a | sed 's/"/\\"/g')"
-  res_obj="{\"cmd2check\": \"uname -a\", \"raw\": \"$sys_info\"}"
+  res_obj="{\"cmd2check\": \"uname -a\", \"raw\": \"$sys_info\", \"kernel_name\": \"$kernel_name\", \"kernel_version\": \"$kernel_version\", \"kernel_release\": \"$kernel_release\", \"operating_system\": \"$operating_system\" }"
   OS_INFO=$res_obj #$(jq -n "$res_obj")
 }
 

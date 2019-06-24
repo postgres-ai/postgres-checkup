@@ -7,24 +7,23 @@ Data collected: {{ DtFormat .timestamptz }}
 ### Operating System by hosts ###
 
 | Host| Operating System | Kernel |
-|----|------------------|--------|
+|-----|------------------|--------|
 {{- if (index .results .hosts.master) }}
 {{- if (index (index .results .hosts.master) "data") }}
-{{- if (index (index (index .results .hosts.master) "data").virtualization) }}
-| {{ .hosts.master }} |
-{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }} |
-{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }} |
-{{- end -}}
-{{- end -}}
-{{- end -}}
+|{{ .hosts.master }}|
+{{- if index (index (index (index .results .hosts.master) "data").virtualization) "Operating System" }}
+{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }}
+{{- else }}{{- if index (index (index (index .results .hosts.master) "data").system) "operating_system" }}{{- index (index (index (index .results .hosts.master) "data").system) "operating_system" }}{{- end }}{{- end }}|
+{{- if index (index (index (index .results .hosts.master) "data").virtualization) "Kernel" }}{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }}{{- else }}{{- if index (index (index (index .results .hosts.master) "data").system) "kernel_release" }}{{- (index (index (index (index .results .hosts.master) "data").system) "kernel_release") }}{{- end }}{{ end}}|
+{{- end -}}{{/* master data */}}
+{{- end -}}{{/* master */}}
 {{- if gt (len .hosts.replicas) 0 -}}
     {{- range $key, $host := .hosts.replicas -}}
-        {{- if (index $.results $host) -}}
-            {{- if and (index $.results $host) (index (index $.results $host) "data") (index (index (index $.results $host) "data").virtualization) }}
-{{ $host }} |
-{{- (index (index (index (index $.results $host) "data").virtualization) "Operating System") }} |
-{{- (index (index (index (index $.results $host) "data").virtualization) "Kernel") }}
-            {{- end -}}
+        {{ if (index $.results $host) }}
+|{{ $host }}|
+{{- if and (index $.results $host) (index (index $.results $host) "data") }}{{- if (index (index (index (index $.results $host) "data").virtualization) "Operating System") }}{{- (index (index (index (index $.results $host) "data").virtualization) "Operating System") }}{{ else }}{{- if index (index (index (index $.results $host) "data").system) "operating_system" }}{{- index (index (index (index $.results $host) "data").system) "operating_system" }}{{- end }}{{- end -}}|
+{{- if (index (index (index (index $.results $host) "data").virtualization) "Kernel") -}}{{- (index (index (index (index $.results $host) "data").virtualization) "Kernel") }}{{- else -}}{{- if index (index (index (index $.results $host) "data").system) "kernel_release" }}{{- (index (index (index (index $.results $host) "data").system) "kernel_release") }}{{- end -}}{{- end -}}|
+{{- end -}}
         {{- end -}}
     {{- end }}
 {{ end }}
