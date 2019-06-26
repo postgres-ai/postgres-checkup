@@ -398,13 +398,17 @@ func main() {
 		log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
 	}
 
-	config := cfg.NewConfig()
-
 	checkId = strings.ToUpper(checkId)
 	loadDependencies(resultData)
 	determineMasterReplica(resultData)
 	reorderHosts(resultData)
-	preprocessReportData(checkId, config, resultData)
+
+	config := cfg.NewConfig()
+
+	err := preprocessReportData(checkId, config, resultData)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	resultData["LISTLIMIT"] = LISTLIMIT
 	var outputDir string
@@ -420,13 +424,16 @@ func main() {
 }
 
 func preprocessReportData(checkId string, config cfg.Config,
-	data map[string]interface{}) {
+	data map[string]interface{}) error {
 	switch checkId {
 	case "A002":
+		// Try to load actual Postgres versions.
 		err := config.LoadVersions()
 		if err != nil {
-			log.Fatal(fmt.Sprintf("ERROR: Can't load actual Postgres versions: %v", err))
+			// TODO(anatoly): Add warnings to the beginning of MD report.
+			log.Err("Cannot load latest Postgres versions. Recommendations may be inaccurate.", err)
 		}
+
 		a002.A002PreprocessReportData(data, config)
 	case "A006":
 		a006.A006PreprocessReportData(data)
@@ -451,5 +458,6 @@ func preprocessReportData(checkId string, config cfg.Config,
 	case "K000":
 		k000.K000PreprocessReportData(data)
 	}
-	return
+
+	return nil
 }
