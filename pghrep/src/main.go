@@ -453,7 +453,7 @@ func main() {
 
 	config := cfg.NewConfig()
 
-	err := preprocessReportData(checkId, config, resultData)
+	err = preprocessReportData(checkId, config, resultData)
 	if err != nil {
 		log.Fatal(err)
 	}
