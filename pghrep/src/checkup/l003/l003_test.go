@@ -28,7 +28,6 @@ func TestL003Success(t *testing.T) {
 	}
 
 	result, err := L003Process(report)
-
 	if err != nil || result.P1 ||
 		checkup.ResultInList(result.Conclusions, L003_HIGH_RISKS) ||
 		checkup.ResultInList(result.Recommendations, L003_HIGH_RISKS) {
@@ -60,7 +59,6 @@ func TestL003P1_1(t *testing.T) {
 	}
 
 	result, err := L003Process(report)
-
 	if err != nil || !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, L003_HIGH_RISKS) ||
 		!checkup.ResultInList(result.Recommendations, L003_HIGH_RISKS) {
@@ -99,7 +97,6 @@ func TestL003P1_N(t *testing.T) {
 	}
 
 	result, err := L003Process(report)
-
 	if err != nil || !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, L003_HIGH_RISKS) ||
 		!checkup.ResultInList(result.Recommendations, L003_HIGH_RISKS) {

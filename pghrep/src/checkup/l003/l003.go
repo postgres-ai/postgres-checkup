@@ -18,10 +18,12 @@ func L003Process(report L003Report) (checkup.ReportResult, error) {
 	var tables []string
 	for _, hostData := range report.Results {
 		for _, tableData := range hostData.Data {
-			if tableData.CapacityUsedPercent > MAX_RATIO_PERCENT {
-				tables = append(tables, fmt.Sprintf(MSG_HIGH_RISKS_TABLE,
-					tableData.Table, tableData.CurrentMaxValue, tableData.CapacityUsedPercent, tableData.Type))
+			if tableData.CapacityUsedPercent <= MAX_RATIO_PERCENT {
+				continue
 			}
+
+			tables = append(tables, fmt.Sprintf(MSG_HIGH_RISKS_TABLE,
+				tableData.Table, tableData.CurrentMaxValue, tableData.CapacityUsedPercent, tableData.Type))
 		}
 	}
 
@@ -47,8 +49,9 @@ func L003PreprocessReportData(data map[string]interface{}) {
 
 	result, err := L003Process(report)
 
-	if err == nil {
-		checkup.SaveReportResult(data, result)
+	if err != nil {
+		return
 	}
 
+	checkup.SaveReportResult(data, result)
 }

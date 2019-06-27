@@ -3,13 +3,13 @@ package l003
 const MSG_HIGH_RISKS_TABLE string = "    - `%s`: reached value %d, %.0f%% of `%s` capacity"
 const MSG_HIGH_RISKS_CONCLUSION_1 string = "[P1] High risks of out-of-range errors for integer column. The column listed below, being part of " +
 	"primary keys, have high risks to reach 100%% of the integer capacity (2^31-1 = 2147483647 for `int4` columns, and 2^15-1 = 32767 for `int2` ones; see " +
-	"[the documentation](https://www.postgresql.org/docs/{{MAJOR_VERSION}}/datatype-numeric.html). " +
+	"[the documentation](https://www.postgresql.org/docs/current/datatype-numeric.html). " +
 	"Once it happens, INSERTs of new rows will not be possible (unless they use some non-incremental " +
 	"values, such as negative values) and the fix will require long downtime. The such column:  \n%s."
 
 const MSG_HIGH_RISKS_CONCLUSION_N string = "[P1] High risks of out-of-range errors for integer columns. The columns listed below, being part of " +
 	"primary keys, have high risks to reach 100%% of the integer capacity (2^31-1 = 2147483647 for `int4` columns, and 2^15-1 = 32767 for `int2` ones; see " +
-	"[the documentation](https://www.postgresql.org/docs/{{MAJOR_VERSION}}/datatype-numeric.html). " +
+	"[the documentation](https://www.postgresql.org/docs/current/datatype-numeric.html). " +
 	"Once it happens, INSERTs of new rows will not be possible (unless they use some non-incremental " +
 	"values, such as negative values) and the fix will require long downtime. The list of such columns:  \n%s."
 
