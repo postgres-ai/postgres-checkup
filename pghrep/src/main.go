@@ -1,5 +1,5 @@
 /*
-Postgres Healt Reporter
+Postgres Health Reporter
 
 2018-2019 © Dmitry Udalov dmius@postgres.ai
 2018-2019 © Postgres.ai
@@ -53,7 +53,9 @@ func GetFilePath(name string) string {
 	if strings.HasPrefix(strings.ToLower(filePath), "file://") {
 		filePath = strings.Replace(filePath, "file://", "", 1)
 	}
-	if strings.HasPrefix(strings.ToLower(filePath), "/") {
+
+	if strings.HasPrefix(strings.ToLower(filePath), "/") /* for *nix paths */ ||
+		(len(filePath) > 1 && filePath[1] == ':') /* for windows path */ {
 		// absoulute path will use as is
 		return filePath
 	} else {
@@ -62,11 +64,13 @@ func GetFilePath(name string) string {
 		if err != nil {
 			log.Dbg("Can't determine current path")
 		}
+
 		if strings.HasSuffix(strings.ToLower(curDir), "/") {
 			filePath = curDir + filePath
 		} else {
 			filePath = curDir + "/" + filePath
 		}
+
 		return filePath
 	}
 }
@@ -81,6 +85,7 @@ func FileExists(name string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -106,8 +111,10 @@ func LoadJsonFile(filePath string) map[string]interface{} {
 			log.Err("Can't read file: ", filePath, err)
 			return nil
 		}
+
 		return ParseJson(string(fileContent))
 	}
+
 	return nil
 }
 
@@ -115,6 +122,7 @@ func LoadJsonFile(filePath string) map[string]interface{} {
 func loadDependencies(data map[string]interface{}) {
 	dep := data["dependencies"]
 	dependencies := dep.(map[string]interface{})
+
 	for key, value := range dependencies {
 		depData := LoadJsonFile(pyraconv.ToString(value))
 		dependencies[key] = depData
@@ -130,10 +138,12 @@ func loadTemplates() *template.Template {
 
 	var templates *template.Template
 	var allFiles []string
+
 	files, err := ioutil.ReadDir(dir + "/../templates")
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	for _, file := range files {
 		fileName := file.Name()
 		if strings.HasSuffix(fileName, ".tpl") {
@@ -192,7 +202,9 @@ func getRawData(data map[string]interface{}) {
 		masterItem["data"] = string(masterJson)
 		rawData = append(rawData, masterItem)
 	}
+
 	replicas := pyraconv.ToStringArray(hosts["replicas"])
+
 	for _, host := range replicas {
 		hostResults := pyraconv.ToInterfaceMap(results[host])
 		hostData := pyraconv.ToInterfaceMap(hostResults["data"])
@@ -204,6 +216,7 @@ func getRawData(data map[string]interface{}) {
 			rawData = append(rawData, hostItem)
 		}
 	}
+
 	data["rawData"] = rawData
 }
 
@@ -213,9 +226,9 @@ CheckId can be either ID of concrete check (e.g. H003) or represent the whole ca
 */
 func generateMdReports(checkId string, reportData map[string]interface{}, outputDir string) bool {
 	category := checkId[0:1]
-	checkNum, err := strconv.ParseInt(checkId[1:4], 10, 64)
-
 	reportPrefix := ""
+	
+	checkNum, err := strconv.ParseInt(checkId[1:4], 10, 64)
 	if checkNum != 0 {
 		reportPrefix = checkId // specified check given
 	} else {
@@ -227,17 +240,20 @@ func generateMdReports(checkId string, reportData map[string]interface{}, output
 		log.Err(err)
 		return false
 	}
+
 	files, err := ioutil.ReadDir(dir + "/../templates")
 	if err != nil {
 		log.Err(err)
 		return false
 	}
+
 	for _, file := range files {
 		fileName := file.Name()
 		if strings.HasPrefix(fileName, reportPrefix) && strings.HasSuffix(fileName, ".tpl") {
 			curCheckId := fileName[0:4]
 			outputFileName := strings.Replace(fileName, ".tpl", ".md", -1)
 			reportData["checkId"] = curCheckId
+			
 			if !generateMdReport(curCheckId, outputFileName, reportData, outputDir) {
 				log.Err("Can't generate report " + outputFileName + " based on " + checkId + " json data")
 				return false
@@ -251,22 +267,26 @@ func generateMdReports(checkId string, reportData map[string]interface{}, output
 // Generate md report (file) on base of reportData and save them to file in outputDir
 func generateMdReport(checkId string, reportFilename string, reportData map[string]interface{}, outputDir string) bool {
 	var outputFileName string
+
 	if len(reportFilename) > 0 {
 		outputFileName = reportFilename
 	} else {
 		outputFileName = checkId + ".md"
 	}
+
 	if strings.HasSuffix(strings.ToLower(outputDir), "/") {
 		outputFileName = outputDir + outputFileName
 	} else {
 		outputFileName = outputDir + "/" + outputFileName
 	}
+
 	_, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	f, err := os.OpenFile(outputFileName, os.O_CREATE|os.O_RDWR, 0777)
 	if err != nil {
 		log.Err("Can't create report file", err)
 		return false
 	}
+
 	defer f.Close()
 	f.Truncate(0)
 
@@ -274,6 +294,7 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
 	if templates == nil {
 		log.Fatal("Can't load template")
 	}
+
 	reportFileName := checkId + ".tpl"
 	reporTpl := templates.Lookup(reportFileName)
 	data := reportData
@@ -283,6 +304,7 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
 		reportFileName = "raw.tpl"
 		reporTpl = templates.Lookup(reportFileName)
 	}
+
 	err = reporTpl.ExecuteTemplate(f, reportFileName, data)
 	if err != nil {
 		log.Err("Template execute error is", err)
@@ -298,10 +320,13 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
 func determineMasterReplica(data map[string]interface{}) {
 	hostRoles := make(map[string]interface{})
 	var sortedReplicas []string
+	var keys []int
+
 	replicas := make(map[int]string)
 	nodes_json := pyraconv.ToInterfaceMap(data["last_nodes_json"])
 	hosts := pyraconv.ToInterfaceMap(nodes_json["hosts"])
 	hostRoles["master"] = nil
+
 	for host, value := range hosts {
 		hostData := pyraconv.ToInterfaceMap(value)
 		if hostData["role"] == "master" {
@@ -313,11 +338,13 @@ func determineMasterReplica(data map[string]interface{}) {
 			}
 		}
 	}
-	var keys []int
+
 	for k := range replicas {
 		keys = append(keys, k)
 	}
+
 	sort.Ints(keys)
+
 	for _, k := range keys {
 		sortedReplicas = append(sortedReplicas, replicas[k])
 	}
@@ -329,29 +356,39 @@ func determineMasterReplica(data map[string]interface{}) {
 /*
   Replace master on replica#1 if master not defined
 */
-func reorderHosts(data map[string]interface{}) {
+func reorderHosts(data map[string]interface{}) error {
 	hosts := pyraconv.ToInterfaceMap(data["hosts"])
 	masterHost := pyraconv.ToString(hosts["master"])
 	replicaHosts := pyraconv.ToStringArray(hosts["replicas"])
-	var allHosts []string
+	var allHosts, hostsWithData []string
+
 	if hosts["master"] != nil {
 		allHosts = append(allHosts, masterHost)
 	}
+
 	for _, replicaHost := range replicaHosts {
 		allHosts = append(allHosts, replicaHost)
 	}
+
 	if len(allHosts) == 0 {
-		return
+		data["reorderedHosts"] = []string{}
+		return fmt.Errorf("No hosts")
 	}
+
 	// check host data
-	var hostsWithData []string
 	for _, host := range allHosts {
 		results := pyraconv.ToInterfaceMap(data["results"])
 		hostData, ok := results[host]
-		if ok && hostData != nil {
+		if ok && pyraconv.ToInterfaceMap(hostData)["data"] != nil {
 			hostsWithData = append(hostsWithData, host)
 		}
 	}
+
+	if len(hostsWithData) == 0 {
+		data["reorderedHosts"] = []string{}
+		return fmt.Errorf("No hosts with data")
+	}
+
 	master := hostsWithData[0]
 	var replicas []string
 	replicas = append(replicas, hostsWithData[1:]...)
@@ -359,6 +396,8 @@ func reorderHosts(data map[string]interface{}) {
 	reorderedHosts["master"] = master
 	reorderedHosts["replicas"] = replicas
 	data["reorderedHosts"] = reorderedHosts
+
+	return nil
 }
 
 func main() {
@@ -366,11 +405,13 @@ func main() {
 	var checkId string
 	var checkData string
 	var resultData map[string]interface{}
+
 	checkDataPtr := flag.String("checkdata", "", "an filepath to json report")
 	outDirPtr := flag.String("outdir", "", "an directory where report need save")
 	debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
 	flag.Parse()
 	checkData = *checkDataPtr
+
 	LISTLIMIT, rlerr := strconv.Atoi(os.Getenv("LISTLIMIT"))
 	if rlerr != nil {
 		LISTLIMIT = 50
@@ -382,10 +423,12 @@ func main() {
 
 	if FileExists(checkData) {
 		resultData = LoadJsonFile(checkData)
+
 		if resultData == nil {
 			log.Fatal("ERROR: File given by --checkdata content wrong json data.")
 			return
 		}
+
 		resultData["source_path_full"] = checkData
 		resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
 	} else {
@@ -402,22 +445,28 @@ func main() {
 	checkId = strings.ToUpper(checkId)
 	loadDependencies(resultData)
 	determineMasterReplica(resultData)
-	reorderHosts(resultData)
+
+	err := reorderHosts(resultData)
+	if err != nil {
+		log.Fatal("Hosts with data not found.")
+	}
 
 	config := cfg.NewConfig()
 
-	err := preprocessReportData(checkId, config, resultData)
+	err = preprocessReportData(checkId, config, resultData)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	resultData["LISTLIMIT"] = LISTLIMIT
 	var outputDir string
+
 	if len(*outDirPtr) == 0 {
 		outputDir = "./"
 	} else {
 		outputDir = *outDirPtr
 	}
+
 	reportDone := generateMdReports(checkId, resultData, outputDir)
 	if !reportDone {
 		log.Fatal("Cannot generate report. Data file or template is wrong.")
