@@ -57,7 +57,7 @@ begin
           rec.typname,
           'Current max value',
           val,
-          'Capacity used, %',
+          'Capacity used %',
           round(100 * ratio, 2)
       ) || '}';
     end if;
@@ -71,6 +71,6 @@ SQL
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
 
-echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used, %"|tonumber)) | .[]' | jq -s add
+echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used %"|tonumber)) | .[]' | jq -s add
 
 rm -f "$f_stderr" "$f_stdout"

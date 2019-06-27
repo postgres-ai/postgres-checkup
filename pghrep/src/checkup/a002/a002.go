@@ -3,17 +3,15 @@ package a002
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	checkup ".."
-	"../../log"
+	"../cfg"
+
 	"github.com/dustin/go-humanize/english"
-	"golang.org/x/net/html"
 )
 
 // Case codes
@@ -29,115 +27,7 @@ const A002_NOT_LAST_MINOR_VERSION string = "A002_NOT_LAST_MINOR_VERSION"
 const A002_GENERAL_INFO_OFFICIAL string = "A002_GENERAL_OFFICIAL"
 const A002_GENERAL_INFO_FULL string = "A002_GENERAL_FULL"
 
-type SupportedVersion struct {
-	FirstRelease  string
-	FinalRelease  string
-	MinorVersions []int
-}
-
-var MAJOR_VERSIONS []int
-
-var SUPPORTED_VERSIONS map[string]SupportedVersion = map[string]SupportedVersion{
-	"11": SupportedVersion{
-		FirstRelease:  "2018-10-18",
-		FinalRelease:  "2023-11-09",
-		MinorVersions: []int{3},
-	},
-	"10": SupportedVersion{
-		FirstRelease:  "2017-10-05",
-		FinalRelease:  "2022-11-10",
-		MinorVersions: []int{8},
-	},
-	"9.6": SupportedVersion{
-		FirstRelease:  "2016-09-29",
-		FinalRelease:  "2021-11-11",
-		MinorVersions: []int{13},
-	},
-	"9.5": SupportedVersion{
-		FirstRelease:  "2016-01-07",
-		FinalRelease:  "2021-02-11",
-		MinorVersions: []int{17},
-	},
-	"9.4": SupportedVersion{
-		FirstRelease:  "2014-12-18",
-		FinalRelease:  "2020-02-13",
-		MinorVersions: []int{22},
-	},
-}
-
-func getMajorMinorVersion(serverVersion string) (string, string) {
-	var minorVersion string
-	var majorVersion string
-	minorVersion = serverVersion[len(serverVersion)-2 : len(serverVersion)]
-	i, _ := strconv.Atoi(minorVersion)
-	minorVersion = strconv.Itoa(i)
-	if serverVersion[0:1] == "9" {
-		majorVersion = serverVersion[0:3]
-		majorVersion = strings.Replace(majorVersion, "0", ".", 1)
-	} else {
-		majorVersion = serverVersion[0:2]
-	}
-	return majorVersion, minorVersion
-}
-
-func A002PrepareVersionInfo() {
-	var majorVersions map[int]bool
-	majorVersions = make(map[int]bool)
-	url := VERSION_SOURCE_URL
-	log.Dbg("HTML code of %s ...\n", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	htmlCode, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	domDocTest := html.NewTokenizer(strings.NewReader(string(htmlCode)))
-	for tokenType := domDocTest.Next(); tokenType != html.ErrorToken; {
-		if tokenType != html.TextToken {
-			tokenType = domDocTest.Next()
-			continue
-		}
-		rel := strings.TrimSpace(html.UnescapeString(string(domDocTest.Text())))
-		if len(rel) > 3 && rel[0:3] == "REL" {
-			if strings.Contains(rel, "BETA") || strings.Contains(rel, "RC") ||
-				strings.Contains(rel, "ALPHA") {
-				continue
-			}
-			ver := strings.Split(rel, "_")
-			if len(ver) > 2 {
-				majorVersion := strings.Replace(ver[0], "REL", "", 1)
-				if majorVersion != "" {
-					majorVersion = majorVersion + "."
-				}
-				majorVersion = majorVersion + ver[1]
-				intMajorVersion := strings.Replace(majorVersion, ".", "0", 1)
-				if len(intMajorVersion) < 3 {
-					intMajorVersion = intMajorVersion + "00"
-				}
-				iMVer, _ := strconv.Atoi(intMajorVersion)
-				majorVersions[iMVer] = true
-				minorVersion := ver[2]
-				ver, ok := SUPPORTED_VERSIONS[majorVersion]
-				if ok {
-					mVer, _ := strconv.Atoi(minorVersion)
-					ver.MinorVersions = append(ver.MinorVersions, mVer)
-					SUPPORTED_VERSIONS[majorVersion] = ver
-				}
-			}
-		}
-		tokenType = domDocTest.Next()
-	}
-	for ver, _ := range majorVersions {
-		MAJOR_VERSIONS = append(MAJOR_VERSIONS, ver)
-	}
-	sort.Ints(MAJOR_VERSIONS)
-}
-
-func A002CheckAllVersionsIsSame(report A002Report,
-	result checkup.ReportResult) checkup.ReportResult {
+func A002CheckAllVersionsIsSame(report A002Report, result checkup.ReportResult) checkup.ReportResult {
 	var version string
 	var hosts []string
 	var vers []string
@@ -167,53 +57,59 @@ func A002CheckAllVersionsIsSame(report A002Report,
 	return result
 }
 
-func A002CheckMajorVersions(report A002Report, result checkup.ReportResult) checkup.ReportResult {
+func A002CheckMajorVersions(report A002Report, config cfg.Config,
+	result checkup.ReportResult) checkup.ReportResult {
 	var processed map[string]bool = map[string]bool{}
 	for host, hostData := range report.Results {
 		majorVersion, _ := getMajorMinorVersion(hostData.Data.ServerVersionNum)
-		mjVersion := hostData.Data.ServerVersionNum[0 : len(hostData.Data.ServerVersionNum)-2]
-		iMajorVersion, _ := strconv.Atoi(mjVersion)
+		majorVersionNum, _ := getVersionNum(majorVersion)
+
 		if _, vok := processed[majorVersion]; vok {
-			// version already checked
+			// Version already checked.
 			continue
 		}
-		ver, ok := SUPPORTED_VERSIONS[majorVersion]
+		ver, ok := config.Versions[majorVersion]
 		if !ok {
 			result.AppendConclusion(A002_UNKNOWN_VERSION, MSG_UNKNOWN_VERSION_CONCLUSION, hostData.Data.Version, host)
 			result.AppendRecommendation(A002_UNKNOWN_VERSION, MSG_UNKNOWN_VERSION_RECOMMENDATION, host)
 			result.P1 = true
 			continue
 		}
-		from, _ := time.Parse("2006-01-02", ver.FirstRelease)
-		to, _ := time.Parse("2006-01-02", ver.FinalRelease)
-		yearBeforeFinal := to.AddDate(-1, 0, 0)
+
+		start, _ := time.Parse("2006-01-02", ver.FirstRelease)
+		final, _ := time.Parse("2006-01-02", ver.FinalRelease)
+		yearBeforeFinal := final.AddDate(-1, 0, 0)
 		today := time.Now()
-		if today.After(to) {
-			// already not supported versions
-			result.AppendConclusion(MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
-			result.AppendRecommendation(MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
+		if final.Before(today) {
+			// Already not supported versions.
+			result.AppendConclusion(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
+			result.AppendRecommendation(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
 			result.P1 = true
-		}
-		if today.After(yearBeforeFinal) && today.Before(to) {
-			// supported last year
-			result.AppendConclusion(MSG_LAST_YEAR_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
+		} else if yearBeforeFinal.Before(today) {
+			// Supported last year.
+			result.AppendConclusion(A002_LAST_YEAR_SUPPORTED_VERSION, MSG_LAST_YEAR_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 			result.P2 = true
+		} else if start.Before(today) {
+			// Ok
+			result.AppendConclusion(A002_SUPPORTED_VERSION, MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 		}
-		if today.After(from) && today.After(to) {
-			// ok
-			result.AppendConclusion(MSG_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
-		}
-		if MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1] > iMajorVersion {
-			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(MAJOR_VERSIONS[len(MAJOR_VERSIONS)-1])/100.0)
+
+		latestMajorVersionNum, _ := getLatestMajorVersionNum(config)
+
+		if majorVersionNum < latestMajorVersionNum {
+			result.AppendRecommendation(A002_NOT_LAST_MAJOR_VERSION, MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION, float32(latestMajorVersionNum)/100.0)
 			result.AppendRecommendation(A002_GENERAL_INFO_FULL, MSG_GENERAL_RECOMMENDATION_1+MSG_GENERAL_RECOMMENDATION_2)
 			result.P3 = true
 		}
+
 		processed[majorVersion] = true
 	}
+
 	return result
 }
 
-func A002CheckMinorVersions(report A002Report, result checkup.ReportResult) checkup.ReportResult {
+func A002CheckMinorVersions(report A002Report, config cfg.Config,
+	result checkup.ReportResult) checkup.ReportResult {
 	var updateHosts []string
 	var curVersions []string
 	var updateVersions []string
@@ -224,7 +120,7 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportResult) chec
 			// version already checked
 			continue
 		}
-		ver, ok := SUPPORTED_VERSIONS[majorVersion]
+		ver, ok := config.Versions[majorVersion]
 		if !ok {
 			result.AppendConclusion(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_CONCLUSION, majorVersion, ver.FinalRelease)
 			result.AppendRecommendation(A002_NOT_SUPPORTED_VERSION, MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION, majorVersion)
@@ -255,13 +151,19 @@ func A002CheckMinorVersions(report A002Report, result checkup.ReportResult) chec
 	return result
 }
 
-func A002Process(report A002Report) checkup.ReportResult {
-	var result checkup.ReportResult
-	A002PrepareVersionInfo()
-	result = A002CheckAllVersionsIsSame(report, result)
-	result = A002CheckMajorVersions(report, result)
-	result = A002CheckMinorVersions(report, result)
-	return result
+func A002PreprocessReportData(data map[string]interface{}, config cfg.Config) {
+	report, err := A002LoadReportData(data["source_path_full"].(string))
+
+	if err != nil {
+		return
+	}
+
+	result := A002Process(report, config)
+	if len(result.Recommendations) > 0 && !checkup.ResultInList(result.Recommendations, A002_GENERAL_INFO_FULL) {
+		result.AppendRecommendation(A002_GENERAL_INFO_OFFICIAL, MSG_GENERAL_RECOMMENDATION_1)
+	}
+	// update data and file
+	checkup.SaveReportResult(data, result)
 }
 
 func A002LoadReportData(filePath string) (A002Report, error) {
@@ -275,17 +177,51 @@ func A002LoadReportData(filePath string) (A002Report, error) {
 	return report, nil
 }
 
-func A002PreprocessReportData(data map[string]interface{}) {
-	report, err := A002LoadReportData(data["source_path_full"].(string))
+func A002Process(report A002Report, config cfg.Config) checkup.ReportResult {
+	var result checkup.ReportResult
+	result = A002CheckAllVersionsIsSame(report, result)
+	result = A002CheckMajorVersions(report, config, result)
+	result = A002CheckMinorVersions(report, config, result)
+	return result
+}
 
-	if err != nil {
-		return
+func getMajorMinorVersion(serverVersion string) (string, string) {
+	var minorVersion string
+	var majorVersion string
+	minorVersion = serverVersion[len(serverVersion)-2 : len(serverVersion)]
+	i, _ := strconv.Atoi(minorVersion)
+	minorVersion = strconv.Itoa(i)
+	if serverVersion[0:1] == "9" {
+		majorVersion = serverVersion[0:3]
+		majorVersion = strings.Replace(majorVersion, "0", ".", 1)
+	} else {
+		majorVersion = serverVersion[0:2]
+	}
+	return majorVersion, minorVersion
+}
+
+func getLatestMajorVersionNum(config cfg.Config) (int, error) {
+	versions := config.Versions
+	latest := 0
+	for majorVersion, _ := range versions {
+		current, err := getVersionNum(majorVersion)
+		if err != nil {
+			return 0, err
+		}
+
+		if current > latest {
+			latest = current
+		}
 	}
 
-	result := A002Process(report)
-	if len(result.Recommendations) > 0 && !checkup.ResultInList(result.Recommendations, A002_GENERAL_INFO_FULL) {
-		result.AppendRecommendation(A002_GENERAL_INFO_OFFICIAL, MSG_GENERAL_RECOMMENDATION_1)
+	return latest, nil
+}
+
+// Convert version information to machine-readable version. Example: 9.6 -> 90600.
+func getVersionNum(version string) (int, error) {
+	versionNum := strings.Replace(version, ".", "0", 1)
+	if len(versionNum) < 3 {
+		versionNum = versionNum + "00"
 	}
-	// update data and file
-	checkup.SaveReportResult(data, result)
+	return strconv.Atoi(versionNum)
 }

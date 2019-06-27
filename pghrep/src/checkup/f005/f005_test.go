@@ -61,8 +61,8 @@ func TestF005Success(t *testing.T) {
 	}
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
 	result := F005Process(report)
-	if result.P1 || result.P2 || result.P3 &&
-		checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_LOW) {
+	if result.P1 || result.P2 || result.P3 ||
+		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_LOW) {
 		t.Fatal("TestF005Success failed")
 	}
 	checkup.PrintResultConclusions(result)

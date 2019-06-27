@@ -25,6 +25,7 @@ import (
 	"./checkup/a002"
 	"./checkup/a006"
 	"./checkup/a008"
+	"./checkup/cfg"
 	"./checkup/f001"
 	"./checkup/f002"
 	"./checkup/f004"
@@ -33,7 +34,8 @@ import (
 	"./checkup/g001"
 	"./checkup/g002"
 	"./checkup/h001"
-	"./checkup/k000"
+    "./checkup/k000"
+    "./checkup/l003"
 
 	"./log"
 	"./orderedmap"
@@ -465,10 +467,18 @@ func main() {
 	}
 }
 
-func preprocessReportData(checkId string, data map[string]interface{}) {
+func preprocessReportData(checkId string, config cfg.Config,
+	data map[string]interface{}) error {
 	switch checkId {
 	case "A002":
-		a002.A002PreprocessReportData(data)
+		// Try to load actual Postgres versions.
+		err := config.LoadVersions()
+		if err != nil {
+			// TODO(anatoly): Add warnings to the beginning of MD report.
+			log.Err("Cannot load latest Postgres versions. Recommendations may be inaccurate.", err)
+		}
+
+		a002.A002PreprocessReportData(data, config)
 	case "A006":
 		a006.A006PreprocessReportData(data)
 	case "A008":
@@ -491,6 +501,9 @@ func preprocessReportData(checkId string, data map[string]interface{}) {
 		g002.G002PreprocessReportData(data)
 	case "K000":
 		k000.K000PreprocessReportData(data)
+	case "L003":
+		l003.L003PreprocessReportData(data)
 	}
-	return
+
+	return nil
 }
