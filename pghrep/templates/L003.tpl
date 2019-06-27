@@ -11,7 +11,7 @@ Current database: {{ .database }}
 |------|----|------|-------------------|-------------------------------|
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-|`{{ index $value "Table"}}` | `{{ index $value "PK"}}` | {{ index $value "Type"}} | {{- RawIntFormat (index $value "Current max value")}} | {{ index $value "Capacity used, %"}}|
+|`{{ index $value "Table"}}` | `{{ index $value "PK"}}` | {{ index $value "Type"}} | {{- RawIntFormat (index $value "Current max value")}} | {{ index $value "Capacity used %"}}|
 {{ end }}
 {{- else -}}{{/*Master data*/}}
 Nothing found
@@ -25,5 +25,23 @@ Nothing found
 
 ## Conclusions ##
 
+{{- if .processed }}
+ {{- if .conclusions }}
+  {{ range $conclusion := .conclusions -}}
+   - {{ $conclusion.Message }}
+  {{ end }}
+ {{else}}
+ {{end}}
+{{ end }}
 
 ## Recommendations ##
+
+{{- if .processed }}
+ {{- if .recommendations }}
+  {{ range $recommendation := .recommendations -}}
+   - {{ $recommendation.Message }}
+  {{ end }}
+ {{else}}
+  All good, no recommendations here.
+ {{end}}
+{{ end }}
