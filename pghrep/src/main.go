@@ -451,7 +451,13 @@ func main() {
 		log.Fatal("Hosts with data not found.")
 	}
 
-	preprocessReportData(checkId, resultData)
+	config := cfg.NewConfig()
+
+	err := preprocessReportData(checkId, config, resultData)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	resultData["LISTLIMIT"] = LISTLIMIT
 	var outputDir string
 
