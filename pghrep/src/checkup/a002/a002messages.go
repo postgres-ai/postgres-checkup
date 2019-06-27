@@ -1,7 +1,5 @@
 package a002
 
-const VERSION_SOURCE_URL string = "https://git.postgresql.org/gitweb/?p=postgresql.git;a=tags"
-
 const MSG_UNKNOWN_VERSION_CONCLUSION string = "[P1] Unknown PostgreSQL version `%s` on `%s`.  \n"
 const MSG_UNKNOWN_VERSION_RECOMMENDATION string = "[P1] Check PostgreSQL version on `%s`.  \n"
 const MSG_NOT_SUPPORTED_VERSION_CONCLUSION string = "[P1] Postgres major version being used is `%s` and it is " +
@@ -12,7 +10,8 @@ const MSG_NOT_SUPPORTED_VERSION_RECOMMENDATION string = "[P1] Please upgrade Pos
 	"versions supported by the community and PGDG. To minimize downtime, consider using pg_upgrade or one " +
 	"of the solutions for logical replication.  \n"
 const MSG_LAST_YEAR_SUPPORTED_VERSION_CONCLUSION string = "[P2] Postgres community and PGDG will stop supporting version `%s`" +
-	" within the next 12 months (end of life is scheduled `%s`). After that, you will be on your own!  \n"
+	" within the next 12 months (end of life is scheduled `%s`). After that, you will be on your own!" +
+	" Read more: [Versioning Policy](https://www.postgresql.org/support/versioning/).  \n"
 const MSG_SUPPORTED_VERSION_CONCLUSION string = "Postgres major version being used is `%s` and it is " +
 	"currently supported by Postgres community and PGDG (end of life is scheduled %s). It means that in case " +
 	"of bugs and security issues, updates (new minor versions) with fixes will be released and available for use." +
