@@ -1,6 +1,6 @@
 package l003
 
-const MSG_HIGH_RISKS_TABLE string = "    - `%s`: reached value %d, %.0f%% of `%s` capacity"
+const MSG_HIGH_RISKS_TABLE string = "    - `%s`: reached value %d, %.0f%% of `%s` capacity  \n"
 const MSG_HIGH_RISKS_CONCLUSION_1 string = "[P1] High risks of out-of-range errors for integer column. The column listed below, being part of " +
 	"primary keys, have high risks to reach 100%% of the integer capacity (2^31-1 = 2147483647 for `int4` columns, and 2^15-1 = 32767 for `int2` ones; see " +
 	"[the documentation](https://www.postgresql.org/docs/current/datatype-numeric.html). " +
