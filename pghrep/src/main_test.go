@@ -64,10 +64,6 @@ func TestReorderHosts(t *testing.T) {
 		},
 		"database": "projx",
 		"results": {
-			"db2": {
-			},
-			"db3": {
-			},
 			"nodes.json": {
 				"hosts": {
 					"db2": {

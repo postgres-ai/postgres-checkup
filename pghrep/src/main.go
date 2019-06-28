@@ -379,7 +379,7 @@ func reorderHosts(data map[string]interface{}) error {
 	for _, host := range allHosts {
 		results := pyraconv.ToInterfaceMap(data["results"])
 		hostData, ok := results[host]
-		if ok && pyraconv.ToInterfaceMap(hostData)["data"] != nil {
+		if ok && hostData != nil {
 			hostsWithData = append(hostsWithData, host)
 		}
 	}
