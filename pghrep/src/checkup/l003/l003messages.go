@@ -15,7 +15,7 @@ const MSG_HIGH_RISKS_CONCLUSION_N string = "[P1] High risks of out-of-range erro
 
 const MSG_HIGH_RISKS_RECOMMENDATION string = "[P1] High risks of out-of-range errors for integer columns. Consider using `int8` in all PK columns, " +
 	"always. To convert existing columns to `int8`, consider the following approaches:  \n" +
-	"    1. Blocking `UPDATE`: a straightforward solution requiring downtime (maintenance window).  \n" +
+	"    1. Blocking `ALTER TABLE .. ALTER COLUMN`: a straightforward solution requiring downtime (maintenance window).  \n" +
 	"    1. \"New column\": create a new column, update it in batches (lasting up not more than a few seconds, " +
 	"not to block other queries), and then switch to using it, redefining all the constraints. Notice, that " +
 	"to re-define a primary key constraint, `ALTER TABLE .. ALTER COLUMN .. SET NOT NULL` will be needed. " +
