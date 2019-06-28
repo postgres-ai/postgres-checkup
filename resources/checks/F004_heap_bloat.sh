@@ -59,6 +59,7 @@ with data as (
       (tblpages - est_tblpages) * bs as extra_size,
       case when tblpages - est_tblpages > 0 then 100 * (tblpages - est_tblpages) / tblpages::float else 0 end as extra_ratio,
       (tblpages - est_tblpages_ff) * bs as bloat_size,
+      case when tblpages - est_tblpages > 0 then (tblpages - est_tblpages_ff) * bs else 0 end as bloat_size_safe,
       case when tblpages - est_tblpages_ff > 0 then 100 * (tblpages - est_tblpages_ff) / tblpages::float else 0 end as bloat_ratio
       -- , (pst).free_percent + (pst).dead_tuple_percent as real_frag
     from step3
@@ -94,13 +95,13 @@ with data as (
     end as "bloat_estimate",
     real_size as "real_size_bytes",
     case
-      when (real_size - bloat_size)::numeric >=0
-        then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
+      when (real_size - bloat_size_safe)::numeric >=0
+        then '~' || pg_size_pretty((real_size - bloat_size_safe)::numeric)
         else null
       end as "live_data_size",
     case
-      when (real_size - bloat_size)::numeric >=0
-        then (real_size - bloat_size)::numeric
+      when (real_size - bloat_size_safe)::numeric >=0
+        then (real_size - bloat_size_safe)::numeric
         else null
       end as "live_data_size_bytes",
     greatest(last_autovacuum, last_vacuum)::timestamp(0)::text
