@@ -5,13 +5,13 @@ const MSG_HIGH_RISKS_CONCLUSION_1 string = "[P1] High risks of out-of-range erro
 	"primary keys, have high risks to reach 100%% of the integer capacity (2^31-1 = 2147483647 for `int4` columns, and 2^15-1 = 32767 for `int2` ones; see " +
 	"[the documentation](https://www.postgresql.org/docs/current/datatype-numeric.html). " +
 	"Once it happens, INSERTs of new rows will not be possible (unless they use some non-incremental " +
-	"values, such as negative values) and the fix will require long downtime. The such column:  \n%s."
+	"values, such as negative values) and the fix will require long downtime. Here is that %d column:  \n%s."
 
 const MSG_HIGH_RISKS_CONCLUSION_N string = "[P1] High risks of out-of-range errors for integer columns. The columns listed below, being part of " +
 	"primary keys, have high risks to reach 100%% of the integer capacity (2^31-1 = 2147483647 for `int4` columns, and 2^15-1 = 32767 for `int2` ones; see " +
 	"[the documentation](https://www.postgresql.org/docs/current/datatype-numeric.html). " +
 	"Once it happens, INSERTs of new rows will not be possible (unless they use some non-incremental " +
-	"values, such as negative values) and the fix will require long downtime. The list of such columns:  \n%s."
+	"values, such as negative values) and the fix will require long downtime. %d such column are found:  \n%s"
 
 const MSG_HIGH_RISKS_RECOMMENDATION string = "[P1] High risks of out-of-range errors for integer columns. Consider using `int8` in all PK columns, " +
 	"always. To convert existing columns to `int8`, consider the following approaches:  \n" +

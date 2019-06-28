@@ -16,6 +16,7 @@ const L003_HIGH_RISKS string = "L003_HIGH_RISKS"
 func L003Process(report L003Report) (checkup.ReportResult, error) {
 	var result checkup.ReportResult
 	var tables []string
+
 	for _, hostData := range report.Results {
 		for _, tableData := range hostData.Data {
 			if tableData.CapacityUsedPercent <= MAX_RATIO_PERCENT {
@@ -31,7 +32,7 @@ func L003Process(report L003Report) (checkup.ReportResult, error) {
 		result.P1 = true
 		result.AppendConclusion(L003_HIGH_RISKS,
 			english.PluralWord(len(tables), MSG_HIGH_RISKS_CONCLUSION_1, MSG_HIGH_RISKS_CONCLUSION_N),
-			strings.Join(tables, ";\n"))
+			len(tables), strings.Join(checkup.LimitList(tables), ";\n"))
 		result.AppendRecommendation(L003_HIGH_RISKS, MSG_HIGH_RISKS_RECOMMENDATION)
 	}
 
