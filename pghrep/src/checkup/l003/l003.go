@@ -32,7 +32,7 @@ func L003Process(report L003Report) (checkup.ReportResult, error) {
 		result.P1 = true
 		result.AppendConclusion(L003_HIGH_RISKS,
 			english.PluralWord(len(tables), MSG_HIGH_RISKS_CONCLUSION_1, MSG_HIGH_RISKS_CONCLUSION_N),
-			len(tables), strings.Join(checkup.LimitList(tables), ";\n"))
+			len(tables), strings.Join(checkup.LimitList(tables), ""))
 		result.AppendRecommendation(L003_HIGH_RISKS, MSG_HIGH_RISKS_RECOMMENDATION)
 	}
 
