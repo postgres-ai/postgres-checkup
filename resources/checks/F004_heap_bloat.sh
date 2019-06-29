@@ -100,10 +100,7 @@ with data as (
         else null
       end as "live_data_size",
     case
-    case
-      when real_size > bloat_size_safe then (real_size - bloat_size_safe)::numeric
-      else null
-    end
+      when (real_size - bloat_size_safe)::numeric >=0
         then (real_size - bloat_size_safe)::numeric
         else null
       end as "live_data_size_bytes",
