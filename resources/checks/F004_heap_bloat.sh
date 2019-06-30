@@ -95,7 +95,7 @@ with data as (
     end as "bloat_estimate",
     real_size as "real_size_bytes",
     case
-      when (real_size - bloat_size_safe)::numeric >=0
+      when real_size > bloat_size_safe
         then '~' || pg_size_pretty((real_size - bloat_size_safe)::numeric)
         else null
       end as "live_data_size",
