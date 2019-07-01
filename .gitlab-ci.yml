@@ -57,7 +57,7 @@ test-general:
     - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go git
     - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
     - source ~/.profile
-    - sudo .ci/prepare_cluster.sh
+    - sudo .ci/prepare_cluster.sh "11"
     # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
