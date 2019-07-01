@@ -30,7 +30,7 @@ echo "archive_mode    = on" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "archive_command = 'cp %p /path_to/archive/%f'" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 ## Start master node
 /etc/init.d/postgresql start 
-psql -U postgres -c "CREATE ROLE replication WITH REPLICATION PASSWORD 'rEpLpAssw' LOGIN"
+psql -U postgres -c "create role replication with replication password 'rEpLpAssw' login"
 psql -U postgres -c 'create database dbname;'
 psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
 psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
