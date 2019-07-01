@@ -448,7 +448,7 @@ func main() {
 
 	err := reorderHosts(resultData)
 	if err != nil {
-		log.Fatal("Hosts with data not found.")
+		log.Err("Hosts with data not found.")
 	}
 
 	config := cfg.NewConfig()
