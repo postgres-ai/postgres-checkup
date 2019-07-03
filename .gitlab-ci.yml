@@ -9,7 +9,7 @@ variables:
   POSTGRES_USER: test_user # set username
   POSTGRES_PASSWORD: ""
 
-prepare:
+.prepare:
   stage: test
   before_script:
     - apt-get update
