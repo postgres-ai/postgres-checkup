@@ -97,17 +97,19 @@ with data as (
     case
       when real_size > bloat_size_safe
         then '~' || pg_size_pretty((real_size - bloat_size_safe)::numeric)
-        else null
-      end as "live_data_size",
+      else null
+    end as "live_data_size",
     case
       when (real_size - bloat_size_safe)::numeric >=0
         then (real_size - bloat_size_safe)::numeric
-        else null
-      end as "live_data_size_bytes",
+      else null
+    end as "live_data_size_bytes",
     greatest(last_autovacuum, last_vacuum)::timestamp(0)::text
-      || case greatest(last_autovacuum, last_vacuum)
-        when last_autovacuum then ' (auto)'
-      else '' end as "last_vaccuum",
+      ||  case greatest(last_autovacuum, last_vacuum)
+            when last_autovacuum then ' (auto)'
+            else ''
+          end
+    as "last_vaccuum",
     (
       select
         coalesce(substring(array_to_string(reloptions, ' ') from 'fillfactor=([0-9]+)')::smallint, 100)
@@ -118,8 +120,8 @@ with data as (
     case
       when (real_size - bloat_size)::numeric >=0
         then real_size::numeric / (real_size - bloat_size)::numeric
-        else null
-      end as "bloat_ratio"
+      else null
+    end as "bloat_ratio"
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
