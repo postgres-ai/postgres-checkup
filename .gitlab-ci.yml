@@ -6,10 +6,10 @@ stages:
 
 variables:
   POSTGRES_DB: dbname # set database
-  POSTGRES_USER: username # set username
+  POSTGRES_USER: test_user # set username
   POSTGRES_PASSWORD: ""
 
-.prepare:
+prepare:
   stage: test
   before_script:
     - apt-get update
@@ -27,19 +27,19 @@ variables:
   stage: test
   extends: ".prepare"
   script:
-    - psql -h postgres -d dbname -U username -c "SELECT version();"
+    - psql -h postgres -d dbname -U test_user -c "SELECT version();"
     - echo "Test H003 Non indexed FKs"
-    - psql -h postgres -d dbname -U username -f .ci/h003_step_1.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_1.sql
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
-    - psql -h postgres -d dbname -U username -f .ci/h003_step_2.sql
+    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_2.sql
     - rm -Rf ./artifacts/
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 302
     - echo "H003 Passed"
     - echo "Test H002 redundant indexes"
-    - psql -h postgres -d dbname -U username -f .ci/test_db_dump.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
+    - psql -h postgres -d dbname -U test_user -f .ci/test_db_dump.sql
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
@@ -58,6 +58,10 @@ test-general:
     - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
     - source ~/.profile
     - sudo .ci/prepare_cluster.sh "11"
+    - ps ax | grep postgres
+    - psql -U postgres -p 5432 -c 'show data_directory;'
+    - psql -U postgres -p 5433 -c 'show data_directory;'
+    - psql -U postgres -p 5434 -c 'show data_directory;'
     # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
@@ -67,16 +71,16 @@ test-general:
     
   script:
     - bash -version
-    - psql -d dbname -U username -c "SELECT version();"
-    - psql -p 5433 -d dbname -U username -c "SELECT version();"
-    - psql -d dbname -U username -f .ci/test_db_dump.sql
+    - psql -d dbname -U test_user -c "SELECT version();"
+    - psql -p 5433 -d dbname -U test_user -c "SELECT version();"
+    - psql -d dbname -U test_user -f .ci/test_db_dump.sql
     - .ci/test_db_dump.sh
-    - vacuumdb -U username dbname --analyze
+    - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
-    - ./checkup -h postgres.master.node --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.replica.node -p 5433 --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.master.node --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.replica.node -p 5433 --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.master.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.replica.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.master.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.replica.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - cat err.log
     - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log || true
     - grep -v "this is not a real error. Just run check again." err1.log > err.log || true
@@ -103,31 +107,31 @@ test-general:
       - ./err.log
     expire_in: 1 week
 
-test-pghrep:
+.test-pghrep:
   stage: test
   extends: ".prepare"
   script:
     - cd pghrep && make install && make test
 
-test-check-9.6:
+.test-check-9.6:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:9.6
 
-test-check-10:
+.test-check-10:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
 
-test-check-11:
+.test-check-11:
   extends: ".test-check"
   stage: "test"
   services:
     - postgres:11
 
-test-check-cli:
+.test-check-cli:
   services:
     - postgres:11
   stage: "test"

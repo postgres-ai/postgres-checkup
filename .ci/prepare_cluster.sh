@@ -41,7 +41,7 @@ psql -U postgres -c "create role replication with replication password 'rEpLpAss
 psql -U postgres -c 'create database dbname;'
 psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
 psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
-psql -U postgres dbname -c "create role pgusername superuser login;"
+psql -U postgres dbname -c "create role test_user superuser login;"
 psql -U postgres -c 'show data_directory;'
 
 
@@ -63,7 +63,7 @@ function addReplica() {
   psql -U postgres -p ${port} -c 'create database dbname;'
   psql -U postgres -p ${port} dbname -b -c 'create extension if not exists pg_stat_statements;'
   psql -U postgres -p ${port} dbname -b -c 'create extension if not exists pg_stat_kcache;'
-  psql -U postgres -p ${port} dbname -c "create role pgusername superuser login;"
+  psql -U postgres -p ${port} dbname -c "create role test_user superuser login;"
   sudo -u postgres /usr/lib/postgresql/${PG_VER}/bin/pg_ctl -D /var/lib/postgresql/${PG_VER}/data${num} -l /var/log/postgresql/replica${num}.log stop
 
   ## Configure replica postgres settings
@@ -78,9 +78,4 @@ function addReplica() {
 }
 
 addReplica 1 5433
-#addReplica 2 5434
-
-ps ax | grep postgres
-psql -U postgres -p 5432 -c 'show data_directory;'
-psql -U postgres -p 5433 -c 'show data_directory;'
-#psql -U postgres -p 5434 -c 'show data_directory;'
+addReplica 2 5434
