@@ -579,7 +579,7 @@ generate_report_json() {
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
-     --arg Host "${NATIVE_HOSTNAME}" \
+     --arg Host "${HOST}" \
      --arg Project "${PROJECT}" \
      --arg Database "${DBNAME}" \
     '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | ."database" = $Database | .results += { ($Host): { data: $Results } }' \
@@ -591,7 +591,7 @@ generate_report_json() {
   # extend check for current host with actual 'nodes.json' inside a json report
   tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
   jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
-     '.results.'\"${NATIVE_HOSTNAME}\"'."nodes.json" = $nodes_json' \
+     '.results.'\"${HOST}\"'."nodes.json" = $nodes_json' \
      "${json_output_fname}" \
      > "$tmp_output_json_fname"
   mv "$tmp_output_json_fname" "${json_output_fname}"
@@ -816,7 +816,7 @@ glue_md_reports() {
 #######################################
 # Check rights, set global variables, etc.
 # Globals:
-#   HOST, CHECK_HOST_CMD, NATIVE_HOSTNAME
+#   HOST, CHECK_HOST_CMD
 #   SSH_SUPPORT
 # Arguments:
 #   None
@@ -826,13 +826,11 @@ glue_md_reports() {
 host_pre_start_checks() {
   # choise host connection command
   # while checking ssh support
-  # and determine NATIVE_HOSTNAME (a host key in JSON reports)
-  if NATIVE_HOSTNAME=$(ssh $HOST "hostname" 2>/dev/null); then
+  if native_hostname=$(ssh $HOST "hostname" 2>/dev/null); then
     # ssh to remote host and use local psql (default)
     export CHECK_HOST_CMD="ssh ${HOST}"
     export SSH_SUPPORT="true"
   else
-    NATIVE_HOSTNAME="${HOST}"
     # swap ssh with bash
     export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
 
@@ -850,9 +848,9 @@ host_pre_start_checks() {
     export SSH_SUPPORT="false"
   fi
 
-  export NATIVE_HOSTNAME
+  export HOST
   dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
-  dbg "NATIVE_HOSTNAME: '${NATIVE_HOSTNAME}'"
+  dbg "HOST: '${HOST}'"
   dbg "_PSQL: '${_PSQL}'"
   dbg "_PSQL_NO_TIMEOUT: '${_PSQL_NO_TIMEOUT}'"
 }
@@ -862,7 +860,7 @@ host_pre_start_checks() {
 # Fill/update hostname, role, internal alias
 # Start/update 'epoch' of the check
 # Globals:
-#   PROJECT_DIR, HOST, NATIVE_HOSTNAME,
+#   PROJECT_DIR, HOST,
 #   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORTS_DIR
 #   TIMESTAMP_DIR, TIMESTAMPTZ, SHORT_DIR_NAME,
 #   MD_REPORTS_DIR
@@ -911,16 +909,16 @@ update_nodes_json() {
     fi
 
     # read current nodes.json
-    ALIAS_NAME=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.internal_alias' "${PROJECT_DIR}/nodes.json")
+    ALIAS_NAME=$(jq -r '.hosts.'\"${HOST}\"'.internal_alias' "${PROJECT_DIR}/nodes.json")
 
-    # mark host as new if we can't find alias by path with NATIVE_HOSTNAME
+    # mark host as new if we can't find alias by path with HOST
     if [[ "${ALIAS_NAME}" = "null" ]]; then
       host_is_new="true"
-      dbg "host '${NATIVE_HOSTNAME}' is a new host"
+      dbg "host '${HOST}' is a new host"
     fi
 
-    ALIAS_INDEX=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.index' "${PROJECT_DIR}/nodes.json")
-    prev_role=$(jq -r '.hosts.'\"${NATIVE_HOSTNAME}\"'.role' "${PROJECT_DIR}/nodes.json")
+    ALIAS_INDEX=$(jq -r '.hosts.'\"${HOST}\"'.index' "${PROJECT_DIR}/nodes.json")
+    prev_role=$(jq -r '.hosts.'\"${HOST}\"'.role' "${PROJECT_DIR}/nodes.json")
     prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
 
     # create a new epoch dirs or use existing
@@ -970,7 +968,7 @@ update_nodes_json() {
   # finally, fill nodes.json file
   local result_fname="${PROJECT_DIR}/nodes.json"
   local result_fname_tmp=$(mktemp "${PROJECT_DIR}"/nodes.json.tmp_XXXXXX)
-  jq --arg NativeHostname "${NATIVE_HOSTNAME}" \
+  jq --arg Hostname "${HOST}" \
      --arg internal_alias "${ALIAS_NAME}" \
      --arg index ${ALIAS_INDEX} \
      --arg role "${ROLE}" \
@@ -978,7 +976,7 @@ update_nodes_json() {
      --arg dir "${SHORT_DIR_NAME}" \
      --arg epoch "${EPOCH}" \
      --arg role_change_detected_at "${role_changed_at}" \
-     '.hosts += { ($NativeHostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
      "${input_json_fname}" \
      > "${result_fname_tmp}"
   mv "${result_fname_tmp}" "${result_fname}"
@@ -992,7 +990,7 @@ update_nodes_json() {
 # All checks must return valid json into stdout
 # Globals:
 #   CURRENT_CHECK_FNAME, SCRIPT_DIR, HOST, PROJECT_DIR,
-#   NATIVE_HOSTNAME, PGHREP_BIN
+#   HOST, PGHREP_BIN
 #   and all exported internal globals
 # Arguments:
 #   None
@@ -1010,7 +1008,7 @@ run_checks() {
 
   # perform all checks from './resources/checks/' directory
   msg
-  msg "########## Perform checks for host '${NATIVE_HOSTNAME}':"
+  msg "########## Perform checks for host '${HOST}':"
   if is_in_recovery; then
     ROLE="standby"
   else
@@ -1047,7 +1045,7 @@ run_checks() {
     fi
 
     msg
-    msg "=== Run on '${NATIVE_HOSTNAME}': ${CURRENT_CHECK_FNAME} ==="
+    msg "=== Run on '${HOST}': ${CURRENT_CHECK_FNAME} ==="
 
     local check_is_failed="false"
 
