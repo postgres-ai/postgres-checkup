@@ -73,6 +73,7 @@ test-general:
     - bash -version
     - psql -d dbname -U test_user -c "SELECT version();"
     - psql -p 5433 -d dbname -U test_user -c "SELECT version();"
+    - psql -p 5434 -d dbname -U test_user -c "SELECT version();"
     - psql -d dbname -U test_user -f .ci/test_db_dump.sql
     - .ci/test_db_dump.sh
     - vacuumdb -U test_user dbname --analyze
@@ -80,7 +81,7 @@ test-general:
     # First run only for K00X reports
     - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > --file resources/checks/K000_query_analysis.sh >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     # Last run of checkup
     - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)

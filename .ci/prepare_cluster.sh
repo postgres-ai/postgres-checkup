@@ -23,26 +23,19 @@ host all  all    ::1/128  trust
 host replication  replication    ::1/128  md5
 EOL
 
-#echo "local   all all trust" > /etc/postgresql/${PG_VER}/main/pg_hba.conf
-#echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VER}/main/pg_hba.conf
-#echo "host all  all    ::1/128  trust" >> /etc/postgresql/${PG_VER}/main/pg_hba.conf
-#echo "host replication  replication    ::1/128  md5" >> /etc/postgresql/${PG_VER}/main/pg_hba.conf
-
-# Configure postgres master node
-
-## Configure general params
+## Configure general postgres params
 echo "listen_addresses='*'" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "log_filename='postgresql-${PG_VER}-main.log'" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 
-## Configure general master params
+## Configure general postgres master node params
 echo "wal_level = hot_standby" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "max_wal_senders = 5" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "wal_keep_segments = 32" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "archive_mode    = on" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "archive_command = 'cp %p /path_to/archive/%f'" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 
-## Start master node
+## Start postgres master node
 /etc/init.d/postgresql start 
 psql -U postgres -c "create role replication with replication password 'rEpLpAssw' login"
 psql -U postgres -c 'create database dbname;'
@@ -52,6 +45,7 @@ psql -U postgres dbname -c "create role test_user superuser login;"
 psql -U postgres -c 'show data_directory;'
 
 
+# Add and start new postgres replica node with given number and port
 function addReplica() {
   local num="$1"
   local port="$2"
