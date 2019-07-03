@@ -16,12 +16,10 @@ echo "127.0.0.4 postgres.test3.node" >> /etc/hosts # master
 # Configure postgres
 
 ## Configure pg_hba.conf
-cat /etc/postgresql/${PG_VER}/main/pg_hba.conf << EOL
-local   all all trust
-host all  all    0.0.0.0/0  md5
-host all  all    ::1/128  trust
-host replication  replication    ::1/128  md5
-EOL
+echo "local   all all trust" > /etc/postgresql/${PG_VER}/main/pg_hba.conf
+echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VER}/main/pg_hba.conf
+echo "host all  all    ::1/128  trust" >> /etc/postgresql/${PG_VER}/main/pg_hba.conf
+echo "host replication  replication    ::1/128  md5" >> /etc/postgresql/${PG_VER}/main/pg_hba.conf
 
 # Configure postgres master node
 
@@ -80,9 +78,9 @@ function addReplica() {
 }
 
 addReplica 1 5433
-addReplica 2 5434
+#addReplica 2 5434
 
 ps ax | grep postgres
 psql -U postgres -p 5432 -c 'show data_directory;'
 psql -U postgres -p 5433 -c 'show data_directory;'
-psql -U postgres -p 5434 -c 'show data_directory;'
+#psql -U postgres -p 5434 -c 'show data_directory;'
