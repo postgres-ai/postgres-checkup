@@ -142,9 +142,20 @@ func A002CheckMinorVersions(report A002Report, config cfg.Config,
 	}
 	curVersions = checkup.GetUniques(curVersions)
 	if len(curVersions) > 0 {
-		result.AppendConclusion(A002_NOT_LAST_MINOR_VERSION, english.PluralWord(len(curVersions),
-			MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1, MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N),
-			strings.Join(curVersions, "`, `"), updateVersions[0])
+		result.AppendConclusion(
+			A002_NOT_LAST_MINOR_VERSION,
+			english.PluralWord(
+				len(curVersions),
+				MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1,
+				MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N
+			),
+			strings.Join(curVersions, "`, `"),
+			updateVersions[0],
+			curVersions[0],
+			updateVersions[0],
+			curVersions[0],
+			updateVersions[0]
+			)
 		result.AppendRecommendation(A002_NOT_LAST_MINOR_VERSION, MSG_NOT_LAST_MINOR_VERSION_RECOMMENDATION, updateVersions[0])
 		result.P2 = true
 	}

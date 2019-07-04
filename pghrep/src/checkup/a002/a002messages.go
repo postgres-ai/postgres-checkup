@@ -19,10 +19,10 @@ const MSG_SUPPORTED_VERSION_CONCLUSION string = "Postgres major version being us
 const MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION string = "[P3] Consider upgrading to the newest major version: %.0f. It has a lot of new features and improvements.  \n"
 
 const MSG_LAST_MINOR_VERSION_CONCLUSION string = "`%s` is the most up-to-date Postgres minor version in the branch `%s`.  \n"
-const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1 string = "[P2] The minor version being used (`%s`) is not up-to-date (the newest version: `%s`).  \n"
-const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N string = "[P2] The minor versions being used (`%s`) are not up-to-date (the newest version: `%s`).  \n"
+const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1 string = "[P2] The minor version being used (`%s`) is not up-to-date (the newest version: `%s`). See [the full list of changes between %s and %s](https://why-upgrade.depesz.com/show?from=%s&to=%s).  \n"
+const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N string = "[P2] The minor versions being used (`%s`) are not up-to-date (the newest version: `%s`). See [the full list of changes between %s and %s](https://why-upgrade.depesz.com/show?from=%s&to=%s).  \n"
 const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_1 string = "[P2] Not all nodes have the same Postgres version. Node `%s` uses Postgres `%s`.  \n"
-const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_N string = "[P2] Not all nodes have the same Postgres version. Nodes `%s` uses Postgres `%s`.  \n"
+const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_N string = "[P2] Not all nodes have the same Postgres version. Nodes `%s` use Postgres `%s`.  \n"
 const MSG_NOT_ALL_VERSIONS_SAME_RECOMMENDATION string = "[P2] Please upgrade Postgres so its versions on all nodes match.  \n"
 const MSG_ALL_VERSIONS_SAME_CONCLUSION string = "All nodes have the same Postgres version (`%s`).  \n"
 
