@@ -3,7 +3,7 @@ package a002
 // Analysis of Postgres major version
 const MSG_UNKNOWN_VERSION_CONCLUSION string = "[P1] PostgreSQL major version `%s` is unknown (on `%s`). " +
     "It means that PostgreSQL Global Development Group does not support your PostgreSQL version. " +
-    "In case of bugs and security issues you are on your own."\n" // NikolayS: very rare; most likely it's a devel version
+    "In case of bugs and security issues you are on your own.  \n" // NikolayS: very rare; most likely it's a devel version.
 const MSG_UNKNOWN_VERSION_RECOMMENDATION string = "[P1] On `%s`, consider using one of supported major versions.  \n"
 const MSG_NOT_SUPPORTED_VERSION_CONCLUSION string = "[P1] Postgres major version being used is `%s` and it is " +
 	"NOT supported by PostgreSQL Global Development Group. The support has ended: `%s`. This is a major issue. New bugs and security " +
