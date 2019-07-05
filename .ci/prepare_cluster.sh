@@ -78,5 +78,5 @@ function add_replica() {
   sudo -u postgres /usr/lib/postgresql/${PG_VER}/bin/pg_ctl -D /var/lib/postgresql/${PG_VER}/data${num} -l /var/log/postgresql/secondary1.log start || cat /var/log/postgresql/replica${num}.log
 }
 
-addReplica 1 5433
+add_replica 1 5433
 add_replica 2 5434
