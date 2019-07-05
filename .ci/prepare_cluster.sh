@@ -45,7 +45,16 @@ psql -U postgres dbname -c "create role test_user superuser login;"
 psql -U postgres -c 'show data_directory;'
 
 
-# Add and start new postgres replica node with given number and port
+#######################################
+# Add and start a new Postgres replica locally
+# Globals:
+#   PG_VER
+# Arguments:
+#   (number) Replica's number, must be unique
+#   (port) TCP port to be used
+# Returns:
+#   None
+#######################################
 function add_replica() {
   local num="$1"
   local port="$2"
