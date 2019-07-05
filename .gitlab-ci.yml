@@ -75,7 +75,7 @@ test-general:
     - psql -p 5433 -d dbname -U test_user -c "SELECT version();"
     - psql -p 5434 -d dbname -U test_user -c "SELECT version();"
     - psql -d dbname -U test_user -f .ci/test_db_dump.sql
-    - .ci/test_db_dump.sh
+    - .ci/prepare_test_db.sh
     - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
     # First run only for K00X reports
