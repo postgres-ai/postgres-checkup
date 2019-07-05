@@ -79,4 +79,4 @@ function addReplica() {
 }
 
 addReplica 1 5433
-addReplica 2 5434
+add_replica 2 5434
