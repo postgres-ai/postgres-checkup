@@ -46,7 +46,7 @@ psql -U postgres -c 'show data_directory;'
 
 
 # Add and start new postgres replica node with given number and port
-function addReplica() {
+function add_replica() {
   local num="$1"
   local port="$2"
 
