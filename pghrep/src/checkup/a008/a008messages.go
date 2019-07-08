@@ -1,15 +1,15 @@
 package a008
 
-const MSG_NO_USAGE_RISKS_CONCLUSION string = "No significant risks of out-of-disk-space problem have been detected."
-const MSG_USAGE_WARNING_CONCLUSION string = "[P2] Disk `%s` on `%s` space usage is %s, it exceeds 70%%. There are some risks of out-of-disk-space problems."
-const MSG_USAGE_WARNING_RECOMMENDATION string = "[P2] Add more disk space to `%s` on `%s`. It is recommended to keep more than %d%% disk space free" +
-	"to reduce the risk of out-of-disk-space problems."
-const MSG_USAGE_CRITICAL_CONCLUSION string = "[P1] Disk `%s` on `%s` space usage is %s, it exceeds 90%%. There are significant risks of the out-of-disk-space problem. " +
-	"In this case, PostgreSQL will stop working and a manual fix will be required."
-const MSG_USAGE_CRITICAL_RECOMMENDATION string = "[P1] Add more disk space to `%s` on `%s` as soon as possible to prevent outage."
-const MSG_NETWORK_FS_CONCLUSION_1 string = "[P1] %s on host `%s` is located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption."
-const MSG_NETWORK_FS_CONCLUSION_N string = "[P1] %s on host `%s` are located on an NFS drive. This might lead to serious issues with Postgres, including downtime and data corruption."
-const MSG_NETWORK_FS_RECOMMENDATION string = "[P1] Do not use NFS for Postgres."
-const MSG_NOT_RECOMMENDED_FS_CONCLUSION_1 string = "[P3] %s on host `%s` is located on drive where the following filesystems are used: %s. This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4)."
-const MSG_NOT_RECOMMENDED_FS_CONCLUSION_N string = "[P3] %s on host `%s` are located on drives where the following filesystems are used: %s respectively. This might mean that Postgres performance and reliability characteristics are worse than they could be in case of use of more popular filesystems (such as ext4)."
-const MSG_NOT_RECOMMENDED_FS_RECOMMENDATION string = "[P3] Consider using ext4 for all Postgres directories."
+const MSG_NO_USAGE_RISKS_CONCLUSION string = "Risks of running out of free disk space in the nearest future are low."
+const MSG_USAGE_WARNING_CONCLUSION string = "[P2] `%s` on machine `%s` has %s of space used, it exceeds 70%%. Risks of running out of free disk space in the nearest future are significant. "
+const MSG_USAGE_WARNING_RECOMMENDATION string = "[P2] Increase free space on `%s` on machine `%s`. It is recommended to keep more than %d%% disk space free " +
+	"to reduce risks of running out of free disk space."
+const MSG_USAGE_CRITICAL_CONCLUSION string = "[P1] `%s` on machine `%s` has %s of space used, it exceeds 90%%. Risks of running out of free disk space in the nearest future are high. " +
+	"If it happens, PostgreSQL shuts down and a manual fix is required."
+const MSG_USAGE_CRITICAL_RECOMMENDATION string = "[P1] Increase free space on `%s` on machine `%s` as soon as possible to prevent service outage."
+const MSG_NETWORK_FS_CONCLUSION_1 string = "[P1] %s on host `%s` uses [NFS](https://en.wikipedia.org/wiki/Network_File_System). This might lead to serious issues with Postgres, including downtime and data corruption."
+const MSG_NETWORK_FS_CONCLUSION_N string = "[P1] %s on host `%s` use [NFS](https://en.wikipedia.org/wiki/Network_File_System). This might lead to serious issues with Postgres, including downtime and data corruption."
+const MSG_NETWORK_FS_RECOMMENDATION string = "[P1] Never use NFS to run Postgres."
+const MSG_NOT_RECOMMENDED_FS_CONCLUSION_1 string = "[P3] %s on machine `%s` is located on drive where the following filesystems are used: %s. This might mean that Postgres performance and reliability characteristics are worse than it could be in case of use of more popular filesystems (such as ext4)."
+const MSG_NOT_RECOMMENDED_FS_CONCLUSION_N string = "[P3] %s on machine `%s` are located on drives where the following filesystems are used: %s respectively. This might mean that Postgres performance and reliability characteristics are worse than they could be in case of use of more popular filesystems (such as ext4)."
+const MSG_NOT_RECOMMENDED_FS_RECOMMENDATION string = "[P3] Consider using [ext4](https://en.wikipedia.org/wiki/Ext4) for all Postgres directories."
