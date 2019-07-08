@@ -11,6 +11,6 @@ const MSG_EXCESS_QUERY_TOTAL_TIME_RECOMMENDATION string = "[P1] For some query g
 	"for particular query group consider the following tactics:  \n" +
 	"    - perform query micro-optimization (take particular query examples related to the group, use `EXPLAIN` and `EXPLAIN (BUFFERS, " +
 	"ANALYZE)` to optimize it, also consider using [Joe bot](https://gitlab.com/postgres-ai/joe) and special DB instances) simplifying " +
-	"the process of for query optimization, \n" +
+	"the process of query optimization, \n" +
 	"    - if the frequency of execution is high (check the `calls / second` metric), consider reducing this frequency, changing the " +
 	"application code and/or, if it is applicable, applying query results caching.  \n"

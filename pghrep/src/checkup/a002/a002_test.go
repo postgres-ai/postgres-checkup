@@ -2,11 +2,27 @@ package a002
 
 import (
 	"fmt"
+	"strings"
 	"testing"
-    "strings"
 
 	checkup ".."
+	"../cfg"
 )
+
+var config = cfg.Config{
+	Versions: map[string]cfg.Version{
+		"11": cfg.Version{
+			FirstRelease:  "2018-10-18",
+			FinalRelease:  "2023-11-09",
+			MinorVersions: []int{0, 1, 2, 3},
+		},
+		"9.6": cfg.Version{
+			FirstRelease:  "2016-09-29",
+			FinalRelease:  "2021-11-11",
+			MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+		},
+	},
+}
 
 func TestGetMajorMinorVersion(t *testing.T) {
 	fmt.Println(t.Name())
@@ -31,7 +47,7 @@ func TestA002Sucess(t *testing.T) {
 		ServerMinorVer:   "4",
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
-	result := A002Process(report)
+	result := A002Process(report, config)
 	if result.P1 ||
 		result.P2 ||
 		result.P3 ||
@@ -61,7 +77,7 @@ func TestA002IsSame(t *testing.T) {
 		ServerMinorVer:   "4",
 	}
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
-	result := A002Process(report)
+	result := A002Process(report, config)
 	if result.P1 ||
 		result.P2 ||
 		result.P3 ||
@@ -90,7 +106,7 @@ func TestA002IsNotSame(t *testing.T) {
 		ServerMinorVer:   "11",
 	}
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
-	result := A002Process(report)
+	result := A002Process(report, config)
 	if !result.P2 ||
 		!checkup.ResultInList(result.Conclusions, A002_NOT_ALL_VERSIONS_SAME) {
 		t.Fatal("TestA002IsNotSame failed")
@@ -110,7 +126,7 @@ func TestA002WrongVersion(t *testing.T) {
 		ServerMinorVer:   "99",
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
-	result := A002Process(report)
+	result := A002Process(report, config)
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, A002_UNKNOWN_VERSION) ||
 		!checkup.ResultInList(result.Recommendations, A002_UNKNOWN_VERSION) {
@@ -131,7 +147,7 @@ func TestA002LatestMajor(t *testing.T) {
 		ServerMinorVer:   "22",
 	}
 	report.Results = A002ReportHostsResults{"test-host": hostResult}
-	result := A002Process(report)
+	result := A002Process(report, config)
 	if !result.P3 ||
 		!checkup.ResultInList(result.Recommendations, A002_NOT_LAST_MAJOR_VERSION) {
 		t.Fatal("TestA002LatestMajor failed")
@@ -158,7 +174,7 @@ func TestA002RecommendationDuplicates(t *testing.T) {
 		ServerMinorVer:   "11",
 	}
 	report.Results = A002ReportHostsResults{"host1": host1Result, "host2": host2Result}
-	result := A002Process(report)
+	result := A002Process(report, config)
 	for i, recommendation := range result.Recommendations {
 		message := recommendation.Message
 		for j, recom := range result.Recommendations {
