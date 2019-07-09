@@ -7,7 +7,7 @@ const MSG_TX_AGE_MORE_1H_CONCLUSION string = "[P1] There are transactions with t
 	"such transactions were detected. Long-lasting  transactions lead to two big issues in the database, both affecting the system " +
 	"performance negatively:  \n" +
 	"    - higher risks of having locking issues (unless such transactions are read-only and do not involve explicit locking),\n" +
-	"    - VACUUM cannot process some entries in tables and indexes, hense bloat grows more and faster than usual."
+	"    - VACUUM cannot process some entries in tables and indexes, hence bloat grows more and faster than usual."
 const MSG_TX_AGE_MORE_1H_RECOMMENDATION string = "[P1] There are transactions with transaction age > 1 hour. For better understanding, " +
 	"refer to monitoring (add transaction-related graphs there if they are missing; it is important to split data by `state` " +
 	"in `pg_stat_activity`). Consider the following tactics to avoid long running transactions:\n" +
