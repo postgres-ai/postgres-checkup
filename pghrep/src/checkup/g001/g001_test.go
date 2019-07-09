@@ -2,6 +2,7 @@ package g001
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	checkup ".."
@@ -56,6 +57,60 @@ var HostData map[string]G001Setting = map[string]G001Setting{
 		Setting: "65536",
 		Unit:    "kB",
 	},
+}
+
+func TestG001FloatPercent(t *testing.T) {
+	fmt.Println(t.Name())
+	// G001
+	var report G001Report
+	var hostResult G001ReportHostResult
+	hostResult.Data = HostData
+	hostResult.Data["shared_buffers"] = G001Setting{
+		Name:    "shared_buffers",
+		Setting: "6753544",
+		Unit:    "8kB",
+	}
+	report.LastNodesJson = TestLastNodesJson
+	report.Results = G001ReportHostsResults{"test-host": hostResult}
+
+	// A001
+	var a001Report a001.A001Report
+	var a001HostResult a001.A001ReportHostResult
+	a001HostResult.Data = a001.A001ReportHostResultData{
+		Ram: a001.A001ReportRam{
+			MemTotal:  "65888240 kB",
+			SwapTotal: "0 kb",
+		},
+	}
+	a001Report.Results = a001.A001ReportHostsResults{"test-host": a001HostResult}
+
+	result, err := G001Process(report, a001Report)
+	if err != nil {
+		t.Fatal()
+	}
+
+	resultItem, err2 := checkup.GetResultItem(result.Conclusions, G001_SHARED_BUFFERS_NOT_OPTIMAL)
+	if err2 != nil {
+		t.Fatal()
+	}
+
+	if !strings.Contains(resultItem.Message, "82.00% of RAM") {
+		t.Fatal()
+	}
+
+	resultItem, err2 = checkup.GetResultItem(result.Conclusions, G001_OOM)
+	if err2 != nil {
+		t.Fatal()
+	}
+
+	if !strings.Contains(resultItem.Message, "82.00% of RAM") ||
+		!strings.Contains(resultItem.Message, "62.18% of RAM") ||
+		!strings.Contains(resultItem.Message, "198.93% of RAM") {
+		t.Fatal()
+	}
+
+	checkup.PrintResultConclusions(result)
+	checkup.PrintResultRecommendations(result)
 }
 
 func TestG001OOM(t *testing.T) {
