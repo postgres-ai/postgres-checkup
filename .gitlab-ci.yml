@@ -6,8 +6,8 @@ stages:
 
 variables:
   POSTGRES_DB: dbname # set database
-  POSTGRES_USER: username # set username
-  POSTGRES_PASSWORD: ""  
+  POSTGRES_USER: test_user # set username
+  POSTGRES_PASSWORD: ""
 
 .prepare:
   stage: test
@@ -27,19 +27,19 @@ variables:
   stage: test
   extends: ".prepare"
   script:
-    - psql -h postgres -d dbname -U username -c "SELECT version();"
+    - psql -h postgres -d dbname -U test_user -c "SELECT version();"
     - echo "Test H003 Non indexed FKs"
-    - psql -h postgres -d dbname -U username -f .ci/h003_step_1.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_1.sql
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
-    - psql -h postgres -d dbname -U username -f .ci/h003_step_2.sql
+    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_2.sql
     - rm -Rf ./artifacts/
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && (! [[ "$result" == "[]" ]]) && exit 302
     - echo "H003 Passed"
     - echo "Test H002 redundant indexes"
-    - psql -h postgres -d dbname -U username -f .ci/test_db_dump.sql
-    - ./checkup -h postgres --username username --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
+    - psql -h postgres -d dbname -U test_user -f .ci/test_db_dump.sql
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
@@ -49,54 +49,50 @@ variables:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
     - echo "H002 Passed"
-  
+
 test-general:
   stage: test
-  extends: ".prepare"
   before_script:
     - apt-get update
-    - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go
-    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-    - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
-    - apt-get update
-    - apt-get -y upgrade
-    - apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-client-11 postgresql-server-dev-11 && apt-get install -y postgresql-11-pg-stat-kcache
-    - psql --version
+    - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go git
     - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
     - source ~/.profile
-    - echo "local   all all trust" > /etc/postgresql/11/main/pg_hba.conf
-    - echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/11/main/pg_hba.conf
-    - echo "host all  all    ::1/128  trust" >> /etc/postgresql/11/main/pg_hba.conf
-    - echo "listen_addresses='*'" >> /etc/postgresql/11/main/postgresql.conf
-    - echo "log_filename='postgresql-11-main.log'" >> /etc/postgresql/11/main/postgresql.conf
-    - echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache'" >> /etc/postgresql/11/main/postgresql.conf
-    #- echo "logging_collector = on" >> /etc/postgresql/11/main/postgresql.conf
-    - /etc/init.d/postgresql start 
-    - psql -U postgres -c 'create database dbname;'
-    - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
-    - psql -U postgres dbname -b -c 'create extension if not exists pg_stat_kcache;'
-    - psql -U postgres dbname -c "create role username superuser login;"
+    - sudo .ci/prepare_cluster.sh "11"
+    - ps ax | grep postgres
+    - psql -U postgres -p 5432 -c 'show data_directory;'
+    - psql -U postgres -p 5433 -c 'show data_directory;'
+    - psql -U postgres -p 5434 -c 'show data_directory;'
+    # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
     - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
     - apt-get -y install openssh-server
     - service ssh restart
     
-    #&& echo "  StrictHostKeyChecking no" >> ~/.ssh/config
   script:
     - bash -version
-    - psql -h localhost -d dbname -U username -c "SELECT version();"
-    - psql -h localhost -d dbname -U username -f .ci/test_db_dump.sql
-    - .ci/test_db_dump.sh
-    - vacuumdb -U username dbname --analyze
+    - psql -d dbname -U test_user -c "SELECT version();"
+    - psql -p 5433 -d dbname -U test_user -c "SELECT version();"
+    - psql -p 5434 -d dbname -U test_user -c "SELECT version();"
+    - psql -d dbname -U test_user -f .ci/test_db_dump.sql
+    - .ci/prepare_test_db.sh
+    - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
-    - ./checkup -h localhost --username username --project test --dbname dbname -e 1
-    - ./checkup -h localhost --username username --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    # First run only for K00X reports
+    - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    # Last run of checkup
+    - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    # Check results
     - cat err.log
+    - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log || true
+    - grep -v "this is not a real error. Just run check again." err1.log > err.log || true
     - grep -v "Failed to create bus connection" err.log > err1.log || true
-    - grep -v "SSH is not supported, skipping..." err1.log > err2.log || true
-    - cat err2.log
-    - export TEST_RESULT=$(stat --format="%s" err2.log) && echo $TEST_RESULT
+    - cat err1.log
+    - export TEST_RESULT=$(stat --format="%s" err1.log) && echo $TEST_RESULT
     - ([[ $TEST_RESULT -ne 0 ]]) && exit 1
     - (git config --global user.name "postgres-ai" && git config --global user.email "nik@postgres.ai" && git config --global push.default simple) || true
     - eval $(ssh-agent -s) || true
