@@ -9,7 +9,7 @@ const MSG_TOTAL_BLOAT_EXCESS_CONCLUSION string = "[P1] Total index (btree only) 
 
 const MSG_TOTAL_BLOAT_LOW_CONCLUSION string = "The estimated index (btree only) bloat in this DB is low, just ~%.2f%% (~%s). No action is needed now. Keep watching it though.\n"
 const MSG_BLOAT_CRITICAL_RECOMMENDATION string = "[P1] Reduce and prevent high level of index bloat:\n" +
-	"    - to prevent high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
+	"    - to prevent a high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
 	"    - eliminate or reduce the current index bloat using one of the approaches listed below.\n"
 const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] Consider the following:\n" +
 	"    - to prevent high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
