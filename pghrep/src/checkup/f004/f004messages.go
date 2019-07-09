@@ -10,7 +10,7 @@ const MSG_BLOAT_CRITICAL_RECOMMENDATION string = "[P1] Reduce and prevent the hi
 	"    - to prevent a high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
 	"    - eliminate or reduce the current table bloat using one of the approaches listed below.\n"
 const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] Consider the following:\n" +
-	"    - to prevent high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
+	"    - to prevent a high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
 	"    - eliminate or reduce the current table bloat using one of the approaches listed below.\n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloat numbers, clone the database, get table sizes, then apply " +
 	"database-wide `VACUUM FULL` (it eliminate all the bloat), and get new table sizes. Then compare old and new numbers.\n"
