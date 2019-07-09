@@ -20,7 +20,7 @@ const MSG_HIGH_RISKS_RECOMMENDATION string = "[P1] High risks of out-of-range er
     "Consider using `int8` in all PK columns,  always. To convert existing columns to `int8`, consider the " +
     " following approaches:\n" +
 	"    1. Blocking `ALTER TABLE .. ALTER COLUMN`: a straightforward solution requiring significant downtime (a maintenance window).\n" +
-	"    1. \"New column\": create a new column, update it in batches (runnong not longer than a few seconds, " +
+	"    1. \"New column\": create a new column, update it in batches (running not longer than a few seconds, " +
 	"to avoid blocking issues), and then switch to using it, redefining all the constraints. Notice, that " +
 	"to redefine a primary key constraint, `ALTER TABLE .. ALTER COLUMN .. SET NOT NULL` will be needed. " +
 	"It is a blocking operation in all Postgres versions up to 12 (where it might be lightweight if a proper `CHECK` " +
