@@ -14,7 +14,7 @@ const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] Consider the following:\n"
 	"    - eliminate or reduce the current table bloat using one of the approaches listed below.\n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloat numbers, clone the database, get table sizes, then apply " +
 	"database-wide `VACUUM FULL` (it eliminate all the bloat), and get new table sizes. Then compare old and new numbers.\n"
-const MSG_BLOAT_GENERAL_RECOMMENDATION_2 string = "To reduce the table bloat, consider using one of the following:\n" +
+const MSG_BLOAT_GENERAL_RECOMMENDATION_2 string = "To reduce the table bloat, consider one of the following approaches:\n" +
 	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/current/sql-vacuum.html) (:warning:  requires downtime / maintenance window),\n" +
 	"    - one of the tools reducing the bloat online, without interrupting the operations:\n" +
 	"        - [pg_repack](https://github.com/reorg/pg_repack),\n" +
