@@ -13,7 +13,7 @@ const MSG_HIGH_RISKS_CONCLUSION_N string = "[P1] High risks of out-of-range erro
     "The columns listed below, being part of a primary key, have high risks to reach 100%% " +
     "of the integer capacity (`2^31-1`, or `2147483647` for `int4` columns, and `2^15-1`, or `32767` for `int2` columns; " +
 	"see [the documentation](https://www.postgresql.org/docs/current/datatype-numeric.html). " +
-	"If it happens, INSERTs of new rows are not be possible (unless they use some non-incremental " +
+	"If it happens, INSERTs of new rows will not be possible (unless they use some non-incremental " +
 	"values, such as some negative values) and fixing it will require a long downtime. %d such column are found:\n%s"
 
 const MSG_HIGH_RISKS_RECOMMENDATION string = "[P1] High risks of out-of-range errors for an integer column. " +
