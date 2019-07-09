@@ -13,7 +13,7 @@ const MSG_TX_AGE_MORE_1H_RECOMMENDATION string = "[P1] There are transactions wi
 	"in `pg_stat_activity`). Consider the following tactics to avoid long running transactions:\n" +
 	"    - split transactions to smaller ones – ideally, OLTP workload should not have transactions lasting more than a few seconds;\n" +
 	"    - if long-lasting transactions often appear in `pg_stat_activity` with `'idle in transaction'` state, this is a sign that delays happen on " +
-	"client's (application's) side; it is very important to reduce such delays as much as possible;\n" +
+	"application side; it is very important to reduce such delays as much as possible;\n" +
 	"    - if long-lasting transactions are read-only (for example, dumping tables using pg_dump, exporting data using " +
 	"regular `SELECT` or `COPY`, or building some analytical reports), consider offloading this work to a replica; it is important " +
 	"that such replica works with `host_standby_feedback = off` and is allowed to lag significantly in applying WALs.\n"
