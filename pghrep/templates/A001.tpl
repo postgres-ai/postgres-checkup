@@ -1,4 +1,4 @@
-# {{ .checkId }} System information #
+# {{ .checkId }} System Information #
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
@@ -6,28 +6,32 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ if gt (len .results) 2 }} {{/* Min 2 hosts + "_keys" item */}}
 ### Operating System by hosts ###
 
-Host| Operating System | Kernel 
-----|------------------|--------
-{{- if and (index .results .hosts.master) (index (index .results .hosts.master) "data") (index (index (index .results .hosts.master) "data").virtualization) }}
-{{ .hosts.master }}|
-{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }} |
-{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }}
-{{- end -}}
+| Host| Operating System | Kernel |
+|-----|------------------|--------|
+{{- if (index .results .hosts.master) }}
+{{- if (index (index .results .hosts.master) "data") }}
+|{{ .hosts.master }}|
+{{- if index (index (index (index .results .hosts.master) "data").virtualization) "Operating System" }}
+{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Operating System") }}
+{{- else }}{{- if index (index (index (index .results .hosts.master) "data").system) "operating_system" }}{{- index (index (index (index .results .hosts.master) "data").system) "operating_system" }}{{- end }}{{- end }}|
+{{- if index (index (index (index .results .hosts.master) "data").virtualization) "Kernel" }}{{- (index (index (index (index .results .hosts.master) "data").virtualization) "Kernel") }}{{- else }}{{- if index (index (index (index .results .hosts.master) "data").system) "kernel_release" }}{{- (index (index (index (index .results .hosts.master) "data").system) "kernel_release") }}{{- end }}{{ end}}|
+{{- end -}}{{/* master data */}}
+{{- end -}}{{/* master */}}
 {{- if gt (len .hosts.replicas) 0 -}}
     {{- range $key, $host := .hosts.replicas -}}
-        {{- if (index $.results $host) -}}
-            {{- if and (index $.results $host) (index (index $.results $host) "data") (index (index (index $.results $host) "data").virtualization) }}
-{{ $host }} |
-{{- (index (index (index (index $.results $host) "data").virtualization) "Operating System") }} |
-{{- (index (index (index (index $.results $host) "data").virtualization) "Kernel") }}
-            {{- end -}}
+        {{ if (index $.results $host) }}
+|{{ $host }}|
+{{- if and (index $.results $host) (index (index $.results $host) "data") }}{{- if (index (index (index (index $.results $host) "data").virtualization) "Operating System") }}{{- (index (index (index (index $.results $host) "data").virtualization) "Operating System") }}{{ else }}{{- if index (index (index (index $.results $host) "data").system) "operating_system" }}{{- index (index (index (index $.results $host) "data").system) "operating_system" }}{{- end }}{{- end -}}|
+{{- if (index (index (index (index $.results $host) "data").virtualization) "Kernel") -}}{{- (index (index (index (index $.results $host) "data").virtualization) "Kernel") }}{{- else -}}{{- if index (index (index (index $.results $host) "data").system) "kernel_release" }}{{- (index (index (index (index $.results $host) "data").system) "kernel_release") }}{{- end -}}{{- end -}}|
+{{- end -}}
         {{- end -}}
     {{- end }}
 {{ end }}
 {{ end }}
 
 {{ if .hosts.master }}
-{{ if and (index .results .hosts.master) (index (index .results .hosts.master) "data") }}
+{{ if (index .results .hosts.master) }}
+{{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data").system.raw}}
 **System**
@@ -58,6 +62,7 @@ Host| Operating System | Kernel
 ```
 {{ end }}{{/* virtualization */}}
 {{ end }}{{/* master data */}}
+{{ end }}{{/* master results */}}
 {{ end }}{{/* master */}}
 
 {{ if gt (len .hosts.replicas) 0 }}
@@ -94,7 +99,7 @@ Host| Operating System | Kernel
 ```
 {{ end }}
         {{ else }}
-`No data`
+`Nothing found`
 {{ end}}{{ end }}{{ end }}
 
 ## Conclusions ##
