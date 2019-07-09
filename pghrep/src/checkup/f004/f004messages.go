@@ -1,7 +1,7 @@
 package f004
 
 const MSG_NO_RECOMMENDATIONS string = "All good 👍\n"
-const MSG_TOTAL_BLOAT_EXCESS_CONCLUSION string = "[P1] Total table (heap) bloat estimation is ~%s, it is %.2f%% of overall tables size and %.2f%% of the DB size. " +
+const MSG_TOTAL_BLOAT_EXCESS_CONCLUSION string = "[P1] Total table (heap) bloat estimation is ~%s, it is %.2f%% of the overall size of all tables and %.2f%% of the DB size. " +
 	"Removing the table bloat will reduce the total DB size down to ~%s. Free disk space will be increased by ~%s. " +
 	"Total size of tables is %.2f times bigger than it could be. " +
 	"Notice that this is only an estimation, sometimes it may be significantly off.\n"
