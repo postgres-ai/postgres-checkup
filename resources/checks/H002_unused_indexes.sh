@@ -16,7 +16,7 @@ with fk_indexes as (
      contype = 'f'
      and i.indisunique is false
      and conkey is not null
-     and ci.relpages > 100
+     /* !!!!! and ci.relpages > 100 */
      and si.idx_scan < 10
 ), table_scans as (
   select relid,
@@ -168,7 +168,7 @@ index_data as (
     array_to_string(indclass, ', ') as opclasses
   from pg_index i
   join pg_class ci on ci.oid = i.indexrelid and ci.relkind = 'i'
-  where indisvalid = true and ci.relpages > 100
+  where indisvalid = true /* !!!!! and ci.relpages > 100 */
 ), redundant_indexes as (
   select
     i2.indexrelid as index_id,
