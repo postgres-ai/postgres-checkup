@@ -43,8 +43,7 @@ function get_mem_info() {
 }
 
 function get_system_info() {
-  local uname_json_data="$(${CHECK_HOST_CMD} echo \"\\\"raw\\\": \\\"$( uname -a )\\\", \\\"kernel_name\\\": \\\"$( uname -s )\\\", \\\"kernel_version\\\": \\\"$( uname -v )\\\", \\\"kernel_release\\\": \\\"$( uname -r )\\\", \\\"operating_system\\\": \\\"$( uname -o )\\\"\")"
-  #local sys_info="$(uname -a | sed 's/"/\\"/g')"
+  local uname_json_data=$(${CHECK_HOST_CMD} 'echo \"raw\":\"$(uname -a)\", \"operating_system\":\"$(uname -s)\", \"kernel_release\":\"$(uname -r)\"')
   res_obj="{\"cmd2check\": \"uname -a\", $uname_json_data}"
   OS_INFO=$res_obj #$(jq -n "$res_obj")
 }
