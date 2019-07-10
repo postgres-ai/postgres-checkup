@@ -55,7 +55,7 @@ with fk_indexes as (
   where
     i.indisunique = false
     and i.indisvalid = true
-    and ci.relpages > 100
+    /* !!!!! and ci.relpages > 100 */
 ), index_ratios as (
   select
     i.indexrelid as index_id,

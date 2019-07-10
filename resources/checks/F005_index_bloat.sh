@@ -31,8 +31,8 @@ with data as (
       where a.amname = 'btree'
         AND pg_index.indisvalid
         AND tbl.relkind = 'r'
-        AND idx.relpages > 10
-        AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+        AND idx.relpages > 0 /* !!!!! 10 instead 0 */
+        /* !!!!! AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema') */
   ), step1 as (
     select
       i.tblid,
