@@ -189,6 +189,15 @@ func ResultInList(items []ReportResultItem, id string) bool {
 	return false
 }
 
+func GetResultItem(items []ReportResultItem, id string) (*ReportResultItem, error) {
+	for _, itemValue := range items {
+		if itemValue.Id == id {
+			return &itemValue, nil
+		}
+	}
+	return nil, fmt.Errorf("Item not found")
+}
+
 func PrintResultConclusions(result ReportResult) {
 	for _, conclusion := range result.Conclusions {
 		fmt.Println("C:  ", conclusion.Message)
@@ -203,7 +212,7 @@ func PrintResultRecommendations(result ReportResult) {
 
 func GetMasterHostName(hosts ReportHosts) string {
 	var firstHostName string = ""
-	
+
 	for hostName, host := range hosts {
 		if firstHostName == "" {
 			firstHostName = hostName
@@ -213,7 +222,7 @@ func GetMasterHostName(hosts ReportHosts) string {
 			return hostName
 		}
 	}
-	
+
 	return firstHostName
 }
 
@@ -222,38 +231,38 @@ func GetItemsSortedByNum(data interface{}) []string {
 	var result []string
 	var numData map[int]string = map[int]string{}
 	var keys []int
-	
+
 	v := reflect.ValueOf(data)
-	
+
 	if v.Kind() == reflect.Map {
 		v2 := v.MapKeys()
-		
+
 		for _, itemData := range v2 {
 			id := itemData.Interface()
 			val := v.MapIndex(itemData)
-			
+
 			if val.Kind() != reflect.Struct {
 				continue
 			}
-			
+
 			valNum := val.FieldByName("Num")
-			
+
 			if valNum.Kind() == reflect.Invalid {
 				continue
 			}
-			
+
 			num := valNum.Interface()
 			intNum := num.(int)
 			numData[intNum] = id.(string)
 			keys = append(keys, intNum)
 		}
-		
+
 		sort.Ints(keys)
-		
+
 		for _, key := range keys {
 			result = append(result, numData[key])
 		}
 	}
-	
+
 	return result
 }
