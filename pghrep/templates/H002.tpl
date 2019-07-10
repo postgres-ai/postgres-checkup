@@ -9,6 +9,7 @@ Stats reset: {{ (index (index (index .results .reorderedHosts.master) "data") "d
 {{- if le (Int (index (index (index .results .reorderedHosts.master) "data") "database_stat").days) 30 }}  
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
 {{- end }}
+NOTICE: only indexes larger than 800 kiB are analyzed.  
 ### Never Used Indexes ###
 {{ if (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes") }}
 {{ if gt (len (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
