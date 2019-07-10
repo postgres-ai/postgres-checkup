@@ -107,13 +107,13 @@ func G001CheckSharedBuffers(report G001Report, a001 a001.A001Report, result chec
 		if sharedBufferValue != -1 && sharedBufferValue > maxLevel {
 			conclusions = append(conclusions, fmt.Sprintf(MSG_HOST_CONCLUSION_HIGH, host,
 				fmtutils.ByteFormat(float64(hostMemTotal), 2), fmtutils.ByteFormat(float64(sharedBufferValue), 2),
-				int(sharedBufferValue/hostMemTotal*100)))
+				float64(sharedBufferValue)/float64(hostMemTotal)*100))
 		}
 
 		if (sharedBufferValue != -1) && sharedBufferValue < minLevel {
 			conclusions = append(conclusions, fmt.Sprintf(MSG_HOST_CONCLUSION_LOW, host,
 				fmtutils.ByteFormat(float64(hostMemTotal), 2), fmtutils.ByteFormat(float64(sharedBufferValue), 2),
-				int(sharedBufferValue/hostMemTotal*100)))
+				float64(sharedBufferValue)/float64(hostMemTotal)*100))
 		}
 
 		if (sharedBufferValue != -1) && (sharedBufferValue > maxLevel || sharedBufferValue < minLevel) {
@@ -177,11 +177,11 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 
 		if usedMem >= maxMem {
 			sharedBuffersTerm := sharedBufferValueBytes > (hostMemTotal * TERM_MEMORY_LEVEL / 100)
-			sharedBuffersPercent := sharedBufferValueBytes * 100 / hostMemTotal
+			sharedBuffersPercent := float64(sharedBufferValueBytes) * 100 / float64(hostMemTotal)
 			maxConnectionsWorkMemTerm := (maxConnections * 2 * workMemBytes) > (hostMemTotal * TERM_MEMORY_LEVEL / 100)
-			maxConnectionsWorkMemPercent := (maxConnections * 2 * workMemBytes) * 100 / hostMemTotal
+			maxConnectionsWorkMemPercent := (float64(maxConnections) * 2 * float64(workMemBytes)) * 100 / float64(hostMemTotal)
 			autovacuumWorkMemTerm := (autovacuumWorkMemEffectiveBytes * autovacuumMaxWorkers) > (hostMemTotal * TERM_MEMORY_LEVEL / 100)
-			autovacuumWorkMemPercent := (autovacuumWorkMemEffectiveBytes * autovacuumMaxWorkers) * 100 / hostMemTotal
+			autovacuumWorkMemPercent := (float64(autovacuumWorkMemEffectiveBytes) * float64(autovacuumMaxWorkers)) * 100 / float64(hostMemTotal)
 
 			result.P1 = true
 			conclusion := fmt.Sprintf(MSG_OOM_BASE_CONCLUSION, host)
