@@ -1096,6 +1096,7 @@ run_checks() {
         msg "'${MD_REPORTS_DIR}/K001.md'"
         msg "'${MD_REPORTS_DIR}/K002.md'"
         msg "'${MD_REPORTS_DIR}/K003.md'"
+        msg "'${MD_REPORTS_DIR}/K004.md'"
       else
         msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
       fi

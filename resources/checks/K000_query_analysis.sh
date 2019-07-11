@@ -404,6 +404,12 @@ for query_num in $(jq -r '.queries | keys | .[]' <<<${JSON}); do
   JSON=$(jq --arg readable_queryid $readable_queryid -r '.queries."'$query_num'" += { "readable_queryid": $readable_queryid }' <<<${JSON})
 done
 
+echo "${JSON}" | jq '.queries | .[]' | jq -cs 'sort_by(-.per_sec_calls)' | jq -r '. | map({"query": .query, "per_sec_calls": .per_sec_calls, "ratio_calls": .ratio_calls, "per_call_total_time":.per_call_total_time, "ratio_total_time":.ratio_total_time, "per_call_rows":.per_call_rows, "ratio_rows":.ratio_rows})' > ${JSON_REPORTS_DIR}/K000_top_frequent.json
+
+JSON=$(jq --argfile top_frequent "${JSON_REPORTS_DIR}/K000_top_frequent.json" -r '. += { "top_frequent": $top_frequent }' <<<${JSON})
+
+rm ${JSON_REPORTS_DIR}/K000_top_frequent.json
+
 # print resulting JSON to stdout
 echo "${JSON}"
 
