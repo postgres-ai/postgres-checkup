@@ -288,13 +288,13 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 ## А. General  / Infrastructural
 
-- [x] A001 System, CPU, RAM, disks, virtualization #6 , #56 , #57 , #86
-- [x] A002 PostgreSQL versions (Simple) #68, #21, #86
-- [x] A003 Collect pg_settings  #15, #167, #86
-- [x] A004 General cluster info  #7, #58, #59, #86, #162
+- [x] A001 System information #6 , #56 , #57 , #86
+- [x] A002 Version information #68, #21, #86
+- [x] A003 Postgres settings  #15, #167, #86
+- [x] A004 Cluster information  #7, #58, #59, #86, #162
 - [x] A005 Extensions #8, #60, #61, #86, #167
-- [x] A006 Config diff  #9, #62, #63, #86
-- [x] A007 ALTER SYSTEM vs postgresql.conf #18, #86
+- [x] A006 Postgres setting deviations #9, #62, #63, #86
+- [x] A007 Altered settings #18, #86
 - [x] A008 Disk usage and file system type #19, #20
 - [ ] A010 Data checksums, wal_log_hints #22
 - [ ] A011 Connection pooling. pgbouncer #23
@@ -323,7 +323,7 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 - [ ] D001 Logging (syslog?), log_*** #35
 - [x] D002 Useful Linux tools  #36
 - [ ] D003 List of monitoring metrics #37
-- [x] D004 pg_stat_statements, tuning opts, pg_stat_kcache #38
+- [x] D004 pg_stat_statements and pg_stat_kcache settings #38
 - [ ] D005 track_io_timing, …, auto_explain  #39
 - [ ] D006 Recommended DBA toolsets: postgres_dba, pgCenter, pgHeroother  #40
 - [ ] D007 Postgres-specific tools for troubleshooting  #137
@@ -335,29 +335,29 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 ## F. Autovacuum, Bloat
 
-- [x] F001 < F003 Current autovacuum-related settings  #108, #164
-- [x] F002 < F007 Transaction ID wraparound check  #16, #171
-- [x] F003 < F006 Dead tuples  #164
-- [x] F004 < F001 Heap bloat estimation #87, #122
-- [x] F005 < F002 Index bloat estimation #88
+- [x] F001 < F003 Autovacuum: current settings  #108, #164
+- [x] F002 < F007 Autovacuum: transaction ID wraparound check  #16, #171
+- [x] F003 < F006 Autovacuum: dead tuples  #164
+- [x] F004 < F001 Autovacuum: heap bloat (estimated) #87, #122
+- [x] F005 < F002 Autovacuum: index bloat (estimated) #88
 - [ ] F006 < F004 Precise heap bloat analysis
 - [ ] F007 < F005 Precise index bloat analysis
-- [x] F008 < F008 Resource usage (CPU, Memory, disk IO) #44
+- [x] F008 < F008 Autovacuum: resource usage #44
 
 ## G. Performance / Connections / Memory-related Settings
 
 - [x] G001 Memory-related settings #45, #190
-- [x] G002 Connections #46
-- [x] G003 Timeouts, locks, deadlocks (amount) #47
+- [x] G002 Connections and current activity #46
+- [x] G003 Timeouts, locks, deadlocks #47
 - [ ] G004 Query planner (diff) #48
 - [ ] G005 I/O settings #49
 - [ ] G006 Default_statistics_target (plus per table?) #50
 
 ## H. Index Analysis
 
-- [x] H001 Indexes: invalid #192, #51
+- [x] H001 Invalid indexes #192, #51
 - [x] H002 Unused and redundant indexes #51, #180, #170, #168, #322
-- [x] H003 Missing FK indexes #52, #142, #173
+- [x] H003 Non-indexed foreign keys #52, #142, #173
 
 ## J.  Capacity Planning
 
@@ -367,10 +367,10 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 
 - [x] K001 Globally aggregated query metrics #158, #178, #182, #184
 - [x] K002 Workload type ("first word" analysis) #159, #178, #179, #182, #184
-- [x] K003 Top queries by total_time  #160, #172, #174, #178, #179, #182, #184, #193
+- [x] K003 Top-50 queries by total_time #160, #172, #174, #178, #179, #182, #184, #193
 
 ## L. DB Schema Analysis
-- [x] L001 (was: H003) Current sizes of DB objects (tables, indexes, mat. views)  #163
+- [x] L001 (was: H003) Table sizes #163
 - [ ] L002 (was: H004) Data types being used #53
 - [x] L003 Integer (int2, int4) out-of-range risks in PKs // calculate capacity remained; optional: predict when capacity will be fully used) https://gitlab.com/postgres-ai-team/postgres-checkup/issues/237
 - [ ] L004 Tables without PK/UK
