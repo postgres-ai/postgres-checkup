@@ -9,14 +9,15 @@ sections, as of June 2019, only several reports have autogeneration for them.*
 
 # About
 
-Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup))
-is a new-generation diagnostics tool that allows users to do a deep analysis
-of the health of Postgres databases. It helps to detect, predict and prevent
-technical issues.
+Postgres Checkup ([postgres-checkup](https://gitlab.com/postgres-ai-team/postgres-checkup)) is a new kind of diagnostics tool for a deep analysis of a Postgres database health. It detects current and potential issues with database performance, scalability and security. And produces recommendations on how to resolve or prevent them.
 
-The three key principles behind postgres-checkup:
+A monitoring system will only show current, urgent problems. And postgres-checkup will show sneaking up, deeper problems, that may hit you in the future. It helps to solve many known database administration problems and common pitfalls. It aims to detect issues at a very early stage and to suggest the best ways to prevent them. 
+We recommend to run these on a regular basis — weekly, monthly, and quarterly. And also to run these right before and after applying any major change to a database server. Whether it’s a schema or configuration parameter or cluster settings change.
 
-- *Unobtrusiveness*: postgres-checkup’s impact on the observing system is
+
+Why do you need postgres-checkup and why it's safe and easy to use:
+
+- *It unobtrusive*: its impact on the observing system is
 close to zero. It does not use any heavy queries, keeping resource usage
 very low, and avoiding having the [“observer effect”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology)).
 postgres-checkup reports were successfully tested on real-world databases
