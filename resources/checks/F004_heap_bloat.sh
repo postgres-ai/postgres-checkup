@@ -115,10 +115,10 @@ with data as (
     ) as "fillfactor",
     case when ot.table_id is not null then true else false end as overrided_settings,
     case
-      when (real_size - bloat_size)::numeric >=0
+      when bloat_size::numeric >= 0 and (real_size - bloat_size)::numeric >=0
         then real_size::numeric / (real_size - bloat_size)::numeric
         else null
-      end as "bloat_ratio"
+      end as "bloat_ratio_factor"
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
@@ -139,7 +139,7 @@ with data as (
     sum("bloat_size_bytes") as "bloat_size_bytes_sum",
     sum("live_data_size_bytes") as "live_data_size_bytes_sum",
     (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
-    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_avg",
+    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_factor_avg",
     sum("extra_size_bytes") as "extra_size_bytes_sum"
   from data
 )

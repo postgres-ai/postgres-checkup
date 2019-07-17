@@ -45,30 +45,35 @@ with data as (
   select * from data
 ), tables as (
   select
-    coalesce(nullif(schema_name, 'public') || '.', '') || table_name || coalesce(' [' || tblspace || ']', '') as "Table",
+    coalesce(nullif(schema_name, 'public') || '.', '') || table_name || coalesce(' [' || tblspace || ']', '') as "table",
+    row_estimate as row_estimate,
     '~' || case
       when row_estimate > 10^12 then round(row_estimate::numeric / 10^12::numeric, 0)::text || 'T'
       when row_estimate > 10^9 then round(row_estimate::numeric / 10^9::numeric, 0)::text || 'B'
       when row_estimate > 10^6 then round(row_estimate::numeric / 10^6::numeric, 0)::text || 'M'
       when row_estimate > 10^3 then round(row_estimate::numeric / 10^3::numeric, 0)::text || 'k'
       else row_estimate::text
-    end as "Rows",
+    end as "rows",
+    total_bytes as total_size_bytes,
     pg_size_pretty(total_bytes) || ' (' || round(
       100 * total_bytes::numeric / nullif(sum(total_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "Total Size",
+    )::text || '%)' as "total_size",
+    table_bytes as table_size_bytes,
     pg_size_pretty(table_bytes) || ' (' || round(
       100 * table_bytes::numeric / nullif(sum(table_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "Table Size",
+    )::text || '%)' as "table_size",
+    index_bytes as indexes_size_bytes,
     pg_size_pretty(index_bytes) || ' (' || round(
       100 * index_bytes::numeric / nullif(sum(index_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "Index(es) Size",
+    )::text || '%)' as "indexes_size",
+    toast_bytes as toast_size_bytes,
     pg_size_pretty(toast_bytes) || ' (' || round(
       100 * toast_bytes::numeric / nullif(sum(toast_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "TOAST Size"
+    )::text || '%)' as "toast_size"
   from data2
   where schema_name is distinct from 'information_schema'
   order by oid is null desc, total_bytes desc nulls last
@@ -77,17 +82,17 @@ with data as (
     null::bigint as num,
     ts.*
   from tables ts
-  where "Table" = '=====TOTAL====='
+  where "table" = '=====TOTAL====='
 ), num_tables as (
   select
     row_number() over () num,
     ts.*
   from tables ts
-  where "Table" <> '=====TOTAL====='
+  where "table" <> '=====TOTAL====='
 ), together as (
   select * from total
   union all
   select * from num_tables
 )
-select json_object_agg(t."Table", t) as json from together t
+select json_object_agg(t."table", t) as json from together t
 SQL

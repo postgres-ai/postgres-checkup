@@ -14,7 +14,7 @@ Current database: {{ .database }}
 {{ range $i, $key := (index (index (index .results .hosts.master) "data") "_keys") }}
 {{- if le $i $.LISTLIMIT -}}
 {{- $value := (index (index (index $.results $.hosts.master) "data") $key) -}}
-|{{ $value.num}} | {{if eq (index $value "Table") "=====TOTAL=====" }}{{ index $value "Table" }}{{else}}`{{ index $value "Table" }}`{{end}} | {{ index $value "Rows"}} | {{ index $value "Total Size"}} | {{ index $value "Table Size"}} | {{ index $value "Index(es) Size"}} | {{ index $value "TOAST Size"}}|
+|{{ $value.num}} | {{if eq (index $value "table") "=====TOTAL=====" }}{{ index $value "table" }}{{else}}`{{ index $value "table" }}`{{end}} | {{ index $value "rows"}} | {{ index $value "total_size"}} | {{ index $value "table_size"}} | {{ index $value "indexes_size"}} | {{ index $value "toast_size"}}|
 {{/* if limit list */}}{{ end -}}
 {{ end }}
 {{- else -}}{{/*Master data*/}}

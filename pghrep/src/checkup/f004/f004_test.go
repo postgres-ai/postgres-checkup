@@ -18,7 +18,7 @@ func TestF004Success(t *testing.T) {
 		BloatSizeBytesSum:    25526329344,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.DatabaseSizeBytes = 25526329344 * 4
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{
@@ -39,7 +39,7 @@ func TestF004Success(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        1.0,
+			BloatRatioFactor:  1.0,
 		},
 		"table_2": F004HeapBloat{
 			Num:               2,
@@ -58,7 +58,7 @@ func TestF004Success(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        1.0,
+			BloatRatioFactor:  1.0,
 		},
 	}
 
@@ -87,7 +87,7 @@ func TestF004TotalExcess(t *testing.T) {
 		BloatSizeBytesSum:    25526329344,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 25.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{}
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
@@ -112,7 +112,7 @@ func TestF004Warnig(t *testing.T) {
 		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{
 		"table_1": F004HeapBloat{
@@ -132,7 +132,7 @@ func TestF004Warnig(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        7.684142811193309,
+			BloatRatioFactor:  7.684142811193309,
 		},
 		"table_2": F004HeapBloat{
 			Num:               2,
@@ -151,7 +151,7 @@ func TestF004Warnig(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_3": F004HeapBloat{
 			Num:               2,
@@ -170,7 +170,7 @@ func TestF004Warnig(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_4": F004HeapBloat{
 			Num:               2,
@@ -189,7 +189,7 @@ func TestF004Warnig(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_5": F004HeapBloat{
 			Num:               2,
@@ -208,7 +208,7 @@ func TestF004Warnig(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_6": F004HeapBloat{
 			Num:               2,
@@ -227,7 +227,7 @@ func TestF004Warnig(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 	}
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
@@ -253,7 +253,7 @@ func TestF004Critical(t *testing.T) {
 		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{
 		"table_1": F004HeapBloat{
@@ -273,7 +273,7 @@ func TestF004Critical(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        7.684142811193309,
+			BloatRatioFactor:  7.684142811193309,
 		},
 		"table_2": F004HeapBloat{
 			Num:               2,
@@ -292,7 +292,7 @@ func TestF004Critical(t *testing.T) {
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 	}
 

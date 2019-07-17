@@ -18,7 +18,7 @@ Current database: {{ .database }}
 {{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "table_size_bytes_sum" ) 2 }} |
 {{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_size_bytes_sum" ) 2 }} |
 {{- RawIntFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_size_bytes_sum" ) }}|
-{{- if (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_avg") }}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_avg" ) 2 }}{{ end }} |
+{{- if (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_factor_avg") }}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_factor_avg" ) 2 }}{{ end }} |
 {{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_percent_avg" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_percent_avg" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_percent_avg" ) 2 }}{{end}}|
 {{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "live_data_size_bytes_sum" ) 2 }} |||
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
@@ -29,7 +29,7 @@ Current database: {{ .database }}
 {{- ByteFormat ( index $value "table_size_bytes") 2 }} |
 {{- if ( index $value "bloat_size_bytes")}}{{ ByteFormat ( index $value "bloat_size_bytes") 2 }}{{end}} |
 {{- if ( index $value "bloat_size_bytes")}}{{ RawIntFormat ( index $value "bloat_size_bytes") }}{{end}} |
-{{- if ( index $value "bloat_ratio")}}{{ RawFloatFormat ( index $value "bloat_ratio") 2 }}{{end}} |
+{{- if ( index $value "bloat_ratio_factor")}}{{ RawFloatFormat ( index $value "bloat_ratio_factor") 2 }}{{end}} |
 {{- if ge (Int (index $value "bloat_ratio_percent")) $minRatioWarning }} **{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}**{{else}}{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}{{end}} |
 {{- "~" }}{{ ByteFormat ( index $value "live_data_size_bytes" ) 2 }} |
 {{- ( index $value "fillfactor") }} |
