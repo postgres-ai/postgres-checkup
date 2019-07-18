@@ -8,7 +8,7 @@ Current database: {{ .database }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data") }}
 {{ if (index (index (index .results .hosts.master) "data") "invalid_indexes") }}
-{{ if gt (len (index (index (index .results .hosts.master) "data") "invalid_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ (len (index (index (index .results .hosts.master) "data") "invalid_indexes")) }}.{{ end }}  
+{{ if ge (len (index (index (index .results .hosts.master) "data") "invalid_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index (index .results .hosts.master) "data") "invalid_indexes")) 1 }}.{{ end }}  
 
 | \# | Table | Index name | Index size | Supports FK |
 |---|-------|------------|------------|----------|

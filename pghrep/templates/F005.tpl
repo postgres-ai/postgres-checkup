@@ -9,7 +9,7 @@ Current database: {{ .database }}
 {{ if (index .results .hosts.master)}}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-{{ if gt (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) }}. {{ end }}  
+{{ if ge (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) 1 }}. {{ end }}  
 
 | \# | Index (Table) | Index Size | Table Size | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat factor |Est. bloat level, % | Live Data Size | Fillfactor  |
 |----|---------------|------------|------------|------------------------------|-------------------|-------------------|--------------------|----------------|-------------|
