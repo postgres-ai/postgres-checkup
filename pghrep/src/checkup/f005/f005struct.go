@@ -13,15 +13,11 @@ type F005IndexBloat struct {
 	RealSizeBytes     int64   `json:"real_size_bytes"`
 	Size              string  `json:"size"`
 	ExtraRatioPercent float32 `json:"extra_ratio_percent"`
-	Extra             string  `json:"extra"`
 	ExtraSizeBytes    int64   `json:"extra_size_bytes"`
-	Bloat             string  `json:"bloat"`
 	BloatSizeBytes    int64   `json:"bloat_size_bytes"`
 	BloatRatioPercent float32 `json:"bloat_ratio_percent"`
 	BloatRatioFactor  float32 `json:"bloat_ratio_factor"`
-	LiveDataSize      string  `json:"live_data_size"`
 	LiveDataSizeBytes int64   `json:"live_data_size_bytes"`
-	LiveBytes         int64   `json:"live_bytes"`
 	LastVaccuum       string  `json:"last_vaccuum"`
 	Fillfactor        float32 `json:"fillfactor"`
 	OverridedSettings bool    `json:"overrided_settings"`

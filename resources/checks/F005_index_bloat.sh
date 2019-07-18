@@ -121,19 +121,9 @@ with data as (
     extra_ratio as "extra_ratio_percent",
     case
       when extra_size::numeric >= 0
-        then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
-      else null
-    end  as "extra",
-    case
-      when extra_size::numeric >= 0
         then extra_size
       else null
     end as "extra_size_bytes",
-    case
-      when bloat_size::numeric >= 0
-        then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
-      else null
-    end as "bloat_estimate",
     case
       when (bloat_size)::numeric >=0
         then bloat_size
@@ -151,19 +141,9 @@ with data as (
       end as "bloat_ratio_factor",
     case
       when (real_size - bloat_size)::numeric >=0
-        then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
-        else null
-     end as "live_data_size",
-    case
-      when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
         else null
       end as "live_data_size_bytes",
-    case
-      when (real_size - bloat_size)::numeric >=0
-        then (real_size - bloat_size)::numeric
-        else null
-     end as "live_bytes",
     fillfactor,
     case when ot.table_id is not null then true else false end as overrided_settings,
     table_size_bytes

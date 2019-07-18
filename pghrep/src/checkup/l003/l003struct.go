@@ -3,11 +3,11 @@ package l003
 import checkup ".."
 
 type L003Table struct {
-	Table               string  `json:"Table"`
-	Pk                  string  `json:"PK"`
-	Type                string  `json:"Type"`
-	CurrentMaxValue     int64   `json:"Current max value"`
-	CapacityUsedPercent float64 `json:"Capacity used %"`
+	Table               string  `json:"table"`
+	Pk                  string  `json:"pk"`
+	Type                string  `json:"type"`
+	CurrentMaxValue     int64   `json:"current_max_value"`
+	CapacityUsedPercent float64 `json:"capacity_used_percent"`
 }
 
 type L003ReportHostResult struct {

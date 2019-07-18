@@ -10,7 +10,7 @@ Current database: {{ .database }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data") }}
 {{ if (index (index (index .results .hosts.master) "data") "heap_bloat") }}
-{{ if gt (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
+{{ if gt (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) }}.{{ end }}  
 
 | \# | Table | Real Size | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat factor | Est. bloat level, % | Live Data Size | Last vacuum | Fillfactor |
 |----|-------|------|------------------------------|-------------------|-------------------|---------------------|----------------|-------------|------------|

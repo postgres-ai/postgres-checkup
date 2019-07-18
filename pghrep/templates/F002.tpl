@@ -11,7 +11,7 @@
 {{ if index (index (index .results .hosts.master) "data") "per_instance" }}
 
 #### Databases ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_instance")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{(len (index (index (index .results .hosts.master) "data") "per_instance"))}}.{{ end }}
 
 | \# | Database | &#9660;&nbsp;Age | Capacity used, % | Warning | datfrozenxid |
 |--|--------|-----|------------------|---------|--------------|
@@ -28,7 +28,7 @@
 {{- end -}}{{/* if per_instance exists */}}
 
 #### Tables in the observed database ####
-{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) $TABLE_LIST_LIMIT }}The list is limited to {{ $TABLE_LIST_LIMIT }} items.{{ end }}
+{{ if gt (len (index (index (index .results .hosts.master) "data") "per_database")) $TABLE_LIST_LIMIT }}The list is limited to {{ $TABLE_LIST_LIMIT }} items. All items {{ (len (index (index (index .results .hosts.master) "data") "per_database")) }}.{{ end }}
 
 | \# | Relation | Age | &#9660;&nbsp;Capacity used, % | Warning |rel_relfrozenxid | toast_relfrozenxid |
 |---|-------|-----|------------------|---------|-----------------|--------------------|

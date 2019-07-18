@@ -8,15 +8,11 @@ type F004HeapBloat struct {
 	Num               int     `json:"num"`
 	IsNa              string  `json:"is_na"`
 	TableName         string  `json:"table_name"`
-	RealSize          string  `json:"real_size"`
 	ExtraSizeBytes    int64   `json:"extra_size_bytes"`
 	ExtraRatioPercent float32 `json:"extra_ratio_percent"`
-	Extra             string  `json:"extra"`
 	BloatSizeBytes    int64   `json:"bloat_size_bytes"`
 	BloatRatioPercent float32 `json:"bloat_ratio_percent"`
-	BloatEstimate     string  `json:"bloat_estimate"`
 	RealSizeBytes     int64   `json:"real_size_bytes"`
-	LiveDataSize      string  `json:"live_data_size"`
 	LiveDataSizeBytes int64   `json:"live_data_size_bytes"`
 	LastVaccuum       string  `json:"last_vaccuum"`
 	Fillfactor        float32 `json:"fillfactor"`

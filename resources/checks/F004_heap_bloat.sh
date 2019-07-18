@@ -69,7 +69,6 @@ with data as (
   select
     case is_na when true then 'TRUE' else '' end as "is_na",
     coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "table_name",
-    pg_size_pretty(real_size::numeric) as "real_size",
     case
       when extra_size::numeric >= 0
         then extra_size::numeric
@@ -77,27 +76,12 @@ with data as (
     end as "extra_size_bytes",
     extra_ratio as "extra_ratio_percent",
     case
-      when extra_size::numeric >= 0
-        then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
-      else null
-    end  as "extra",
-    case
       when bloat_size::numeric >= 0
         then bloat_size::numeric
       else null
     end as "bloat_size_bytes",
     bloat_ratio as "bloat_ratio_percent",
-    case
-      when bloat_size::numeric >= 0
-        then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
-      else null
-    end as "bloat_estimate",
     real_size as "real_size_bytes",
-    case
-      when (real_size - bloat_size)::numeric >=0
-        then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
-        else null
-      end as "live_data_size",
     case
       when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
