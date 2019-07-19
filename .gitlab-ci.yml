@@ -86,6 +86,11 @@ test-general:
     - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    # Check small indexes
+    ## unused
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results ."postgres.test3.node" .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 302
+    ## redundant
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results ."postgres.test3.node" .data .redundant_indexes ."public.i_r_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 302
     # Check results
     - cat err.log
     - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log || true

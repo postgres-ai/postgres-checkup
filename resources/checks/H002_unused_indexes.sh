@@ -1,3 +1,5 @@
+MIN_RELPAGES=100
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with fk_indexes as (
   select
@@ -16,7 +18,7 @@ with fk_indexes as (
      contype = 'f'
      and i.indisunique is false
      and conkey is not null
-     and ci.relpages > 100
+     and ci.relpages > ${MIN_RELPAGES}
      and si.idx_scan < 10
 ), table_scans as (
   select relid,
@@ -25,7 +27,7 @@ with fk_indexes as (
     pg_relation_size(relid) as table_size
       from pg_stat_user_tables as tables
       join pg_class c on c.oid = relid
-      where c.relpages > 100
+      where c.relpages > ${MIN_RELPAGES}
 ), all_writes as (
   select sum(writes) as total_writes
   from table_scans
@@ -55,7 +57,7 @@ with fk_indexes as (
   where
     i.indisunique = false
     and i.indisvalid = true
-    and ci.relpages > 100
+    and ci.relpages > ${MIN_RELPAGES}
 ), index_ratios as (
   select
     i.indexrelid as index_id,
@@ -168,7 +170,7 @@ index_data as (
     array_to_string(indclass, ', ') as opclasses
   from pg_index i
   join pg_class ci on ci.oid = i.indexrelid and ci.relkind = 'i'
-  where indisvalid = true and ci.relpages > 100
+  where indisvalid = true and ci.relpages > ${MIN_RELPAGES}
 ), redundant_indexes as (
   select
     i2.indexrelid as index_id,
