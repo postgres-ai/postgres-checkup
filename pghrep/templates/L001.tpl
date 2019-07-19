@@ -7,7 +7,7 @@ Current database: {{ .database }}
 {{ if (index .results .hosts.master) }}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-{{ if ge (len (index (index (index .results .hosts.master) "data") "tables_data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index (index .results .hosts.master) "data") "tables_data")) 1 }}.{{ end }}  
+{{ if ge (len (index (index (index .results .hosts.master) "data") "tables_data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index .results .hosts.master) "data") "tables_data")) 1 }}.{{ end }}  
 
 | \# | Table | Rows | &#9660;&nbsp;Total size | Table size | Index(es) Size | TOAST Size |
 |---|---|------|------------|------------|----------------|------------|

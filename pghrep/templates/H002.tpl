@@ -12,7 +12,7 @@ Stats reset: {{ (index (index (index .results .reorderedHosts.master) "data") "d
 NOTICE: only indexes larger than 800 kiB are analyzed.  
 ### Never Used Indexes ###
 {{ if (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes") }}
-{{ if ge (len (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes")) 1 }}.{{ end }}  
+{{ if ge (len (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes")) 1 }}.{{ end }}  
 
 | \#| Table | Index | {{.reorderedHosts.master}} usage {{ range $skey, $host := .reorderedHosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK |
 |--|-------|-------|----{{ range $skey, $host := .reorderedHosts.replicas }}|--------{{ end }}|-----|-----|-----|
@@ -33,7 +33,7 @@ Nothing found.
 
 ### Rarely Used Indexes ###
 {{ if (index (index (index .results .reorderedHosts.master) "data") "rarely_used_indexes") }}
-{{ if ge (len (index (index (index .results .reorderedHosts.master) "data") "rarely_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index (index .results .reorderedHosts.master) "data") "rarely_used_indexes")) 1 }}.{{ end }}  
+{{ if ge (len (index (index (index .results .reorderedHosts.master) "data") "rarely_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index .results .reorderedHosts.master) "data") "rarely_used_indexes")) 1 }}.{{ end }}  
 
 |\#| Table | Index | {{.reorderedHosts.master}} usage {{ range $skey, $host := .reorderedHosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Comment | Supports FK|
 |--|-------|-------|-----{{ range $skey, $host := .reorderedHosts.replicas }}|--------{{ end }}|-----|-----|----|-----|
@@ -55,7 +55,7 @@ Nothing found.
 
 ### Redundant Indexes ###
 {{ if (index (index (index .results .reorderedHosts.master) "data") "redundant_indexes") }}
-{{ if ge (len (index (index (index .results .reorderedHosts.master) "data") "redundant_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index (index .results .reorderedHosts.master) "data") "redundant_indexes")) 1 }}.{{ end }}  
+{{ if ge (len (index (index (index .results .reorderedHosts.master) "data") "redundant_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index .results .reorderedHosts.master) "data") "redundant_indexes")) 1 }}.{{ end }}  
 
 |\#| Table | Index | Redundant to |{{.reorderedHosts.master}} usage {{ range $skey, $host := .reorderedHosts.replicas }}| {{ $host }} usage {{ end }}| &#9660;&nbsp;Index size | Table size | Supports FK |
 |--|-------|-------|--------------|--{{ range $skey, $host := .reorderedHosts.replicas }}|--------{{ end }}|-----|-----|-----|

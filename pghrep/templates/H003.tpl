@@ -7,7 +7,7 @@ Current database: {{ .database }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index .results .hosts.master) }}
 {{ if (index (index .results .hosts.master) "data") }}
-{{ if ge (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index .results .hosts.master) "data")) 1 }}.{{ end }}  
+{{ if ge (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index .results .hosts.master) "data")) 1 }}.{{ end }}  
 
 | Num | Schema name | Table name | FK name | Issue | Table mb | writes | Table scans | Parent name | Parent mb | Parent writes | Cols list | Indexdef |
 |-----|-------------|------------|---------|-------|----------|--------|-------------|-------------|-----------|---------------|-----------|----------|

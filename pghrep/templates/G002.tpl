@@ -6,7 +6,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ if (index .results .hosts.master) }}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
-{{ if ge (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. All items {{ Sub (len (index (index .results .hosts.master) "data")) 1 }}.{{ end }}  
+{{ if ge (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index .results .hosts.master) "data")) 1 }}.{{ end }}  
 
  \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago | Tx age >1m | Tx age >1h
 |----|------|----|---------------|-------|-----------------------|-----------------------|------------|-----------
@@ -25,7 +25,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ range $skey, $host := .hosts.replicas }}
 #### Replica (`{{ $host }}`) ####
 {{ if (index $.results $host) }}
-{{ if ge (len (index (index $.results $host) "data")) $.LISTLIMIT }}The list is limited to {{ $.LISTLIMIT }} items. All items {{ Sub (len (index (index $.results $host) "data")) 1 }}.{{ end }}  
+{{ if ge (len (index (index $.results $host) "data")) $.LISTLIMIT }}The list is limited to {{ $.LISTLIMIT }} items. Total: {{ Sub (len (index (index $.results $host) "data")) 1 }}.{{ end }}  
 
 | \# | User | DB | Current state | Count | State changed >1m ago | State changed >1h ago | Tx age >1m | Tx age >1h |
 |----|------|----|---------------|-------|-----------------------|-----------------------|------------|------------|
