@@ -12,16 +12,12 @@ type F005IndexBloat struct {
 	IndexTableName    string  `json:"index_table_name"`
 	RealSizeBytes     int64   `json:"real_size_bytes"`
 	Size              string  `json:"size"`
-	BloatRatio        float32 `json:"bloat_ratio"`
 	ExtraRatioPercent float32 `json:"extra_ratio_percent"`
-	Extra             string  `json:"extra"`
 	ExtraSizeBytes    int64   `json:"extra_size_bytes"`
-	Bloat             string  `json:"bloat"`
 	BloatSizeBytes    int64   `json:"bloat_size_bytes"`
 	BloatRatioPercent float32 `json:"bloat_ratio_percent"`
-	LiveDataSize      string  `json:"live_data_size"`
+	BloatRatioFactor  float32 `json:"bloat_ratio_factor"`
 	LiveDataSizeBytes int64   `json:"live_data_size_bytes"`
-	LiveBytes         int64   `json:"live_bytes"`
 	LastVaccuum       string  `json:"last_vaccuum"`
 	Fillfactor        float32 `json:"fillfactor"`
 	OverridedSettings bool    `json:"overrided_settings"`
@@ -34,7 +30,7 @@ type F005IndexBloatTotal struct {
 	ExtraSizeBytesSum    int64   `json:"extra_size_bytes_sum"`
 	RealSizeBytesSum     int64   `json:"real_size_bytes_sum"`
 	BloatSizeBytesSum    int64   `json:"bloat_size_bytes_sum"`
-	BloatRatioAvg        float32 `json:"bloat_ratio_avg"`
+	BloatRatioFactorAvg  float32 `json:"bloat_ratio_factor_avg"`
 	BloatRatioPercentAvg float32 `json:"bloat_ratio_percent_avg"`
 	TableSizeBytesSum    float32 `json:"table_size_bytes_sum"`
 	LiveDataSizeBytesSum int64   `json:"live_data_size_bytes_sum"`

@@ -19,7 +19,7 @@ func TestF005Success(t *testing.T) {
 		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
@@ -29,16 +29,14 @@ func TestF005Success(t *testing.T) {
 			TableName:         "table_1",
 			ExtraSizeBytes:    0,
 			ExtraRatioPercent: 0.0,
-			Extra:             "",
 			BloatSizeBytes:    0,
 			BloatRatioPercent: 0.0,
 			RealSizeBytes:     0,
-			LiveDataSize:      "",
 			LiveDataSizeBytes: 0,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        1.0,
+			BloatRatioFactor:  1.0,
 		},
 		"index_2": F005IndexBloat{
 			Num:               2,
@@ -47,16 +45,14 @@ func TestF005Success(t *testing.T) {
 			TableName:         "table_2",
 			ExtraSizeBytes:    0,
 			ExtraRatioPercent: 0.0,
-			Extra:             "",
 			BloatSizeBytes:    0,
 			BloatRatioPercent: 0.0,
 			RealSizeBytes:     0,
-			LiveDataSize:      "",
 			LiveDataSizeBytes: 0,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        1.0,
+			BloatRatioFactor:  1.0,
 		},
 	}
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
@@ -81,7 +77,7 @@ func TestF005TotalExcess(t *testing.T) {
 		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: hostResult.Data.DatabaseSizeBytes / 4,
 		BloatRatioPercentAvg: 25.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 		TableSizeBytesSum:    25526329344 * 5,
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{}
@@ -108,7 +104,7 @@ func TestF005Warnig(t *testing.T) {
 		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
@@ -118,16 +114,14 @@ func TestF005Warnig(t *testing.T) {
 			TableName:         "table_1",
 			ExtraSizeBytes:    340475904,
 			ExtraRatioPercent: 86.9861866889912,
-			Extra:             "",
 			BloatSizeBytes:    340475904,
 			BloatRatioPercent: 86.9861866889912,
 			RealSizeBytes:     391413760,
-			LiveDataSize:      "",
 			LiveDataSizeBytes: 50937856,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        7.684142811193309,
+			BloatRatioFactor:  7.684142811193309,
 		},
 		"index_2": F005IndexBloat{
 			Num:               2,
@@ -136,16 +130,14 @@ func TestF005Warnig(t *testing.T) {
 			TableName:         "table_2",
 			ExtraSizeBytes:    3915776,
 			ExtraRatioPercent: 59.3788819875776,
-			Extra:             "",
 			BloatSizeBytes:    3915776,
 			BloatRatioPercent: 59.3788819875776,
 			RealSizeBytes:     6594560,
-			LiveDataSize:      "",
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 	}
 
@@ -172,7 +164,7 @@ func TestF005Critical(t *testing.T) {
 		BloatSizeBytesSum:    hostResult.Data.DatabaseSizeBytes / 4,
 		LiveDataSizeBytesSum: 457681690624,
 		BloatRatioPercentAvg: 5.367978121989509,
-		BloatRatioAvg:        1.0389965180727816,
+		BloatRatioFactorAvg:  1.0389965180727816,
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{
 		"index_1": F005IndexBloat{
@@ -182,16 +174,14 @@ func TestF005Critical(t *testing.T) {
 			TableName:         "table_1",
 			ExtraSizeBytes:    340475904,
 			ExtraRatioPercent: 96.9861866889912,
-			Extra:             "",
 			BloatSizeBytes:    340475904,
 			BloatRatioPercent: 96.9861866889912,
 			RealSizeBytes:     391413760,
-			LiveDataSize:      "",
 			LiveDataSizeBytes: 50937856,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        7.684142811193309,
+			BloatRatioFactor:  7.684142811193309,
 		},
 		"index_2": F005IndexBloat{
 			Num:               2,
@@ -200,16 +190,14 @@ func TestF005Critical(t *testing.T) {
 			TableName:         "table_2",
 			ExtraSizeBytes:    3915776,
 			ExtraRatioPercent: 59.3788819875776,
-			Extra:             "",
 			BloatSizeBytes:    3915776,
 			BloatRatioPercent: 59.3788819875776,
 			RealSizeBytes:     6594560,
-			LiveDataSize:      "",
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
 			OverridedSettings: false,
-			BloatRatio:        2.46177370030581,
+			BloatRatioFactor:  2.46177370030581,
 		},
 	}
 

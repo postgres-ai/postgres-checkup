@@ -40,7 +40,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{- end -}}
 {{ if (index (index (index .results .hosts.master) "data") "databases_stat") }}
 #### Databases data ####
-{{ if gt (len (index (index (index $.results $.hosts.master) "data") "databases_stat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
+{{ if ge (len (index (index (index $.results $.hosts.master) "data") "databases_stat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index $.results $.hosts.master) "data") "databases_stat")) 1 }}.{{ end }}  
 
 | \# | Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset |
 |--|-----------|-------|-----------|----------------|------------|
@@ -93,7 +93,7 @@ Data collected: {{ DtFormat .timestamptz }}
 {{- end -}}
 {{ if (index (index (index $.results $host) "data") "databases_stat") }}
 #### Databases data ####
-{{ if gt (len (index (index (index $.results $host) "data") "databases_stat")) $.LISTLIMIT }}The list is limited to {{$.LISTLIMIT}} items.{{ end }}  
+{{ if ge (len (index (index (index $.results $host) "data") "databases_stat")) $.LISTLIMIT }}The list is limited to {{$.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index $.results $host) "data") "databases_stat")) 1 }}.{{ end }}  
 
 | Database | Conflicts | &#9660;&nbsp;Deadlocks | Stats reset at | Stat reset |
 |----------|-----------|------------------------|----------------|------------|

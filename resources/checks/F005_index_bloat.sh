@@ -118,27 +118,12 @@ with data as (
     left(index_name, 50) || case when length(index_name) > 50 then '…' else '' end  || '(' || coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name || ')'as "index_table_name",
     real_size as "real_size_bytes",
     pg_size_pretty(real_size::numeric) as "size",
-    case
-      when (real_size - bloat_size)::numeric >=0
-        then real_size::numeric / (real_size - bloat_size)::numeric
-        else null
-      end as "bloat_ratio",
     extra_ratio as "extra_ratio_percent",
-    case
-      when extra_size::numeric >= 0
-        then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
-      else null
-    end  as "extra",
     case
       when extra_size::numeric >= 0
         then extra_size
       else null
     end as "extra_size_bytes",
-    case
-      when bloat_size::numeric >= 0
-        then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
-      else null
-    end as "bloat",
     case
       when (bloat_size)::numeric >=0
         then bloat_size
@@ -150,20 +135,15 @@ with data as (
         else null
       end as "bloat_ratio_percent",
     case
-      when (real_size - bloat_size)::numeric >=0
-        then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
+      when bloat_size::numeric >= 0 and (real_size - bloat_size)::numeric >=0
+        then real_size::numeric / (real_size - bloat_size)::numeric
         else null
-     end as "live_data_size",
+      end as "bloat_ratio_factor",
     case
       when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
         else null
       end as "live_data_size_bytes",
-    case
-      when (real_size - bloat_size)::numeric >=0
-        then (real_size - bloat_size)::numeric
-        else null
-     end as "live_bytes",
     fillfactor,
     case when ot.table_id is not null then true else false end as overrided_settings,
     table_size_bytes
@@ -185,7 +165,7 @@ with data as (
     sum("extra_size_bytes") as "extra_size_bytes_sum",
     sum("real_size_bytes") as "real_size_bytes_sum",
     sum("bloat_size_bytes") as "bloat_size_bytes_sum",
-    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_avg",
+    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_factor_avg",
     (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
     sum("extra_size_bytes") as "extra_size_bytes_sum",
     (select sum(ts.table_size_bytes) from (select distinct(table_name), table_size_bytes from data) ts) as "table_size_bytes_sum",
