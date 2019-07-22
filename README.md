@@ -17,7 +17,7 @@ We recommend to run these on a regular basis — weekly, monthly, and quarterly.
 
 Why do you need postgres-checkup and why it's safe and easy to use:
 
-- *It unobtrusive*: its impact on the observing system is
+- *It is unobtrusive*: its impact on the observing system is
 close to zero. It does not use any heavy queries, keeping resource usage
 very low, and avoiding having the [“observer effect”](https://en.wikipedia.org/wiki/Observer_effect_(information_technology)).
 postgres-checkup reports were successfully tested on real-world databases
