@@ -117,13 +117,3 @@ CREATE TABLE test_schema."orders_A"
 
 INSERT INTO test_schema."orders_A"(cnt) select id from generate_series(0, 100) _(id);
 SELECT setval('test_schema."orders_A_id_seq"'::regclass, 300000000, false);
-
-CREATE TABLE test_schema."orders_B"
-(
-    id serial,
-    cnt integer,
-    CONSTRAINT "orders_B_pk" PRIMARY KEY (id)
-);
-
-INSERT INTO test_schema."orders_B"(cnt) select id from generate_series(0, 10) _(id);
-SELECT setval('test_schema."orders_B_id_seq"'::regclass, 300000000, false);
