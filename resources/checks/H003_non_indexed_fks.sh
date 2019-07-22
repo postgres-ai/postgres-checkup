@@ -1,4 +1,12 @@
 # Foreign keys with Missing/Bad Indexes
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  INDEX_MIN_RELPAGES=10
+  TABLE_MIN_RELPAGES=100
+else
+  INDEX_MIN_RELPAGES=0
+  TABLE_MIN_RELPAGES=0
+fi
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with fk_actions ( code, action ) as (
@@ -22,7 +30,7 @@ with data as (
     join pg_namespace on pg_class.relnamespace = pg_namespace.oid
     join fk_actions as fk_actions_update on confupdtype = fk_actions_update.code
     join fk_actions as fk_actions_delete on confdeltype = fk_actions_delete.code
-    where contype = 'f' -- and pg_class.relpages > 10
+    where contype = 'f'
   ), fk_attributes as (
     select fkoid, conrelid, attname, attnum
     from fk_list
@@ -41,7 +49,7 @@ with data as (
       indpred is not null as has_predicate
     from pg_index
     join pg_class on indexrelid = pg_class.oid
-    where indisvalid and pg_class.relkind = 'i' and pg_class.relpages > 10
+    where indisvalid and pg_class.relkind = 'i' and pg_class.relpages > ${INDEX_MIN_RELPAGES}
   ), fk_index_match as (
     select
       fk_list.*,
@@ -108,11 +116,11 @@ with data as (
   join parent_table_stats using (fkoid)
   join fk_table_stats using (fkoid)
   where
-    fk_table_stats.relpages > 100
+    fk_table_stats.relpages > ${TABLE_MIN_RELPAGES}
     and (
       writes > 1000
       or parent_writes > 1000
-       or parent_table_stats.relpages > 100
+       or parent_table_stats.relpages > ${TABLE_MIN_RELPAGES}
     )
   order by issue_sort, fk_table_stats.relpages desc, table_name, fk_name
 ),

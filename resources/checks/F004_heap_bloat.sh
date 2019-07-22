@@ -1,3 +1,9 @@
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=10
+else
+  MIN_RELPAGES=0
+fi
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with overrided_tables as (
@@ -31,7 +37,7 @@ with data as (
     join pg_namespace as ns on ns.oid = tbl.relnamespace
     join pg_stats as s on s.schemaname = ns.nspname and s.tablename = tbl.relname and not s.inherited and s.attname = att.attname
     left join pg_class as toast on tbl.reltoastrelid = toast.oid
-    where att.attnum > 0 and not att.attisdropped and s.schemaname not in ('pg_catalog', 'information_schema') and tbl.relpages > 10
+    where att.attnum > 0 and not att.attisdropped and s.schemaname not in ('pg_catalog', 'information_schema') and tbl.relpages > ${MIN_RELPAGES}
     group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, tbl.relhasoids
     order by 2, 3
   ), step2 as (

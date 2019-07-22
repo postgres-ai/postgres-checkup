@@ -1,4 +1,8 @@
-MIN_RELPAGES=100
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=100
+else
+  MIN_RELPAGES=0
+fi
 
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with fk_indexes as (
