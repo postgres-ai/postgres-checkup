@@ -222,6 +222,37 @@ process_cli_args() {
       exit 1
     fi
 
+    # parse yml config file and load params
+    if [[ "${1}" = "-c" ]] || [[ "${1}" = "--config" ]]; then
+      config_filename=${2}
+      if [[ ! -f "$config_filename" ]]; then
+        msg "Config filename ${config_filename} not found."
+        exit 1
+      fi
+      source ${BASH_SOURCE%/*}/resources/parse_yaml.sh $config_filename "CONFIG_"
+      for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
+        var_name="CONFIG__"${FULL_NAME[$i]}
+        var_name=${var_name//-/_}
+        if [[ ! -z ${!var_name+x} ]]; then
+          value=$(eval echo "\$$var_name")
+          dbg "$var_name = $value"
+          if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+            ARG_VALUE[$i]="true"
+            ARG_IS_GIVEN[$i]="true"
+          else
+            if [[ -z "${value+x}" ]] || [[ "${value}" =~ $re ]]; then
+              err "empty value for variable '--${FULL_NAME[$i]}' config file"
+              exit 1
+            fi
+            ARG_VALUE[$i]=$value
+            ARG_IS_GIVEN[$i]="true"
+          fi
+        fi
+      done
+      CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
+      return
+    fi
+
     # compare given argument with all possible arguments from cli.conf
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       if [[ ! -z "${1+x}" ]]; then
