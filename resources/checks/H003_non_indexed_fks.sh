@@ -1,6 +1,6 @@
 # Foreign keys with Missing/Bad Indexes
 if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
-  INDEX_MIN_RELPAGES=10
+  INDEX_MIN_RELPAGES=100
   TABLE_MIN_RELPAGES=100
 else
   INDEX_MIN_RELPAGES=0

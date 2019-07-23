@@ -1,5 +1,5 @@
 if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
-  MIN_RELPAGES=10
+  MIN_RELPAGES=100
 else
   MIN_RELPAGES=0
 fi

@@ -22,7 +22,7 @@ SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
-LARGE_DB_ITEMS_COUNT=10000
+LARGE_DB_ITEMS_COUNT=100000
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
