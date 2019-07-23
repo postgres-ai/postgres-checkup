@@ -158,7 +158,9 @@ select
     'overrided_settings_count',
     (select count(1) from limited_data where overrided_settings = true),
     'database_size_bytes',
-    (select pg_database_size(current_database()))
+    (select pg_database_size(current_database())),
+    'min_table_size_bytes',
+    (select ${MIN_RELPAGES} * 8192)
   )
 SQL
 

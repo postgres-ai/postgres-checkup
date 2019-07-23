@@ -8,8 +8,8 @@ Current database: {{ .database }}
 Stats reset: {{ (index (index (index .results .reorderedHosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .reorderedHosts.master) "data") "database_stat").stats_reset }})  
 {{- if le (Int (index (index (index .results .reorderedHosts.master) "data") "database_stat").days) 30 }}  
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
-{{- end }}
-NOTICE: only indexes larger than 800 kiB are analyzed.  
+{{- end }}  
+{{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes")) 0 }}NOTICE: only indexes larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes") 0 }} are analyzed.  {{end}}
 ### Never Used Indexes ###
 {{ if (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes") }}
 {{ if gt (len (index (index (index .results .reorderedHosts.master) "data") "never_used_indexes")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  

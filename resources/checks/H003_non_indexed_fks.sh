@@ -140,7 +140,15 @@ num_data as (
     pg_get_indexdef(indexid) as indexdef
   from data
 )
-select json_object_agg(num_data.num, num_data) from num_data
+select
+  json_build_object(
+    'indexes',
+    (select json_object_agg(num_data.num, num_data) from num_data),
+    'min_index_size_bytes',
+    (select ${INDEX_MIN_RELPAGES} * 8192),
+    'min_table_size_bytes',
+    (select ${TABLE_MIN_RELPAGES} * 8192)
+  );
 SQL
 
 # Based on https://github.com/pgexperts/pgx_scripts/blob/master/indexes/fk_no_index.sql

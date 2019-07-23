@@ -379,6 +379,8 @@ select
     'undo',
     (select json_agg(ul.line) from undo_lines as ul),
     'database_stat',
-    (select * from database_stat)
+    (select * from database_stat),
+    'min_index_size_bytes',
+    (select ${MIN_RELPAGES} * 8192)
   );
 SQL
