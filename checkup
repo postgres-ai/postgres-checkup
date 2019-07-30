@@ -1176,6 +1176,12 @@ run_checks() {
   if [[ "$HTML" == "true" ]]; then
     ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
   fi
+
+  if [[ ! -z ${TOKEN+x} ]] && [[ ! -z ${NODESET+x} ]] &&
+    [[ "${TOKEN}" != "None" ]] && [[ "${NODESET}" != "None" ]]; then
+    msg "Uploading report to platform..."
+    $(${PGHREP_BIN} --mode=upload --nodeset=${NODESET} --path="${PROJECT_DIR}" --token="${TOKEN}" --debug=0)
+  fi
 }
 
 ######### COMMANDS WRAPPERS ###########

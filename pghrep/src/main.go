@@ -34,12 +34,13 @@ import (
 	"./checkup/g001"
 	"./checkup/g002"
 	"./checkup/h001"
-    "./checkup/k000"
-    "./checkup/l003"
+	"./checkup/k000"
+	"./checkup/l003"
 
 	"./log"
 	"./orderedmap"
 	"./pyraconv"
+	"./upload"
 )
 
 var DEBUG bool = false
@@ -227,7 +228,7 @@ CheckId can be either ID of concrete check (e.g. H003) or represent the whole ca
 func generateMdReports(checkId string, reportData map[string]interface{}, outputDir string) bool {
 	category := checkId[0:1]
 	reportPrefix := ""
-	
+
 	checkNum, err := strconv.ParseInt(checkId[1:4], 10, 64)
 	if checkNum != 0 {
 		reportPrefix = checkId // specified check given
@@ -253,7 +254,7 @@ func generateMdReports(checkId string, reportData map[string]interface{}, output
 			curCheckId := fileName[0:4]
 			outputFileName := strings.Replace(fileName, ".tpl", ".md", -1)
 			reportData["checkId"] = curCheckId
-			
+
 			if !generateMdReport(curCheckId, outputFileName, reportData, outputDir) {
 				log.Err("Can't generate report " + outputFileName + " based on " + checkId + " json data")
 				return false
@@ -409,6 +410,10 @@ func main() {
 	checkDataPtr := flag.String("checkdata", "", "an filepath to json report")
 	outDirPtr := flag.String("outdir", "", "an directory where report need save")
 	debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
+	modeDataPtr := flag.String("mode", "", "a working mode: generate (default), upload")
+	tokenDataPtr := flag.String("token", "", "the token to upload files")
+	nodesetDataPtr := flag.String("nodeset", "", "the target nodeset to upload files")
+	pathDataPtr := flag.String("path", "", "artifacts path to upload files")
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -419,6 +424,36 @@ func main() {
 
 	if *debugPtr == 1 {
 		DEBUG = true
+        log.DEBUG = true
+	} else {
+        DEBUG = false
+        log.DEBUG = false
+    }
+
+	if *modeDataPtr == "upload" {
+		token := *tokenDataPtr
+		nodeset := *nodesetDataPtr
+		path := *pathDataPtr
+
+		if len(token) == 0 {
+			log.Err("Token not defined")
+			return
+		}
+		if len(nodeset) == 0 {
+			log.Err("Node set not defined")
+			return
+		}
+		if len(path) == 0 {
+			log.Err("Artifacts path not defined")
+			return
+		}
+
+		err := upload.UploadReport(token, nodeset, path)
+		if err != nil {
+			log.Err(err)
+		}
+
+		return
 	}
 
 	if FileExists(checkData) {
