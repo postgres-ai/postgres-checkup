@@ -49,7 +49,7 @@ variables:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
     - echo "H002 passed"
-    - [[ "$CI_COMMIT_REF_NAME" != "master" ]] && exit 0
+    - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
     # Check small indexes
     - .ci/prepare_test_db.sh postgres
     - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
