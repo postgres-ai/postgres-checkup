@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -z "${1+x}" ]]; then
-  hostname=$1
+  hostname="$1"
 else
   hostname='localhost'
 fi
