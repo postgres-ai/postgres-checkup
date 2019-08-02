@@ -19,6 +19,7 @@ Current database: {{ .database }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "tables") $key) -}}
 |`{{ index $value "table"}}` | `{{ index $value "pk"}}` | {{ index $value "type"}} | {{- RawIntFormat (index $value "current_max_value")}} | {{ index $value "capacity_used_percent"}}|
 {{ end }}
+{{- end }}
 {{- else -}}{{/*Tables data*/}}
 Nothing found
 {{- end }}{{/*Tables data*/}}
