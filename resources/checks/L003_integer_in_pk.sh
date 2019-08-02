@@ -55,15 +55,15 @@ begin
     if ratio > 0.1 then -- report only if > 10% of capacity is reached
       i := i + 1;
       out := out || '{"' || rec.table_name || '":' || json_build_object(
-          'Table',
+          'table',
           coalesce(nullif(quote_ident(rec.schema_name), 'public') || '.', '') || quote_ident(rec.table_name),
-          'PK',
+          'pk',
           rec.attname,
-          'Type',
+          'type',
           rec.typname,
-          'Current max value',
+          'current_max_value',
           val,
-          'Capacity used %',
+          'capacity_used_percent',
           round(100 * ratio, 2)
       ) || '}';
     end if;
@@ -76,7 +76,7 @@ SQL
 
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
-tables_data=$(echo "$result" | jq -cs 'sort_by(-(.[]."Capacity used %"|tonumber)) | .[]' | jq -s add)
+tables_data=$(echo "$result" | jq -cs 'sort_by(-(.[]."capacity_used_percent"|tonumber)) | .[]' | jq -s add)
 let "min_table_size_bytes=$MIN_RELPAGES * 8192"
 
 echo "{\"tables\": $tables_data, \"min_table_size_bytes\": $min_table_size_bytes }"

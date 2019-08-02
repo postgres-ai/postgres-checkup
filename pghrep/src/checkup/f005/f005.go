@@ -27,7 +27,7 @@ const MIN_TABLE_SIZE_TO_ANALYZE int64 = 1024 * 1024
 func appendIndex(list []string, indexBloatData F005IndexBloat) []string {
 	return append(list, fmt.Sprintf(INDEX_DETAILS, indexBloatData.IndexName,
 		fmtutils.ByteFormat(float64(indexBloatData.RealSizeBytes), 2),
-		indexBloatData.BloatRatio, fmtutils.ByteFormat(float64(indexBloatData.ExtraSizeBytes), 2),
+		indexBloatData.BloatRatioFactor, fmtutils.ByteFormat(float64(indexBloatData.ExtraSizeBytes), 2),
 		indexBloatData.BloatRatioPercent))
 }
 
@@ -72,7 +72,7 @@ func F005Process(report F005Report) checkup.ReportResult {
 			float64(float64(totalData.BloatSizeBytesSum)/float64(databaseSize)*100),
 			fmtutils.ByteFormat(float64(databaseSize-totalData.BloatSizeBytesSum), 2),
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
-			totalData.BloatRatioAvg)
+			totalData.BloatRatioFactorAvg)
 		result.P1 = true
 		result.AppendRecommendation(F005_BLOAT_CRITICAL_INFO, MSG_BLOAT_CRITICAL_RECOMMENDATION)
 	} else {

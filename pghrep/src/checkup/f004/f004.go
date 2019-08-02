@@ -25,7 +25,7 @@ const MIN_INDEX_SIZE_TO_ANALYZE int64 = 1024 * 1024
 func appendTable(list []string, tableBloatData F004HeapBloat) []string {
 	return append(list, fmt.Sprintf(TABLE_DETAILS, tableBloatData.TableName,
 		fmtutils.ByteFormat(float64(tableBloatData.RealSizeBytes), 2),
-		tableBloatData.BloatRatio, fmtutils.ByteFormat(float64(tableBloatData.ExtraSizeBytes), 2),
+		tableBloatData.BloatRatioFactor, fmtutils.ByteFormat(float64(tableBloatData.ExtraSizeBytes), 2),
 		tableBloatData.BloatRatioPercent))
 }
 
@@ -64,7 +64,7 @@ func F004Process(report F004Report) checkup.ReportResult {
 			float64(float64(totalData.BloatSizeBytesSum)/float64(databaseSize)*100),
 			fmtutils.ByteFormat(float64(databaseSize-totalData.BloatSizeBytesSum), 2),
 			fmtutils.ByteFormat(float64(totalData.BloatSizeBytesSum), 2),
-			totalData.BloatRatioAvg)
+			totalData.BloatRatioFactorAvg)
 		result.P1 = true
 	} else {
 		result.AppendConclusion(F004_TOTAL_BLOAT_LOW, MSG_TOTAL_BLOAT_LOW_CONCLUSION, totalData.BloatRatioPercentAvg,

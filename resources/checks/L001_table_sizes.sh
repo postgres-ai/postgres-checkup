@@ -20,18 +20,6 @@ with data as (
     null::oid as oid,
     null as tblspace,
     null as schema_name,
-    '=====TOTAL=====' as table_name,
-    sum(row_estimate) as row_estimate,
-    sum(total_bytes) as total_bytes,
-    sum(index_bytes) as index_bytes,
-    sum(toast_bytes) as toast_bytes,
-    sum(table_bytes) as table_bytes
-  from data
-  union all
-  select
-    null::oid as oid,
-    null,
-    null as schema_name,
     '    tablespace: [' || coalesce(tblspace, 'pg_default') || ']' as table_name,
     sum(row_estimate) as row_estimate,
     sum(total_bytes) as total_bytes,
@@ -45,49 +33,53 @@ with data as (
   select * from data
 ), tables as (
   select
-    coalesce(nullif(schema_name, 'public') || '.', '') || table_name || coalesce(' [' || tblspace || ']', '') as "Table",
-    '~' || case
-      when row_estimate > 10^12 then round(row_estimate::numeric / 10^12::numeric, 0)::text || 'T'
-      when row_estimate > 10^9 then round(row_estimate::numeric / 10^9::numeric, 0)::text || 'B'
-      when row_estimate > 10^6 then round(row_estimate::numeric / 10^6::numeric, 0)::text || 'M'
-      when row_estimate > 10^3 then round(row_estimate::numeric / 10^3::numeric, 0)::text || 'k'
-      else row_estimate::text
-    end as "Rows",
-    pg_size_pretty(total_bytes) || ' (' || round(
+    coalesce(nullif(schema_name, 'public') || '.', '') || table_name || coalesce(' [' || tblspace || ']', '') as "table",
+    row_estimate as row_estimate,
+    total_bytes as total_size_bytes,
+    round(
       100 * total_bytes::numeric / nullif(sum(total_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "Total Size",
-    pg_size_pretty(table_bytes) || ' (' || round(
+    ) as "total_size_percent",
+    table_bytes as table_size_bytes,
+    round(
       100 * table_bytes::numeric / nullif(sum(table_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "Table Size",
-    pg_size_pretty(index_bytes) || ' (' || round(
+    ) as "table_size_percent",
+    index_bytes as indexes_size_bytes,
+    round(
       100 * index_bytes::numeric / nullif(sum(index_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "Index(es) Size",
-    pg_size_pretty(toast_bytes) || ' (' || round(
+    ) as "index_size_percent",
+    toast_bytes as toast_size_bytes,
+    round(
       100 * toast_bytes::numeric / nullif(sum(toast_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
-    )::text || '%)' as "TOAST Size"
+    ) as "toast_size_percent"
   from data2
   where schema_name is distinct from 'information_schema'
   order by oid is null desc, total_bytes desc nulls last
-), total as (
+), total_data as (
   select
-    null::bigint as num,
-    ts.*
-  from tables ts
-  where "Table" = '=====TOTAL====='
+    sum(1) as count,
+    sum("row_estimate") as "row_estimate_sum",
+    sum("total_size_bytes") as "total_size_bytes_sum",
+    sum("table_size_bytes") as "table_size_bytes_sum",
+    sum("indexes_size_bytes") as "indexes_size_bytes_sum",
+    sum("toast_size_bytes") as "toast_size_bytes_sum"
+  from tables
 ), num_tables as (
   select
     row_number() over () num,
     ts.*
   from tables ts
-  where "Table" <> '=====TOTAL====='
-), together as (
-  select * from total
-  union all
-  select * from num_tables
+), tables_json_data as (
+  select json_object_agg(nt."table", nt) as json from num_tables nt
 )
-select json_object_agg(t."Table", t) as json from together t
+select
+  json_build_object(
+    'tables_data',
+    (select * from tables_json_data),
+    'tables_data_total',
+    (select row_to_json(total_data) from total_data)
+  );
 SQL

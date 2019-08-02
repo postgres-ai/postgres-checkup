@@ -10,11 +10,14 @@ Current database: {{ .database }}
   {{end}}
 {{- if (index (index (index .results .hosts.master) "data") "tables") }}
 ### Master (`{{.hosts.master}}`) ###
+{{ if ge (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index .results .hosts.master) "data")) 1 }}.{{ end }}  
+
 | Table | PK | Type | Current max value | &#9660;&nbsp;Capacity used, % |
 |------|----|------|-------------------|-------------------------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "tables") "_keys") }}
+{{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "tables") $key) -}}
-|`{{ index $value "Table"}}` | `{{ index $value "PK"}}` | {{ index $value "Type"}} | {{- RawIntFormat (index $value "Current max value")}} | {{ index $value "Capacity used %"}}|
+|`{{ index $value "table"}}` | `{{ index $value "pk"}}` | {{ index $value "type"}} | {{- RawIntFormat (index $value "current_max_value")}} | {{ index $value "capacity_used_percent"}}|
 {{ end }}
 {{- else -}}{{/*Tables data*/}}
 Nothing found
