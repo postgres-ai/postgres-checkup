@@ -3,7 +3,7 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
-{{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes")) 0 }}NOTICE: only indexes larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes") 0 }} on tables large than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes") 0 }} are analyzed.  {{end}}
+{{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes")) 0 }}NOTICE: only indexes larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes") 0 }} on tables larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes") 0 }} are analyzed.  {{end}}
 {{ if .hosts.master }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index .results .hosts.master) }}
