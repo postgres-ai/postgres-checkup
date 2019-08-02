@@ -640,7 +640,7 @@ is_in_recovery() {
 # Do not use this function before 'host_pre_start_checks()'
 #
 # Globals:
-#   HOST
+#   _PSQL, LARGE_DB_ITEMS_COUNT
 # Arguments:
 #   None
 # Returns:
