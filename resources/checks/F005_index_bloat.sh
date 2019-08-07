@@ -1,3 +1,9 @@
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=100
+else
+  MIN_RELPAGES=0
+fi
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with overrided_tables as (
@@ -31,7 +37,7 @@ with data as (
       where a.amname = 'btree'
         AND pg_index.indisvalid
         AND tbl.relkind = 'r'
-        AND idx.relpages > 10
+        AND idx.relpages > ${MIN_RELPAGES}
         AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
   ), step1 as (
     select
@@ -181,8 +187,9 @@ select
     'overrided_settings_count',
     (select count(1) from limited_data where overrided_settings = true),
     'database_size_bytes',
-    (select pg_database_size(current_database()))
-
+    (select pg_database_size(current_database())),
+    'min_table_size_bytes',
+    (select ${MIN_RELPAGES} * 8192)
   )
 SQL
 
