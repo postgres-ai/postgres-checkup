@@ -5,9 +5,11 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
+{{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes")) 0 }}NOTICE: only tables larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes") 0 }} are analyzed.  {{end}}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master)}}
 {{ if (index (index .results .hosts.master) "data") }}
+{{ if (index (index (index .results .hosts.master) "data") "index_bloat") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if ge (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index $.results $.hosts.master) "data") "index_bloat")) 1 }}. {{ end }}  
 
@@ -38,6 +40,9 @@ Current database: {{ .database }}
 {{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
+{{- else -}}{{/*Index bloat*/}}
+Nothing found
+{{- end }}{{/*Index bloat*/}}
 {{- else -}}{{/*Master data*/}}
 Nothing found
 {{- end }}{{/*Master data*/}}

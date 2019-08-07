@@ -5,6 +5,7 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
+{{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes")) 0 }}NOTICE: only tables larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes") 0 }} are analyzed.  {{end}}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
