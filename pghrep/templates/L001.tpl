@@ -22,7 +22,7 @@ Current database: {{ .database }}
 |{{ $value.num}} |`{{ index $value "table" }}` | ~{{ NumFormat (index $value "row_estimate") 0 }} |
 {{- ByteFormat (index $value "total_size_bytes") 2 }} ({{ (RawFloatFormat (index $value "total_size_percent") 2) }}%) |
 {{- ByteFormat (index $value "table_size_bytes") 2 }} ({{ (RawFloatFormat (index $value "table_size_percent") 2) }}%) |
-{{- ByteFormat (index $value "indexes_size_bytes") 2 }} ({{ (RawFloatFormat (index $value "indexes_size_percent") 2) }}%) |
+{{- ByteFormat (index $value "indexes_size_bytes") 2 }} ({{ (RawFloatFormat (index $value "index_size_percent") 2) }}%) |
 {{- if gt (Int (index $value "toast_size_bytes")) 0 }}{{ ByteFormat (index $value "toast_size_bytes") 2 }} ({{ (RawFloatFormat (index $value "toast_size_percent") 2) }}%){{end}} |
 {{/* if limit list */}}{{ end -}}
 {{ end }}
