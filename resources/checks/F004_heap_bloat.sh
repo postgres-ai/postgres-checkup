@@ -63,9 +63,17 @@ with data as (
       *,
       tblpages * bs as real_size,
       (tblpages - est_tblpages) * bs as extra_size,
-      case when tblpages - est_tblpages > 0 then 100 * (tblpages - est_tblpages) / tblpages::float else 0 end as extra_ratio,
+      case
+        when (tblpages - est_tblpages > 0 and tblpages > 0)
+          then 100 * (tblpages - est_tblpages) / tblpages::float
+        else 0
+      end as extra_ratio,
       (tblpages - est_tblpages_ff) * bs as bloat_size,
-      case when tblpages - est_tblpages_ff > 0 then 100 * (tblpages - est_tblpages_ff) / tblpages::float else 0 end as bloat_ratio
+      case
+        when (tblpages - est_tblpages_ff > 0 and tblpages > 0)
+          then 100 * (tblpages - est_tblpages_ff) / tblpages::float
+        else 0
+      end as bloat_ratio
       -- , (pst).free_percent + (pst).dead_tuple_percent as real_frag
     from step3
     left join pg_stat_user_tables su on su.relid = tblid
