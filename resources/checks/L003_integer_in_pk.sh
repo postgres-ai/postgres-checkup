@@ -77,7 +77,7 @@ SQL
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
 tables_data=$(echo "$result" | jq -cs 'sort_by(-(.[]."capacity_used_percent"|tonumber)) | .[]' | jq -s add)
-let "min_table_size_bytes=$MIN_RELPAGES * 8192"
+min_table_size_bytes=$((MIN_RELPAGES * 8192))
 
 echo "{\"tables\": $tables_data, \"min_table_size_bytes\": $min_table_size_bytes }"
 
