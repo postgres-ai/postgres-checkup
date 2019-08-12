@@ -412,7 +412,7 @@ func main() {
 	debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
 	modeDataPtr := flag.String("mode", "", "a working mode: generate (default), upload")
 	tokenDataPtr := flag.String("token", "", "the token to upload files")
-	nodesetDataPtr := flag.String("nodeset", "", "the target nodeset to upload files")
+	projectDataPtr := flag.String("project", "", "the target project to upload files")
 	pathDataPtr := flag.String("path", "", "artifacts path to upload files")
 	flag.Parse()
 	checkData = *checkDataPtr
@@ -424,23 +424,23 @@ func main() {
 
 	if *debugPtr == 1 {
 		DEBUG = true
-        log.DEBUG = true
+		log.DEBUG = true
 	} else {
-        DEBUG = false
-        log.DEBUG = false
-    }
+		DEBUG = false
+		log.DEBUG = false
+	}
 
 	if *modeDataPtr == "upload" {
 		token := *tokenDataPtr
-		nodeset := *nodesetDataPtr
+		project := *projectDataPtr
 		path := *pathDataPtr
 
 		if len(token) == 0 {
 			log.Err("Token not defined")
 			return
 		}
-		if len(nodeset) == 0 {
-			log.Err("Node set not defined")
+		if len(project) == 0 {
+			log.Err("Project not defined")
 			return
 		}
 		if len(path) == 0 {
@@ -448,7 +448,7 @@ func main() {
 			return
 		}
 
-		err := upload.UploadReport(token, nodeset, path)
+		err := upload.UploadReport(token, project, path)
 		if err != nil {
 			log.Err(err)
 		}

@@ -1177,10 +1177,9 @@ run_checks() {
     ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
   fi
 
-  if [[ ! -z ${TOKEN+x} ]] && [[ ! -z ${NODESET+x} ]] &&
-    [[ "${TOKEN}" != "None" ]] && [[ "${NODESET}" != "None" ]]; then
+  if [[ ! -z ${TOKEN+x} ]] && [[ "${TOKEN}" != "None" ]]; then
     msg "Uploading report to platform..."
-    $(${PGHREP_BIN} --mode=upload --nodeset=${NODESET} --path="${PROJECT_DIR}" --token="${TOKEN}" --debug=0)
+    $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${TOKEN}" --debug=0)
   fi
 }
 

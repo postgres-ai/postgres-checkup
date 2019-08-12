@@ -16,7 +16,7 @@ import (
 
 const API_URL = "http://dev.imgdata.ru:9508/rpc/"
 
-func UploadReport(token string, nodeset string, path string) error {
+func UploadReport(token string, project string, path string) error {
 	// enumerate files
 	var files []string
 	var err error
@@ -30,7 +30,7 @@ func UploadReport(token string, nodeset string, path string) error {
 	}
 
 	// create report
-	reportId, cerr := CreateReport(token, nodeset, path)
+	reportId, cerr := CreateReport(token, project, path)
 	if cerr != nil {
 		return cerr
 	}
@@ -42,6 +42,8 @@ func UploadReport(token string, nodeset string, path string) error {
 			processed++
 		}
 	}
+
+	log.Msg("Uploaded", processed, "files from", len(files), "of report.")
 
 	return nil
 }
@@ -86,7 +88,7 @@ func GetReportEpoch(path string) (string, error) {
 	return nodesJsonData.LastCheck.Epoch, nil
 }
 
-func CreateReport(token string, nodeset string, path string) (int64, error) {
+func CreateReport(token string, project string, path string) (int64, error) {
 	epoch, err := GetReportEpoch(path)
 
 	if err != nil {
@@ -95,7 +97,7 @@ func CreateReport(token string, nodeset string, path string) (int64, error) {
 
 	requestData := map[string]interface{}{
 		"access_token": token,
-		"nodeset":      nodeset,
+		"project":      project,
 		"epoch":        epoch,
 	}
 
@@ -103,8 +105,6 @@ func CreateReport(token string, nodeset string, path string) (int64, error) {
 	if rerr != nil {
 		return -1, rerr
 	}
-
-	log.Dbg("response", response)
 
 	var intId int64 = 0
 	var iok bool = false
@@ -118,7 +118,11 @@ func CreateReport(token string, nodeset string, path string) (int64, error) {
 		return int64(floatId), nil
 	}
 
-	return -1, fmt.Errorf("Unknown response format.")
+	if msg, mok := response["message"]; mok {
+		return -1, fmt.Errorf("%s", msg)
+	} else {
+		return -1, fmt.Errorf("Cannot create report.")
+	}
 }
 
 func MakeRequest(endpoint string, requestData map[string]interface{}) (map[string]interface{}, error) {
@@ -169,9 +173,13 @@ func UploadReportFile(token string, reportId int64, path string) error {
 		"type":              fileType,
 	}
 
-	_, uerr := MakeRequest("post_checkup_report_chunk", requestData)
+	response, uerr := MakeRequest("post_checkup_report_chunk", requestData)
 	if uerr != nil {
-		return fmt.Errorf("Cannot upload file. %s", uerr)
+		if msg, mok := response["hint"]; mok {
+			return fmt.Errorf("%s", msg)
+		} else {
+			return fmt.Errorf("Cannot upload file. %s", uerr)
+		}
 	}
 
 	return nil
