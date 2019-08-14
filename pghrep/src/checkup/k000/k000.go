@@ -26,7 +26,7 @@ func K000Process(report K000Report) (checkup.ReportResult, error) {
 
 	if result.P1 && len(hosts) > 0 {
 		result.AppendConclusion(K000_EXCESS_QUERY_TOTAL_TIME, MSG_EXCESS_QUERY_TOTAL_TIME_CONCLUSION, MAX_QUERY_TOTAL_TIME,
-			fmt.Sprintf(english.PluralWord(len(hosts), MSG_NODE, MSG_NODES), english.WordSeries(hosts, "and")),
+			fmt.Sprintf(english.PluralWord(len(checkup.GetUniques(hosts)), MSG_NODE, MSG_NODES), english.WordSeries(checkup.GetUniques(hosts), "and")),
 			MAX_QUERY_TOTAL_TIME, MAX_QUERY_TOTAL_TIME)
 		result.AppendRecommendation(K000_EXCESS_QUERY_TOTAL_TIME, MSG_EXCESS_QUERY_TOTAL_TIME_RECOMMENDATION, MAX_QUERY_TOTAL_TIME)
 	}
