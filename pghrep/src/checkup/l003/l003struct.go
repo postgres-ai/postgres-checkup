@@ -10,9 +10,14 @@ type L003Table struct {
 	CapacityUsedPercent float64 `json:"capacity_used_percent"`
 }
 
+type L003ReportHostResultData struct {
+	Tables            map[string]L003Table `json:"tables"`
+	MinTableSizeBytes int64                `json:"min_table_size_bytes"`
+}
+
 type L003ReportHostResult struct {
-	Data      map[string]L003Table    `json:"data"`
-	NodesJson checkup.ReportLastNodes `json:"nodes.json"`
+	Data      L003ReportHostResultData `json:"data"`
+	NodesJson checkup.ReportLastNodes  `json:"nodes.json"`
 }
 
 type L003ReportHostsResults map[string]L003ReportHostResult
