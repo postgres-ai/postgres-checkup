@@ -26,6 +26,8 @@ html_filename=${md_filename%.*}".html"
 tmp1_html_filename=${md_filename%.*}".tmp1.html"
 tmp2_html_filename=${md_filename%.*}".tmp2.html"
 tmp3_html_filename=${md_filename%.*}".tmp3.html"
+tmp4_html_filename=${md_filename%.*}".tmp4.html"
+tmp5_html_filename=${md_filename%.*}".tmp5.html"
 pdf_filename=${md_filename%.*}".pdf"
 
 if PANDOC=$(which pandoc); then
@@ -39,11 +41,13 @@ if PANDOC=$(which pandoc); then
   pandoc --from=markdown_github-yaml_metadata_block --standalone \
     --metadata pagetitle="Postgres Checkup Report" \
     --to=html -V -H $CUR_DIR/pdf.style \
-    --output=$tmp2_html_filename $tmp1_md_filename
+    --output=$tmp3_html_filename $tmp1_md_filename
 
   # replace :warninig: image
-  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
-  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
+  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $tmp2_html_filename
+  awk '{ gsub(/:information_source:/, "<span class=\"warn info_src\"></span>"); print }' $tmp2_html_filename > $html_filename
+  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp3_html_filename > $tmp4_html_filename
+  awk '{ gsub(/:information_source:/, "<span class=\"warn info_src\"></span>"); print }' $tmp4_html_filename > $tmp5_html_filename
   if [[ -f $html_filename ]]; then
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] Final .html report is ready at:"
     echo "        '$html_filename'"
@@ -52,18 +56,20 @@ if PANDOC=$(which pandoc); then
 
   rm $tmp1_html_filename
   rm $tmp2_html_filename
+  rm $tmp3_html_filename
+  rm $tmp4_html_filename
   rm $tmp1_md_filename
-  
+
   if $PDF ; then
     if WKHTMLTOPDF=$(which wkhtmltopdf); then
-      wkhtmltopdf --orientation landscape -q -s A4 --dpi 300 $tmp3_html_filename $pdf_filename
+      wkhtmltopdf --orientation landscape -q -s A4 --dpi 300 $tmp5_html_filename $pdf_filename
     else
       echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] 'wkhtmltopdf' not found. Generating of pdf report impossible."
       rm $tmp3_html_filename
       exit 1
     fi
   fi
-  rm $tmp3_html_filename
+  rm $tmp5_html_filename
 
   if $PDF ; then
     if [[ -f $pdf_filename ]]; then
