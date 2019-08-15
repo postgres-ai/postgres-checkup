@@ -12,11 +12,51 @@ import (
 
 	"../checkup"
 	"../log"
+	"gopkg.in/yaml.v2"
 )
 
-const API_URL = "http://dev.imgdata.ru:9508/rpc/"
+type UploadConfig struct {
+	ApiUrl string `yaml:"apiUrl"`
+}
+
+var uploadConfig = UploadConfig{}
+
+func loadConfig() error {
+	name := "upload.yaml"
+	configPath := getConfigPath(name)
+	if _, err := os.Stat(configPath); err != nil {
+		if os.IsNotExist(err) {
+			configPath = getConfigPath("default.upload.yaml")
+			name = "default.upload.yaml"
+		}
+	}
+
+	b, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return fmt.Errorf("Error loading %s config file. Default values are used.", name)
+	}
+
+	err = yaml.Unmarshal(b, &uploadConfig)
+	if err != nil {
+		return fmt.Errorf("Error parsing %s config. Default values are used.", name)
+	}
+
+	log.Dbg("Config loaded", uploadConfig)
+	return nil
+}
+
+func getConfigPath(name string) string {
+	bindir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, _ := filepath.Abs(filepath.Dir(bindir))
+	path := dir + string(os.PathSeparator) + "config" + string(os.PathSeparator) + name
+	return path
+}
 
 func UploadReport(token string, project string, path string) error {
+	cerr := loadConfig()
+	if cerr != nil {
+		return fmt.Errorf("Upload configuration not found")
+	}
 	// enumerate files
 	var files []string
 	var err error
@@ -131,7 +171,7 @@ func MakeRequest(endpoint string, requestData map[string]interface{}) (map[strin
 		return nil, merr
 	}
 
-	resp, err := http.Post(API_URL+endpoint, "application/json", bytes.NewBuffer(bytesRepresentation))
+	resp, err := http.Post(uploadConfig.ApiUrl+endpoint, "application/json", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		return nil, err
 	}
