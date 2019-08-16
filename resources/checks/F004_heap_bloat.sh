@@ -35,9 +35,17 @@ with data as (
     from pg_attribute as att
     join pg_class as tbl on att.attrelid = tbl.oid and tbl.relkind = 'r'
     join pg_namespace as ns on ns.oid = tbl.relnamespace
-    join pg_stats as s on s.schemaname = ns.nspname and s.tablename = tbl.relname and not s.inherited and s.attname = att.attname
+    left join pg_stats as s on
+      s.schemaname = ns.nspname
+      and s.tablename = tbl.relname
+      and not s.inherited
+      and s.attname = att.attname
     left join pg_class as toast on tbl.reltoastrelid = toast.oid
-    where att.attnum > 0 and not att.attisdropped and s.schemaname not in ('pg_catalog', 'information_schema') and tbl.relpages > ${MIN_RELPAGES}
+    where
+      att.attnum > 0
+      and not att.attisdropped
+      and (s.schemaname not in ('pg_catalog', 'information_schema') or s.schemaname is null)
+      and tbl.relpages > ${MIN_RELPAGES}
     group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, tbl.relhasoids
     order by 2, 3
   ), step2 as (
@@ -68,7 +76,11 @@ with data as (
           then 100 * (tblpages - est_tblpages) / tblpages::float
         else 0
       end as extra_ratio,
-      (tblpages - est_tblpages_ff) * bs as bloat_size,
+      case
+        when tblpages - est_tblpages_ff > 0
+          then (tblpages - est_tblpages_ff) * bs
+        else 0
+      end as bloat_size,
       case
         when (tblpages - est_tblpages_ff > 0 and tblpages > 0)
           then 100 * (tblpages - est_tblpages_ff) / tblpages::float
@@ -113,10 +125,10 @@ with data as (
     ) as "fillfactor",
     case when ot.table_id is not null then true else false end as overrided_settings,
     case
-      when bloat_size::numeric >= 0 and (real_size - bloat_size)::numeric >=0
+      when real_size::numeric > 0 and (real_size - bloat_size)::numeric > 0
         then real_size::numeric / (real_size - bloat_size)::numeric
-        else null
-      end as "bloat_ratio_factor"
+      else null
+    end as "bloat_ratio_factor"
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
