@@ -72,7 +72,7 @@ with data as (
       tblpages * bs as real_size,
       (tblpages - est_tblpages) * bs as extra_size,
       case
-        when tblpages - est_tblpages > 0
+        when (tblpages - est_tblpages > 0 and tblpages > 0)
           then 100 * (tblpages - est_tblpages) / tblpages::float
         else 0
       end as extra_ratio,
@@ -82,7 +82,7 @@ with data as (
         else 0
       end as bloat_size,
       case
-        when tblpages - est_tblpages_ff > 0
+        when (tblpages - est_tblpages_ff > 0 and tblpages > 0)
           then 100 * (tblpages - est_tblpages_ff) / tblpages::float
         else 0
       end as bloat_ratio
