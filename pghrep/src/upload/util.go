@@ -77,9 +77,16 @@ func UploadReport(token string, project string, path string) error {
 
 	processed := 0
 	for _, f := range files {
+		fileType := strings.ToLower(strings.Replace(filepath.Ext(f), ".", "", -1))
+		if fileType != "json" && fileType != "sql" && fileType != "md" && fileType != "html" {
+			continue
+		}
+
 		uerr := UploadReportFile(token, reportId, f)
 		if uerr == nil {
 			processed++
+		} else {
+			log.Err(fmt.Sprintf("Cannot upload file %s. %s", f, uerr))
 		}
 	}
 
@@ -188,10 +195,6 @@ func UploadReportFile(token string, reportId int64, path string) error {
 	fileName := filepath.Base(path)
 	checkId := ""
 
-	if fileType != "json" && fileType != "sql" && fileType != "md" && fileType != "html" {
-		return fmt.Errorf("Unsupported file type.")
-	}
-
 	if string(fileName[4:5]) == "_" {
 		checkId = string(fileName[0:4])
 	}
@@ -215,11 +218,10 @@ func UploadReportFile(token string, reportId int64, path string) error {
 
 	response, uerr := MakeRequest("post_checkup_report_chunk", requestData)
 	if uerr != nil {
-		if msg, mok := response["hint"]; mok {
-			return fmt.Errorf("%s", msg)
-		} else {
-			return fmt.Errorf("Cannot upload file. %s", uerr)
-		}
+		return fmt.Errorf("%s", uerr)
+	}
+	if msg, mok := response["message"]; mok {
+		return fmt.Errorf("%s", msg)
 	}
 
 	return nil
