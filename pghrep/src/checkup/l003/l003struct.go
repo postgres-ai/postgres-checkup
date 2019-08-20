@@ -3,16 +3,21 @@ package l003
 import checkup ".."
 
 type L003Table struct {
-	Table               string  `json:"Table"`
-	Pk                  string  `json:"PK"`
-	Type                string  `json:"Type"`
-	CurrentMaxValue     int64   `json:"Current max value"`
-	CapacityUsedPercent float64 `json:"Capacity used %"`
+	Table               string  `json:"table"`
+	Pk                  string  `json:"pk"`
+	Type                string  `json:"type"`
+	CurrentMaxValue     int64   `json:"current_max_value"`
+	CapacityUsedPercent float64 `json:"capacity_used_percent"`
+}
+
+type L003ReportHostResultData struct {
+	Tables            map[string]L003Table `json:"tables"`
+	MinTableSizeBytes int64                `json:"min_table_size_bytes"`
 }
 
 type L003ReportHostResult struct {
-	Data      map[string]L003Table    `json:"data"`
-	NodesJson checkup.ReportLastNodes `json:"nodes.json"`
+	Data      L003ReportHostResultData `json:"data"`
+	NodesJson checkup.ReportLastNodes  `json:"nodes.json"`
 }
 
 type L003ReportHostsResults map[string]L003ReportHostResult

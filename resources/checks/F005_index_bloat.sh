@@ -1,3 +1,9 @@
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=100
+else
+  MIN_RELPAGES=0
+fi
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with overrided_tables as (
@@ -31,7 +37,7 @@ with data as (
       where a.amname = 'btree'
         AND pg_index.indisvalid
         AND tbl.relkind = 'r'
-        AND idx.relpages > 10
+        AND idx.relpages > ${MIN_RELPAGES}
         AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
   ), step1 as (
     select
@@ -99,14 +105,18 @@ with data as (
     join pg_am am on step2.relam = am.oid
     where am.amname = 'btree'
   ), step4 as (
-    SELECT
+    select
       *,
-      bs*(relpages)::bigint AS real_size,
+      bs*(relpages)::bigint as real_size,
   -------current_database(), nspname AS schemaname, tblname, idxname, bs*(relpages)::bigint AS real_size,
-      bs*(relpages-est_pages)::bigint AS extra_size,
-      100 * (relpages-est_pages)::float / relpages AS extra_ratio,
-      bs*(relpages-est_pages_ff) AS bloat_size,
-      100 * (relpages-est_pages_ff)::float / relpages AS bloat_ratio
+      bs*(relpages-est_pages)::bigint as extra_size,
+      100 * (relpages-est_pages)::float / relpages as extra_ratio,
+      case
+        when relpages > est_pages_ff
+          then bs * (relpages - est_pages_ff)
+        else 0
+      end as bloat_size,
+      100 * (relpages-est_pages_ff)::float / relpages as bloat_ratio
       -- , 100-(sub.pst).avg_leaf_density, est_pages, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, sub.reltuples, sub.relpages -- (DEBUG INFO)
     from step3
     -- WHERE NOT is_na
@@ -118,27 +128,12 @@ with data as (
     left(index_name, 50) || case when length(index_name) > 50 then '…' else '' end  || '(' || coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name || ')'as "index_table_name",
     real_size as "real_size_bytes",
     pg_size_pretty(real_size::numeric) as "size",
-    case
-      when (real_size - bloat_size)::numeric >=0
-        then real_size::numeric / (real_size - bloat_size)::numeric
-        else null
-      end as "bloat_ratio",
     extra_ratio as "extra_ratio_percent",
-    case
-      when extra_size::numeric >= 0
-        then '~' || pg_size_pretty(extra_size::numeric)::text || ' (' || round(extra_ratio::numeric, 2)::text || '%)'
-      else null
-    end  as "extra",
     case
       when extra_size::numeric >= 0
         then extra_size
       else null
     end as "extra_size_bytes",
-    case
-      when bloat_size::numeric >= 0
-        then '~' || pg_size_pretty(bloat_size::numeric)::text || ' (' || round(bloat_ratio::numeric, 2)::text || '%)'
-      else null
-    end as "bloat",
     case
       when (bloat_size)::numeric >=0
         then bloat_size
@@ -150,20 +145,15 @@ with data as (
         else null
       end as "bloat_ratio_percent",
     case
-      when (real_size - bloat_size)::numeric >=0
-        then '~' || pg_size_pretty((real_size - bloat_size)::numeric)
+      when bloat_size::numeric >= 0 and (real_size - bloat_size)::numeric >=0
+        then real_size::numeric / (real_size - bloat_size)::numeric
         else null
-     end as "live_data_size",
+      end as "bloat_ratio_factor",
     case
       when (real_size - bloat_size)::numeric >=0
         then (real_size - bloat_size)::numeric
         else null
       end as "live_data_size_bytes",
-    case
-      when (real_size - bloat_size)::numeric >=0
-        then (real_size - bloat_size)::numeric
-        else null
-     end as "live_bytes",
     fillfactor,
     case when ot.table_id is not null then true else false end as overrided_settings,
     table_size_bytes
@@ -185,7 +175,7 @@ with data as (
     sum("extra_size_bytes") as "extra_size_bytes_sum",
     sum("real_size_bytes") as "real_size_bytes_sum",
     sum("bloat_size_bytes") as "bloat_size_bytes_sum",
-    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_avg",
+    (sum("real_size_bytes")::numeric/sum("live_data_size_bytes")::numeric) as "bloat_ratio_factor_avg",
     (sum("bloat_size_bytes")::numeric/sum("real_size_bytes")::numeric * 100) as "bloat_ratio_percent_avg",
     sum("extra_size_bytes") as "extra_size_bytes_sum",
     (select sum(ts.table_size_bytes) from (select distinct(table_name), table_size_bytes from data) ts) as "table_size_bytes_sum",
@@ -201,8 +191,9 @@ select
     'overrided_settings_count',
     (select count(1) from limited_data where overrided_settings = true),
     'database_size_bytes',
-    (select pg_database_size(current_database()))
-
+    (select pg_database_size(current_database())),
+    'min_table_size_bytes',
+    (select ${MIN_RELPAGES} * 8192)
   )
 SQL
 

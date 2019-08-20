@@ -5,12 +5,13 @@
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
 Current database: {{ .database }}  
+{{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes")) 0 }}NOTICE: only tables larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes") 0 }} are analyzed.  {{end}}
 {{ if .hosts.master }}
 {{ if (index .results .hosts.master) }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if (index (index .results .hosts.master) "data") }}
 {{ if (index (index (index .results .hosts.master) "data") "heap_bloat") }}
-{{ if gt (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
+{{ if ge (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index (index $.results $.hosts.master) "data") "heap_bloat")) 1 }}.{{ end }}  
 
 | \# | Table | Real Size | &#9660;&nbsp;Estimated bloat | Est. bloat, bytes | Est. bloat factor | Est. bloat level, % | Live Data Size | Last vacuum | Fillfactor |
 |----|-------|------|------------------------------|-------------------|-------------------|---------------------|----------------|-------------|------------|
@@ -18,7 +19,7 @@ Current database: {{ .database }}
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "real_size_bytes_sum") }}{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "real_size_bytes_sum") 2 }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum") }}{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum") 2 }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum") }}{{- RawIntFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_size_bytes_sum" ) }}{{ end }} |
-{{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_avg") }}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_avg" ) 2 }}{{ end }} |
+{{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_factor_avg") }}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_factor_avg" ) 2 }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") }}{{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "bloat_ratio_percent_avg") 2 }}{{ end }} |
 {{- if (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "live_data_size_bytes_sum") }} ~{{ ByteFormat (index (index (index (index $.results $.hosts.master) "data") "heap_bloat_total") "live_data_size_bytes_sum") 2 }}{{ end }} |||{{ end }}|{{ end }}
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "heap_bloat") "_keys") }}
@@ -28,7 +29,7 @@ Current database: {{ .database }}
 {{- ByteFormat ( index $value "real_size_bytes" ) 2 }} |
 {{- if ( index $value "bloat_size_bytes")}}{{ ByteFormat ( index $value "bloat_size_bytes") 2 }}{{end}} |
 {{- if ( index $value "bloat_size_bytes")}}{{ RawIntFormat ( index $value "bloat_size_bytes") }}{{end}} |
-{{- if ( index $value "bloat_ratio")}}{{ RawFloatFormat ( index $value "bloat_ratio") 2 }}{{end}} |
+{{- if ( index $value "bloat_ratio_factor")}}{{ RawFloatFormat ( index $value "bloat_ratio_factor") 2 }}{{end}} |
 {{- if ge (Int (index $value "bloat_ratio_percent")) $minRatioWarning }} **{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}**{{else}}{{- RawFloatFormat ( index $value "bloat_ratio_percent") 2 }}{{end}} |
 {{- "~" }}{{ ByteFormat ( index $value "live_data_size_bytes" ) 2 }} |
 {{- if (index $value "last_vaccuum") }} {{ ( index $value "last_vaccuum") }} {{ end }} |
