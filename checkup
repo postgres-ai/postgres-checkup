@@ -193,7 +193,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
 # Returns:
 #   None
 #######################################
-  () {
+load_config_params () {
   dbg "Load params from config file"
   config_filename=${2}
   if [[ ! -f "$config_filename" ]]; then
@@ -1243,8 +1243,12 @@ run_process() {
 run_upload() {
   PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
   if [[ ! -z ${UPLOADTOKEN+x} ]] && [[ "${UPLOADTOKEN}" != "None" ]]; then
-    msg "Uploading report to platform..."
-    $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}"  --debug=0)
+    msg "Uploading the report to the platform..."
+    if [[ $DEBUG == "true" ]] ; then
+      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
+    else 
+      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}" --debug=0)
+    fi
   fi
 }
 

@@ -14,10 +14,7 @@ import (
 	"../log"
 )
 
-var API_URL = ""
-
-func UploadReport(token string, apiUrl string, project string, path string) error {
-	API_URL = apiUrl
+func UploadReport(apiUrl string, token string, project string, path string) error {
 	// enumerate files
 	var files []string
 	var err error
@@ -31,7 +28,7 @@ func UploadReport(token string, apiUrl string, project string, path string) erro
 	}
 
 	// create report
-	reportId, cerr := CreateReport(token, project, path)
+	reportId, cerr := CreateReport(apiUrl, token, project, path)
 	if cerr != nil {
 		return cerr
 	}
@@ -43,7 +40,7 @@ func UploadReport(token string, apiUrl string, project string, path string) erro
 			continue
 		}
 
-		uerr := UploadReportFile(token, reportId, f)
+		uerr := UploadReportFile(apiUrl, token, reportId, f)
 		if uerr == nil {
 			processed++
 		} else {
@@ -96,7 +93,7 @@ func GetReportEpoch(path string) (string, error) {
 	return nodesJsonData.LastCheck.Epoch, nil
 }
 
-func CreateReport(token string, project string, path string) (int64, error) {
+func CreateReport(apiUrl string, token string, project string, path string) (int64, error) {
 	epoch, err := GetReportEpoch(path)
 
 	if err != nil {
@@ -109,7 +106,7 @@ func CreateReport(token string, project string, path string) (int64, error) {
 		"epoch":        epoch,
 	}
 
-	response, rerr := MakeRequest("/rpc/post_checkup_report", requestData)
+	response, rerr := MakeRequest(apiUrl, "/rpc/post_checkup_report", requestData)
 	if rerr != nil {
 		return -1, rerr
 	}
@@ -133,13 +130,13 @@ func CreateReport(token string, project string, path string) (int64, error) {
 	}
 }
 
-func MakeRequest(endpoint string, requestData map[string]interface{}) (map[string]interface{}, error) {
+func MakeRequest(apiUrl string, endpoint string, requestData map[string]interface{}) (map[string]interface{}, error) {
 	bytesRepresentation, merr := json.Marshal(requestData)
 	if merr != nil {
 		return nil, merr
 	}
 
-	resp, err := http.Post(API_URL+endpoint, "application/json", bytes.NewBuffer(bytesRepresentation))
+	resp, err := http.Post(apiUrl+endpoint, "application/json", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +148,7 @@ func MakeRequest(endpoint string, requestData map[string]interface{}) (map[strin
 	return result, nil
 }
 
-func UploadReportFile(token string, reportId int64, path string) error {
+func UploadReportFile(apiUrl string, token string, reportId int64, path string) error {
 	fileType := strings.ToLower(strings.Replace(filepath.Ext(path), ".", "", -1))
 	fileName := filepath.Base(path)
 	checkId := ""
@@ -177,7 +174,7 @@ func UploadReportFile(token string, reportId int64, path string) error {
 		"type":              fileType,
 	}
 
-	response, uerr := MakeRequest("/rpc/post_checkup_report_chunk", requestData)
+	response, uerr := MakeRequest(apiUrl, "/rpc/post_checkup_report_chunk", requestData)
 	if uerr != nil {
 		return fmt.Errorf("%s", uerr)
 	}

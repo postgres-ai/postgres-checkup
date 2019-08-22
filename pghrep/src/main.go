@@ -454,7 +454,7 @@ func main() {
 			return
 		}
 
-		err := upload.UploadReport(token, apiUrl, project, path)
+		err := upload.UploadReport(apiUrl, token, project, path)
 		if err != nil {
 			log.Err(err)
 		}
