@@ -1,4 +1,4 @@
-### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.2/) (based on CI, single node).
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.2.1) (based on CI, single node).
 
 ***Disclaimer: Conclusions, Recommendations – work in progress.**
 To treat the data correctly, you need deep Postgres knowledge. Each report
