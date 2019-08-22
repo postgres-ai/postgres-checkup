@@ -414,6 +414,7 @@ func main() {
 	tokenDataPtr := flag.String("token", "", "the token to upload files")
 	projectDataPtr := flag.String("project", "", "the target project to upload files")
 	pathDataPtr := flag.String("path", "", "artifacts path to upload files")
+	apiUrlDataPtr := flag.String("apiurl", "", "API url of platform")
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -434,9 +435,14 @@ func main() {
 		token := *tokenDataPtr
 		project := *projectDataPtr
 		path := *pathDataPtr
+		apiUrl := *apiUrlDataPtr
 
 		if len(token) == 0 {
 			log.Err("Token not defined")
+			return
+		}
+		if len(apiUrl) == 0 {
+			log.Err("API url not defined")
 			return
 		}
 		if len(project) == 0 {
@@ -448,7 +454,7 @@ func main() {
 			return
 		}
 
-		err := upload.UploadReport(token, project, path)
+		err := upload.UploadReport(token, apiUrl, project, path)
 		if err != nil {
 			log.Err(err)
 		}

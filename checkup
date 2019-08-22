@@ -22,6 +22,7 @@ SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
+AVAILABLE_MODES=("collect" "process" "upload" "help")
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -146,7 +147,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
     exit 2
   fi
 
-  while IFS="|" read -r section short_name full_name internal_name arg_type mandatary description; do
+  while IFS="|" read -r section short_name full_name internal_name arg_type mandatary arg_mode description; do
     # cut last garbage symbol
     # TODO(vyagofarov): understand this 'cutting' behavior
     description=${description%?}
@@ -157,6 +158,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
     INTERNAL_NAME[$iter_num]="$internal_name"
     ARG_TYPE[$iter_num]="$arg_type"
     MANDATARY[$iter_num]="$mandatary"
+    ARG_MODE[$iter_num]="$arg_mode"
     DESCRIPTION[$iter_num]="$description"
 
     dbg "iteration number: $iter_num"
@@ -166,6 +168,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
     dbg "4: internal_name '${INTERNAL_NAME[$iter_num]}'"
     dbg "5: arg_type '${ARG_TYPE[$iter_num]}'"
     dbg "6: mandatary '${MANDATARY[$iter_num]}'"
+    dbg "6: mode '${ARG_MODE[$iter_num]}'"
     dbg "7: description '${DESCRIPTION[$iter_num]}'"
 
     iter_num=$(( iter_num + 1 ))
@@ -452,11 +455,13 @@ validate_args() {
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
-      # please do not change align for 'buf' variable text
-      buf="$buf
+      if ([[ "${ARG_MODE[$i]}" == "all" ]] || ( [[ "${ARG_MODE[$i]}" != "all" ]] && [[ "${MODE}" == "${ARG_MODE[$i]}" ]])); then
+        # please do not change align for 'buf' variable text
+        buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
-      need_fail_exit=true
-      OPTIONS_ERROR_EXIT=true
+        need_fail_exit=true
+        OPTIONS_ERROR_EXIT=true
+      fi
     fi
   done
   if [[ "$need_fail_exit" = "true" ]]; then
@@ -556,7 +561,7 @@ usage() {
   # Print example
   echo >&${out_descriptor}
   echo "Example:" >&${out_descriptor}
-  echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
+  echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} collect -h [ssh_user]@host_to_connect_via_ssh \\"
   echo "    --username ${USER} --dbname postgres \\"
   echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
   echo >&${out_descriptor}
@@ -842,6 +847,13 @@ glue_md_reports() {
   done
   echo -e "$tableOfContents" >> "${out_fname}"
   echo -e "$content" >> "${out_fname}"
+
+  if [[ "$PDF" == "true" ]]; then
+    ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
+  if [[ "$HTML" == "true" ]]; then
+    ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
 }
 
 #######################################
@@ -972,7 +984,6 @@ update_nodes_json() {
   export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR_NAME
 
   mkdir -p "${JSON_REPORTS_DIR}"
-  mkdir -p "${MD_REPORTS_DIR}"
 
   local role_changed_at="never"
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
@@ -1113,25 +1124,7 @@ run_checks() {
 
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
-    # generate .md report with help of pghrep (go utility)
-    # ${JSON_REPORTS_DIR}/${check_id}_${check_name}.json
-    mkdir -p "${MD_REPORTS_DIR}"
-    local pghrep_output
-    if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${JSON_REPORTS_DIR}/${check_id}_${check_name}.json" \
-      --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
-      msg "WARNING: ${pghrep_output}"
-      pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}_${check_name}.md"
-    else
-      if [[ "${check_id}" == "K000" ]]; then
-        msg "Markdown reports saved at:"
-        msg "'${MD_REPORTS_DIR}/K001.md'"
-        msg "'${MD_REPORTS_DIR}/K002.md'"
-        msg "'${MD_REPORTS_DIR}/K003.md'"
-      else
-        msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
-      fi
-    fi
-
+    
     # if check name file given by CLI run only single check
     if [[ "${FILE}" != "None" ]]; then
       break
@@ -1151,6 +1144,52 @@ run_checks() {
     done
     msg "Markdown reports are also not created for these checks ^^"
   fi
+}
+
+#######################################
+# Performs generation md reports 
+# Also performs generation html and pdf report on base of md if it is specified by options
+# Globals:
+#   SCRIPT_DIR, PGHREP_BIN
+# Arguments:
+#   None
+# Returns:
+#   (text) stdout/stderr
+#######################################
+run_process() {
+  local pghrep_failed_md_stack=""
+  PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+  local timestamp_dir=$(cat ${SCRIPT_DIR}/artifacts/${PROJECT}/nodes.json | jq -r '.last_check | .dir')
+  local epoch=$(cat ${SCRIPT_DIR}/artifacts/${PROJECT}/nodes.json | jq -r '.last_check | .epoch')
+  JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${timestamp_dir}"
+  MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${timestamp_dir}"
+
+  mkdir -p "${MD_REPORTS_DIR}"
+
+  for json_file in `ls ${JSON_REPORTS_DIR}/*.json`; do
+    # if check name file given by CLI run only single generation
+    if [[ "${FILE}" != "None" ]] && [[ "${FILE}" != "${json_file}" ]]; then
+      continue
+    fi
+    
+    check_id=$(cat ${json_file} | jq -r '.checkId')
+    local pghrep_output
+    if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${json_file}" \
+      --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
+      msg "WARNING: ${pghrep_output}"
+      pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}.md"
+    else
+      if [[ "${check_id}" == "K000" ]]; then
+        msg "Markdown reports saved at:"
+        msg "'${MD_REPORTS_DIR}/K001.md'"
+        msg "'${MD_REPORTS_DIR}/K002.md'"
+        msg "'${MD_REPORTS_DIR}/K003.md'"
+      else
+        msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
+      fi
+    fi
+  done
+
   if ! [[ -z "${pghrep_failed_md_stack}" ]]; then
     msg
     msg "WARNING: Can't generate Markdown reports (see errors above):"
@@ -1169,17 +1208,22 @@ run_checks() {
     echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
+}
 
-  if [[ "$PDF" == "true" ]]; then
-    ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
-  fi
-  if [[ "$HTML" == "true" ]]; then
-    ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
-  fi
-
-  if [[ ! -z ${TOKEN+x} ]] && [[ "${TOKEN}" != "None" ]]; then
+#######################################
+# Perform uploading report files to platform storage
+# Globals:
+#   SCRIPT_DIR, UPLOADTOKEN, UPLOADAPIURL
+# Arguments:
+#   None
+# Returns:
+#   (text) stdout/stderr
+#######################################
+run_upload() {
+  PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+  if [[ ! -z ${UPLOADTOKEN+x} ]] && [[ "${UPLOADTOKEN}" != "None" ]]; then
     msg "Uploading report to platform..."
-    $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${TOKEN}" --debug=0)
+    $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}"  --debug=0)
   fi
 }
 
@@ -1206,13 +1250,63 @@ main() {
   trap cleanup_and_exit 1 2 13 15 EXIT
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC >/dev/null 2>&1 || true
   export LC_ALL=C
+  local mode=""
+  local params="$@"
+  declare -a newparams=()
+
+  if [[ ! -z ${1+x} ]]; then
+    mode="$1"
+  fi
+
   read_possible_args
-  process_cli_args "$@"
-  check_bin_deps
+  
+  i=1
+  for p in ${params[@]}; do
+    if [[ $i -eq "1" ]]; then
+      for m in ${AVAILABLE_MODES[@]}; do
+        if [[ "$m" == "$mode" ]]; then
+          if [[ "$mode" == "help" ]]; then
+            newparams[$i]="--help"
+          else
+            newparams[$i]="--mode"
+            i=$((i + 1))
+            newparams[$i]="$mode"
+          fi
+        else 
+          newparams[$i]="$p"
+        fi
+      done
+    else
+        newparams[$i]="$p"
+    fi 
+    i=$((i + 1))
+  done
+  
+  if [[ "${#newparams[@]}" -eq "0" ]]; then
+    process_cli_args "$@"  
+  else
+    process_cli_args "${newparams[@]}"
+  fi;
+  
   validate_args
-  build_pghrep
-  host_pre_start_checks
-  run_checks
+  
+  case $MODE in
+    "collect" )
+      host_pre_start_checks
+      run_checks
+      ;;
+    "process" )
+      check_bin_deps
+      build_pghrep
+      run_process
+      ;;
+    "upload" )
+      check_bin_deps
+      build_pghrep
+      run_upload
+      ;;
+  esac
+  
   msg "ALL DONE!"
   exit 0
 }
