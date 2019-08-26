@@ -67,7 +67,7 @@ with data as (
       max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na,
       i.table_size_bytes
     from pg_attribute as a
-    join step0 as i on a.attrelid = i.indexrelid /*AND a.attnum = i.attnum*/
+    join step0 as i on a.attrelid = i.indexrelid
     join pg_stats as s on
       s.schemaname = i.nspname
       and (
