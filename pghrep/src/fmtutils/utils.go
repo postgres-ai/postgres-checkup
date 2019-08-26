@@ -57,28 +57,28 @@ func NumFormat(inputNum float64, precision int) string {
     var unit string
     if inputNum >= math.Pow(1000, 8) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 8)), precision)
-        unit = "Y" // yottabyte
+        unit = "S" // Septillion 10^24
     } else if inputNum >= math.Pow(1000, 7) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 7)), precision)
-        unit = "Z" // zettabyte
+        unit = "s" // Sextillion 10^21
     } else if inputNum >= math.Pow(1000, 6) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 6)), precision)
-        unit = "E" // exabyte
+        unit = "Q" // Quintillion 10^18
     } else if inputNum >= math.Pow(1000, 5) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 5)), precision)
-        unit = "P" // petabyte
+        unit = "q" // Quadrillion 10^15
     } else if inputNum >= math.Pow(1000, 4) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 4)), precision)
-        unit = "T" // terrabyte
+        unit = "T" // Trillion 10^12
     } else if inputNum >= math.Pow(1000, 3) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 3)), precision)
-        unit = "G" // gigabyte
+        unit = "B" // Billion 10^9
     } else if inputNum >= math.Pow(1000, 2) {
         returnVal = RoundUp((inputNum / math.Pow(1000, 2)), precision)
-        unit = "M" // megabyte
+        unit = "M" // Million 10^6
     } else if inputNum >= 1000 {
         returnVal = RoundUp((inputNum / 1000), precision)
-        unit = "K" // kilobyte
+        unit = "K" // Thousand 10 ^ 3
     } else {
         returnVal = inputNum
         unit = ""

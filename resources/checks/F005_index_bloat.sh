@@ -105,14 +105,18 @@ with data as (
     join pg_am am on step2.relam = am.oid
     where am.amname = 'btree'
   ), step4 as (
-    SELECT
+    select
       *,
-      bs*(relpages)::bigint AS real_size,
+      bs*(relpages)::bigint as real_size,
   -------current_database(), nspname AS schemaname, tblname, idxname, bs*(relpages)::bigint AS real_size,
-      bs*(relpages-est_pages)::bigint AS extra_size,
-      100 * (relpages-est_pages)::float / relpages AS extra_ratio,
-      bs*(relpages-est_pages_ff) AS bloat_size,
-      100 * (relpages-est_pages_ff)::float / relpages AS bloat_ratio
+      bs*(relpages-est_pages)::bigint as extra_size,
+      100 * (relpages-est_pages)::float / relpages as extra_ratio,
+      case
+        when relpages > est_pages_ff
+          then bs * (relpages - est_pages_ff)
+        else 0
+      end as bloat_size,
+      100 * (relpages-est_pages_ff)::float / relpages as bloat_ratio
       -- , 100-(sub.pst).avg_leaf_density, est_pages, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, sub.reltuples, sub.relpages -- (DEBUG INFO)
     from step3
     -- WHERE NOT is_na
