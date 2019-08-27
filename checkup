@@ -212,7 +212,7 @@ load_config_params () {
         ARG_IS_GIVEN[$i]="true"
       else
         if [[ -z "${value+x}" ]] || [[ "${value}" =~ $re ]]; then
-          err "empty value for variable '--${FULL_NAME[$i]}' config file"
+          err "Empty value is not allowed for variable '--${FULL_NAME[$i]}' in config file '${config_filename}'."
           exit 1
         fi
         ARG_VALUE[$i]=$value
