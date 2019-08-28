@@ -24,10 +24,9 @@ func UploadReport(apiUrl string, token string, project string, path string) erro
 	}
 
 	if len(files) == 0 {
-		return fmt.Errorf("Files to upload not found")
+		return fmt.Errorf("There are no files to upload (artifacts directory: '%s')", path)
 	}
 
-	// create report
 	reportId, cerr := CreateReport(apiUrl, token, project, path)
 	if cerr != nil {
 		return cerr
@@ -48,7 +47,7 @@ func UploadReport(apiUrl string, token string, project string, path string) erro
 		}
 	}
 
-	log.Msg("Uploaded", processed, "files from", len(files), "of report.")
+  log.Msg("Uploaded", processed, "files from", "'" + path + "'.")
 
 	return nil
 }
@@ -79,7 +78,7 @@ func GetReportEpoch(path string) (string, error) {
 	nodesJsonPath := path + string(os.PathSeparator) + "nodes.json"
 	if _, err := os.Stat(nodesJsonPath); err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("File nodes.json not found")
+			return "", fmt.Errorf("nodes.json is not found")
 		}
 	}
 
@@ -136,7 +135,8 @@ func MakeRequest(apiUrl string, endpoint string, requestData map[string]interfac
 		return nil, merr
 	}
 
-	resp, err := http.Post(apiUrl+endpoint, "application/json", bytes.NewBuffer(bytesRepresentation))
+	resp, err := http.Post(apiUrl+endpoint, "application/json",
+    bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		return nil, err
 	}
@@ -157,13 +157,12 @@ func UploadReportFile(apiUrl string, token string, reportId int64, path string) 
 		checkId = string(fileName[0:4])
 	}
 
-	// read file
-	data, rerr := ioutil.ReadFile(path) // just pass the file name
+	data, rerr := ioutil.ReadFile(path)
 	if rerr != nil {
 		return fmt.Errorf("Cannot read file.")
 	}
 
-	strData := string(data) // convert content to a 'string'
+	strData := string(data)
 
 	requestData := map[string]interface{}{
 		"access_token":      token,

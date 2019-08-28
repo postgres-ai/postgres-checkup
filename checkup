@@ -22,7 +22,7 @@ SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
-AVAILABLE_MODES=("collect" "process" "upload" "help")
+AVAILABLE_MODES=("collect" "process" "upload" "help", "run")
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -184,18 +184,18 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
 }
 
 #######################################
-# Load from config file and save as an indexed array
+# Load configuration from a file and save parameters in an indexed array
 # Globals:
 #   $1, CLI_ARGS_POSSIBLE, ARG_VALUE[],
 #   CLI_ARGS_CNT, ARG_IS_GIVEN[]
 # Arguments:
-#   $@
+#   (text) config file path
 # Returns:
 #   None
 #######################################
 load_config_params () {
   dbg "Load params from config file"
-  config_filename=${2}
+  config_filename=${1}
   if [[ ! -f "$config_filename" ]]; then
     msg "Config filename ${config_filename} not found."
     exit 1
@@ -219,8 +219,8 @@ load_config_params () {
         ARG_IS_GIVEN[$i]="true"
       fi
     fi
+    CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
   done
-  CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
   return
 }
 
@@ -276,7 +276,7 @@ process_cli_args() {
             # argument without value (like '--force', ARG_TYPE is 'None')
             if [[ "${1}" = "-c" ]] || [[ "${1}" = "--config" ]]; then
               # parse yml config file and load params
-              load_config_params ${1} ${2}
+              load_config_params ${2}
               shift 2
               continue
             fi
@@ -476,7 +476,7 @@ validate_args() {
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
-      if ([[ "${ARG_MODE[$i]}" == "all" ]] || ( [[ "${ARG_MODE[$i]}" != "all" ]] && [[ "${MODE}" == "${ARG_MODE[$i]}" ]])); then
+      if ([[ "${ARG_MODE[$i]}" == "all" ]] || ( [[ "${ARG_MODE[$i]}" != "all" ]] && [[ "${ARG_MODE[$i]}" =~ "${MODE}" ]])); then
         # please do not change align for 'buf' variable text
         buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
@@ -1168,8 +1168,8 @@ run_checks() {
 }
 
 #######################################
-# Performs generation md reports 
-# Also performs generation html and pdf report on base of md if it is specified by options
+# Generate .md (markdown) reports.
+# Additionally, if requested, using .md files, generate HTML and PDF reports.
 # Globals:
 #   SCRIPT_DIR, PGHREP_BIN
 # Arguments:
@@ -1201,12 +1201,12 @@ run_process() {
       pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}.md"
     else
       if [[ "${check_id}" == "K000" ]]; then
-        msg "Markdown reports saved at:"
+        msg "${check_id}: markdown reports saved at:"
         msg "'${MD_REPORTS_DIR}/K001.md'"
         msg "'${MD_REPORTS_DIR}/K002.md'"
         msg "'${MD_REPORTS_DIR}/K003.md'"
       else
-        msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
+        msg "${check_id}: markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
       fi
     fi
   done
@@ -1232,7 +1232,7 @@ run_process() {
 }
 
 #######################################
-# Perform uploading report files to platform storage
+# Upload reports to a remote server (Postgres.ai Platform API compatible).
 # Globals:
 #   SCRIPT_DIR, UPLOADTOKEN, UPLOADAPIURL
 # Arguments:
@@ -1243,7 +1243,7 @@ run_process() {
 run_upload() {
   PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
   if [[ ! -z ${UPLOADTOKEN+x} ]] && [[ "${UPLOADTOKEN}" != "None" ]]; then
-    msg "Uploading the report to the platform..."
+    msg "Uploading the report to '${UPLOADAPIURL}' using Postgres.ai Platform API..."
     if [[ $DEBUG == "true" ]] ; then
       $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
     else 
@@ -1297,12 +1297,17 @@ main() {
             i=$((i + 1))
             newparams[$i]="$mode"
           fi
-        else 
-          newparams[$i]="$p"
         fi
       done
-    else
+      if [[ $i -eq 1 ]]; then
+        newparams[$i]="--mode"
+        i=$((i + 1))
+        newparams[$i]="run"
+        i=$((i + 1))
         newparams[$i]="$p"
+      fi
+    else
+      newparams[$i]="$p"
     fi 
     i=$((i + 1))
   done
@@ -1314,7 +1319,7 @@ main() {
   fi;
   
   validate_args
-  
+
   case $MODE in
     "collect" )
       host_pre_start_checks
@@ -1330,8 +1335,15 @@ main() {
       build_pghrep
       run_upload
       ;;
+    "run" )
+      host_pre_start_checks
+      run_checks
+      check_bin_deps
+      build_pghrep
+      run_process
+      ;;
   esac
-  
+
   msg "ALL DONE!"
   exit 0
 }

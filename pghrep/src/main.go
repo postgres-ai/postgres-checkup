@@ -410,11 +410,11 @@ func main() {
 	checkDataPtr := flag.String("checkdata", "", "an filepath to json report")
 	outDirPtr := flag.String("outdir", "", "an directory where report need save")
 	debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
-	modeDataPtr := flag.String("mode", "", "a working mode: generate (default), upload")
-	tokenDataPtr := flag.String("token", "", "the token to upload files")
-	projectDataPtr := flag.String("project", "", "the target project to upload files")
-	pathDataPtr := flag.String("path", "", "artifacts path to upload files")
-	apiUrlDataPtr := flag.String("apiurl", "", "API url of platform")
+	modeDataPtr := flag.String("mode", "", "working mode: 'generate' (default), 'upload'")
+	tokenDataPtr := flag.String("token", "", "API token to upload reports to remove server")
+	projectDataPtr := flag.String("project", "", "target project used during uploading")
+	pathDataPtr := flag.String("path", "", "path to artifacts directory used during uploading")
+	apiUrlDataPtr := flag.String("apiurl", "", "API URL for reports uploading")
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -438,19 +438,19 @@ func main() {
 		apiUrl := *apiUrlDataPtr
 
 		if len(token) == 0 {
-			log.Err("Token not defined")
+			log.Err("Token is not defined")
 			return
 		}
 		if len(apiUrl) == 0 {
-			log.Err("API url not defined")
+			log.Err("API URL is not defined")
 			return
 		}
 		if len(project) == 0 {
-			log.Err("Project not defined")
+			log.Err("Project (for reports uploading) is not defined")
 			return
 		}
 		if len(path) == 0 {
-			log.Err("Artifacts path not defined")
+			log.Err("Artifacts directory is not defined")
 			return
 		}
 

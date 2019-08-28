@@ -89,7 +89,7 @@ test-general:
     - ./checkup process --project test
     # Check results
     - cat err.log
-    - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log || true
+    - grep -v "To compare results, 2 runs are needed. Please run './checkup collect' once again for this epoch." err.log > err1.log || true
     - grep -v "this is not a real error. Just run check again." err1.log > err.log || true
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
