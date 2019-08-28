@@ -22,7 +22,7 @@ SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
-AVAILABLE_MODES=("collect" "process" "upload" "help", "run")
+AVAILABLE_MODES=("collect" "process" "upload" "help" "run")
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -1299,7 +1299,7 @@ main() {
           fi
         fi
       done
-      if [[ $i -eq 1 ]]; then
+      if [[ "${#newparams[@]}" -eq 0 ]]; then
         newparams[$i]="--mode"
         i=$((i + 1))
         newparams[$i]="run"
@@ -1311,9 +1311,9 @@ main() {
     fi 
     i=$((i + 1))
   done
-  
+
   if [[ "${#newparams[@]}" -eq "0" ]]; then
-    process_cli_args "$@"  
+    process_cli_args "$@"
   else
     process_cli_args "${newparams[@]}"
   fi;
