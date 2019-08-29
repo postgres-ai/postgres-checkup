@@ -561,9 +561,7 @@ usage() {
   echo "    --username ${USER} --dbname postgres \\"
   echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
   echo >&${out_descriptor}
-  echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
-  echo >&${out_descriptor}
-  echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
+  echo "Comments, ideas, bug reports? https://gitlab.com/postgres-ai/postgres-checkup" >&${out_descriptor}
 
   exit $exit_code
 }
