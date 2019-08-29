@@ -31,6 +31,9 @@ with global_settings as (
 select json_build_object('global_settings', (select * from global_settings), 'table_settings', (select * from table_settings));
 SQL
 )
+if ([[ -z ${settings+x} ]] || ([[ ! -z ${settings+x} ]] && [[ "$settings" == "" ]])); then
+  settings="null"
+fi
 data="{\"settings\": $settings}"
 data=$(jq -n "$data")
 echo "$data"
