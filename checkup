@@ -387,6 +387,7 @@ validate_args() {
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
+  [[ "${SSHPORT}" = "None" ]] && export SSHPORT=22
 
   if ([[ "$HTML" == "true" ]] || [[ "$PDF" == "true" ]]); then
     PANDOC=$(which pandoc || echo -n "0");
@@ -881,7 +882,7 @@ glue_md_reports() {
 host_pre_start_checks() {
   # choise host connection command
   # while checking ssh support
-  if native_hostname=$(ssh $HOST "hostname" 2>/dev/null); then
+  if native_hostname=$(ssh -p ${SSHPORT} $HOST "hostname" 2>/dev/null); then
     # ssh to remote host and use local psql (default)
     export CHECK_HOST_CMD="ssh ${HOST}"
     export SSH_SUPPORT="true"
@@ -1213,11 +1214,7 @@ run_checks() {
 ######### COMMANDS WRAPPERS ###########
 ssh() {
   local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
-  local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
-
-  if [[ "$SSHPORT" != "None" ]]; then
-    ssh_options="-p ${SSHPORT} ${ssh_options}"
-  fi
+  local ssh_options="-p ${SSHPORT} -o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
 
   local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
   local ssh_master_options="-o ControlMaster=auto -o ControlPersist=yes"
