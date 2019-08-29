@@ -1215,6 +1215,10 @@ ssh() {
   local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
   local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
 
+  if [[ "$SSHPORT" != "None" ]]; then
+    ssh_options="-p ${SSHPORT} ${ssh_options}"
+  fi
+
   local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
   local ssh_master_options="-o ControlMaster=auto -o ControlPersist=yes"
   local ssh_persist=true
