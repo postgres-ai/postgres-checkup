@@ -44,7 +44,7 @@ with data as (
     where
       att.attnum > 0
       and not att.attisdropped
-      and (s.schemaname not in ('pg_catalog', 'information_schema') or s.schemaname is null)
+      and (s.schemaname <> 'information_schema' or s.schemaname is null)
       and tbl.relpages > ${MIN_RELPAGES}
     group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, tbl.relhasoids
     order by 2, 3
