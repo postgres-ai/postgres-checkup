@@ -38,6 +38,7 @@ with data as (
         AND pg_index.indisvalid
         AND tbl.relkind = 'r'
         AND idx.relpages > ${MIN_RELPAGES}
+        AND pg_namespace.nspname <> 'information_schema'
   ), step1 as (
     select
       i.tblid,
