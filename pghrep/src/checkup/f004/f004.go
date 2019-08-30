@@ -49,10 +49,11 @@ func F004Process(report F004Report) checkup.ReportResult {
 		for _, table := range sortedTables {
 			heapBloatData := hostData.Data.HeapBloat[table]
 			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
-				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) {
+				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) && (heapBloatData.LiveDataSizeBytes > 0) {
 				warningTables = appendTable(warningTables, heapBloatData)
 			}
-			if heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && heapBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO {
+			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO) &&
+				(heapBloatData.LiveDataSizeBytes > 0) {
 				criticalTables = appendTable(criticalTables, heapBloatData)
 			}
 		}
