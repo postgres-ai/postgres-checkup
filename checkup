@@ -1220,12 +1220,13 @@ run_process() {
   mkdir -p "${MD_REPORTS_DIR}"
 
   for json_file in `ls ${JSON_REPORTS_DIR}/*.json`; do
+    check_id=$(cat ${json_file} | jq -r '.checkId')
+
     # if check name file given by CLI run only single generation
-    if [[ "${FILE}" != "None" ]] && [[ "${FILE}" != "${json_file}" ]]; then
+    if [[ "${FILE}" != "None" ]] && ! [[ "${FILE}" =~ "/${check_id}" ]]; then
       continue
     fi
     
-    check_id=$(cat ${json_file} | jq -r '.checkId')
     local pghrep_output
     if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${json_file}" \
       --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
