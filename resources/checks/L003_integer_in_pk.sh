@@ -1,3 +1,9 @@
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=1000
+else
+  MIN_RELPAGES=0
+fi
+
 f_stdout=$(mktemp)
 f_stderr=$(mktemp)
 
@@ -30,7 +36,7 @@ begin
     join pg_type t on t.oid = atttypid
     where
       i.indisprimary
-      and (c.relpages > 1000 or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)
+      and (c.relpages > ${MIN_RELPAGES} or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)
       and t.typname in ('int2', 'int4')
       and nspname <> 'pg_toast'
   loop
@@ -70,7 +76,9 @@ SQL
 
 result=$(cat $f_stderr)
 result=${result:23:$((${#result}))}
+tables_data=$(echo "$result" | jq -cs 'sort_by(-(.[]."capacity_used_percent"|tonumber)) | .[]' | jq -s add)
+min_table_size_bytes=$((MIN_RELPAGES * 8192))
 
-echo "$result" | jq -cs 'sort_by(-(.[]."capacity_used_percent"|tonumber)) | .[]' | jq -s add
+echo "{\"tables\": $tables_data, \"min_table_size_bytes\": $min_table_size_bytes }"
 
 rm -f "$f_stderr" "$f_stdout"

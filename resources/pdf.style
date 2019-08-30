@@ -999,7 +999,7 @@ body .pl-12 {
   top: -0.08em;
   left: 0.0em;
   position: absolute;
-  border: transparent 0.6em solid;
+  border: white 0.6em solid;
   border-bottom-color: #fd3;
   border-bottom-width: 1em;
   border-top-width: 0;
@@ -1019,5 +1019,33 @@ body .pl-12 {
   font-size: 0.65em;
   font-weight: bold;
   color: #333;
+}
+
+.warn.info_src {
+  display: inline-block;
+  top: 0.225em;
+  width: 1em;
+  height: 1em;
+  border: none;
+  background-color: #548ef9;
+  line-height: 20px;
+  border: none;
+  border-radius: 0.5em;
+}
+
+.warn.info_src::before {
+}
+
+.warn.info_src::after {
+  display: block;
+  position: absolute;
+  top: 0.25em;
+  width: 100%;
+  text-align: center;
+  font-family: "Garamond";
+  content: "!";
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #fdfdfd;
 }
 </style>

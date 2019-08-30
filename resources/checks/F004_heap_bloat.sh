@@ -1,3 +1,9 @@
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=100
+else
+  MIN_RELPAGES=0
+fi
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with overrided_tables as (
@@ -29,9 +35,17 @@ with data as (
     from pg_attribute as att
     join pg_class as tbl on att.attrelid = tbl.oid and tbl.relkind = 'r'
     join pg_namespace as ns on ns.oid = tbl.relnamespace
-    join pg_stats as s on s.schemaname = ns.nspname and s.tablename = tbl.relname and not s.inherited and s.attname = att.attname
+    left join pg_stats as s on
+      s.schemaname = ns.nspname
+      and s.tablename = tbl.relname
+      and not s.inherited
+      and s.attname = att.attname
     left join pg_class as toast on tbl.reltoastrelid = toast.oid
-    where att.attnum > 0 and not att.attisdropped and s.schemaname not in ('pg_catalog', 'information_schema') and tbl.relpages > 10
+    where
+      att.attnum > 0
+      and not att.attisdropped
+      and (s.schemaname not in ('pg_catalog', 'information_schema') or s.schemaname is null)
+      and tbl.relpages > ${MIN_RELPAGES}
     group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, tbl.relhasoids
     order by 2, 3
   ), step2 as (
@@ -57,9 +71,21 @@ with data as (
       *,
       tblpages * bs as real_size,
       (tblpages - est_tblpages) * bs as extra_size,
-      case when tblpages - est_tblpages > 0 then 100 * (tblpages - est_tblpages) / tblpages::float else 0 end as extra_ratio,
-      (tblpages - est_tblpages_ff) * bs as bloat_size,
-      case when tblpages - est_tblpages_ff > 0 then 100 * (tblpages - est_tblpages_ff) / tblpages::float else 0 end as bloat_ratio
+      case
+        when (tblpages - est_tblpages > 0 and tblpages > 0)
+          then 100 * (tblpages - est_tblpages) / tblpages::float
+        else 0
+      end as extra_ratio,
+      case
+        when tblpages - est_tblpages_ff > 0
+          then (tblpages - est_tblpages_ff) * bs
+        else 0
+      end as bloat_size,
+      case
+        when (tblpages - est_tblpages_ff > 0 and tblpages > 0)
+          then 100 * (tblpages - est_tblpages_ff) / tblpages::float
+        else 0
+      end as bloat_ratio
       -- , (pst).free_percent + (pst).dead_tuple_percent as real_frag
     from step3
     left join pg_stat_user_tables su on su.relid = tblid
@@ -99,10 +125,10 @@ with data as (
     ) as "fillfactor",
     case when ot.table_id is not null then true else false end as overrided_settings,
     case
-      when bloat_size::numeric >= 0 and (real_size - bloat_size)::numeric >=0
+      when real_size::numeric > 0 and (real_size - bloat_size)::numeric > 0
         then real_size::numeric / (real_size - bloat_size)::numeric
-        else null
-      end as "bloat_ratio_factor"
+      else null
+    end as "bloat_ratio_factor"
   from step4
   left join overrided_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
@@ -136,7 +162,9 @@ select
     'overrided_settings_count',
     (select count(1) from limited_data where overrided_settings = true),
     'database_size_bytes',
-    (select pg_database_size(current_database()))
+    (select pg_database_size(current_database())),
+    'min_table_size_bytes',
+    (select ${MIN_RELPAGES} * 8192)
   )
 SQL
 

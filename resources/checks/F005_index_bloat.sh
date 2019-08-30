@@ -1,3 +1,9 @@
+if [[ ! -z ${IS_LARGE_DB+x} ]] && [[ ${IS_LARGE_DB} == "1" ]]; then
+  MIN_RELPAGES=100
+else
+  MIN_RELPAGES=0
+fi
+
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
   with overrided_tables as (
@@ -31,7 +37,7 @@ with data as (
       where a.amname = 'btree'
         AND pg_index.indisvalid
         AND tbl.relkind = 'r'
-        AND idx.relpages > 10
+        AND idx.relpages > ${MIN_RELPAGES}
         AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
   ), step1 as (
     select
@@ -61,7 +67,7 @@ with data as (
       max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na,
       i.table_size_bytes
     from pg_attribute as a
-    join step0 as i on a.attrelid = i.indexrelid AND a.attnum = i.attnum
+    join step0 as i on a.attrelid = i.indexrelid
     join pg_stats as s on
       s.schemaname = i.nspname
       and (
@@ -99,14 +105,18 @@ with data as (
     join pg_am am on step2.relam = am.oid
     where am.amname = 'btree'
   ), step4 as (
-    SELECT
+    select
       *,
-      bs*(relpages)::bigint AS real_size,
+      bs*(relpages)::bigint as real_size,
   -------current_database(), nspname AS schemaname, tblname, idxname, bs*(relpages)::bigint AS real_size,
-      bs*(relpages-est_pages)::bigint AS extra_size,
-      100 * (relpages-est_pages)::float / relpages AS extra_ratio,
-      bs*(relpages-est_pages_ff) AS bloat_size,
-      100 * (relpages-est_pages_ff)::float / relpages AS bloat_ratio
+      bs*(relpages-est_pages)::bigint as extra_size,
+      100 * (relpages-est_pages)::float / relpages as extra_ratio,
+      case
+        when relpages > est_pages_ff
+          then bs * (relpages - est_pages_ff)
+        else 0
+      end as bloat_size,
+      100 * (relpages-est_pages_ff)::float / relpages as bloat_ratio
       -- , 100-(sub.pst).avg_leaf_density, est_pages, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, sub.reltuples, sub.relpages -- (DEBUG INFO)
     from step3
     -- WHERE NOT is_na
@@ -181,8 +191,9 @@ select
     'overrided_settings_count',
     (select count(1) from limited_data where overrided_settings = true),
     'database_size_bytes',
-    (select pg_database_size(current_database()))
-
+    (select pg_database_size(current_database())),
+    'min_table_size_bytes',
+    (select ${MIN_RELPAGES} * 8192)
   )
 SQL
 
