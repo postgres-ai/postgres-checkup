@@ -13,24 +13,8 @@ with data as (
     pg_total_relation_size(c.oid) - pg_indexes_size(c.oid) - coalesce(pg_total_relation_size(reltoastrelid), 0) as table_bytes
   from pg_class c
   left join pg_namespace n on n.oid = c.relnamespace
-  where relkind = 'r' and nspname <> 'pg_catalog'
+  where relkind = 'r' and nspname <> 'information_schema'
   order by c.relpages desc
-), data2 as (
-  select
-    null::oid as oid,
-    null as tblspace,
-    null as schema_name,
-    '    tablespace: [' || coalesce(tblspace, 'pg_default') || ']' as table_name,
-    sum(row_estimate) as row_estimate,
-    sum(total_bytes) as total_bytes,
-    sum(index_bytes) as index_bytes,
-    sum(toast_bytes) as toast_bytes,
-    sum(table_bytes) as table_bytes
-  from data
-  where (select count(distinct coalesce(tblspace, 'pg_default')) from data) > 1
-  group by tblspace
-  union all
-  select * from data
 ), tables as (
   select
     coalesce(nullif(schema_name, 'public') || '.', '') || table_name || coalesce(' [' || tblspace || ']', '') as "table",
@@ -55,8 +39,7 @@ with data as (
       100 * toast_bytes::numeric / nullif(sum(toast_bytes) over (partition by (schema_name is null), left(table_name, 3) = '***'), 0),
       2
     ) as "toast_size_percent"
-  from data2
-  where schema_name is distinct from 'information_schema'
+  from data
   order by oid is null desc, total_bytes desc nulls last
 ), total_data as (
   select
