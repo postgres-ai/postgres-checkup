@@ -275,7 +275,7 @@ process_cli_args() {
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
             # argument without value (like '--force', ARG_TYPE is 'None')
             if [[ "${1}" = "-c" ]] || [[ "${1}" = "--config" ]]; then
-              # parse yml config file and load params
+              # parse yaml config file and load params
               load_config_params ${2}
               shift 2
               continue
