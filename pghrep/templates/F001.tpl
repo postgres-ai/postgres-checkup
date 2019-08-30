@@ -6,6 +6,8 @@ Data collected: {{ DtFormat .timestamptz }}
 {{ if (index .results .hosts.master) }}
 {{ if (index (index .results .hosts.master) "data") }}
 ### Master (`{{.hosts.master}}`) ###
+{{ if (index (index (index .results .hosts.master) "data") "settings") }}
+{{ if (index (index (index (index .results .hosts.master) "data") "settings") "global_settings") }}
 | &#9660;&nbsp;Setting name | Value | Unit | Pretty value |
 |-------------|-------|------|--------------|
 {{ range $i, $key := (index (index (index (index (index .results .hosts.master) "data") "settings") "global_settings") "_keys") -}}
@@ -14,6 +16,9 @@ Data collected: {{ DtFormat .timestamptz }}
 |[{{ $key }}](https://postgresqlco.nf/en/doc/param/{{ $key }})|{{ $value.setting }}|{{ $value.unit }} | {{ UnitValue $value.setting $value.unit}}|
 {{ end -}}
 {{ end }}{{/* range */}}
+{{ else}}{{/* global_settings */}}
+Nothing found.
+{{ end }}{{/* global_settings */}}
 
 #### Tuned tables ####
 {{ if (index (index (index (index .results .hosts.master) "data") "settings") "table_settings") }}
@@ -28,6 +33,9 @@ Data collected: {{ DtFormat .timestamptz }}
 {{else}}
 No tuned tables are found
 {{- end -}}{{/* if table_settings */}}
+{{ else}}{{/* settings */}}
+Nothing found.
+{{ end }}{{/* settings */}}
 {{- end }}{{/*Master data*/}}
 {{- end }}{{/*Master results*/}}
 {{ end }}{{/*Master*/}}
@@ -37,8 +45,17 @@ No tuned tables are found
 | Setting {{ range $skey, $host := .hosts.replicas }}| {{ $host }} {{ end }} |
 |--------{{ range $skey, $host := .hosts.replicas }}|-------- {{ end }}|
 |[hot_standby_feedback](https://postgresqlco.nf/en/doc/param/hot_standby_feedback)
-{{- range $skey, $host := .hosts.replicas -}}| {{if (index $.results $host) }}{{- $value := (index (index (index (index (index $.results $host) "data") "settings") "global_settings") "hot_standby_feedback") -}}{{- $value.setting -}}{{ else }}{{ end }} |
-{{- end -}}{{/* range replicas */}}
+{{- range $skey, $host := .hosts.replicas -}}|
+  {{- if (index $.results $host) -}}
+    {{- if (index (index $.results $host) "data") -}}
+      {{- if (index (index (index $.results $host) "data") "settings") -}}
+        {{- if (index (index (index (index $.results $host) "data") "settings") "global_settings") -}}
+          {{- $value := (index (index (index (index (index $.results $host) "data") "settings") "global_settings") "hot_standby_feedback") -}}{{- $value.setting -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{ end }}
+{{- end -}}{{/* range replicas */}}|
 {{ end }}{{/* if replicas */}}
 
 ## Conclusions ##
