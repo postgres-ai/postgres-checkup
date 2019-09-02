@@ -17,20 +17,43 @@ import (
 func UploadReport(apiUrl string, token string, project string, path string) error {
 	// enumerate files
 	var files []string
+	var reportPath = path
 	var err error
-	files, err = ScanPath(path, files)
+
+	if !strings.HasSuffix(reportPath, string(os.PathSeparator)) {
+		reportPath = reportPath + string(os.PathSeparator)
+	}
+
+	epoch, dir, err := GetReportLastCheckData(reportPath)
+	if err != nil {
+		return fmt.Errorf("Cannot read report information (epoch, dir) from nodes.json. %s", err)
+	}
+
+	if dir == "" {
+		return fmt.Errorf("Empty report path read from nodes.json")
+	}
+
+	files = append(files, reportPath+"nodes.json")
+	files, err = ScanPath(reportPath+"json_reports"+string(os.PathSeparator)+dir, files)
+	if err != nil {
+		return err
+	}
+	files, err = ScanPath(reportPath+"md_reports"+string(os.PathSeparator)+dir, files)
 	if err != nil {
 		return err
 	}
 
 	if len(files) == 0 {
-		return fmt.Errorf("There are no files to upload (artifacts directory: '%s')", path)
+		return fmt.Errorf("There are no files to upload (report directories: "+
+			"'%s/json_files/' and '%s/md_reports')", reportPath, reportPath)
 	}
 
-	reportId, cerr := CreateReport(apiUrl, token, project, path)
+	reportId, cerr := CreateReport(apiUrl, token, project, epoch)
 	if cerr != nil {
 		return cerr
 	}
+
+	log.Dbg("Report created: ", reportId)
 
 	processed := 0
 	for _, f := range files {
@@ -47,7 +70,7 @@ func UploadReport(apiUrl string, token string, project string, path string) erro
 		}
 	}
 
-  log.Msg("Uploaded", processed, "files from", "'" + path + "'.")
+	log.Msg("Uploaded", processed, "files from", "'"+path+"'.")
 
 	return nil
 }
@@ -74,11 +97,11 @@ func ScanPath(path string, files []string) ([]string, error) {
 	return result, nil
 }
 
-func GetReportEpoch(path string) (string, error) {
-	nodesJsonPath := path + string(os.PathSeparator) + "nodes.json"
+func GetReportLastCheckData(path string) (string, string, error) {
+	nodesJsonPath := path + "nodes.json"
 	if _, err := os.Stat(nodesJsonPath); err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("nodes.json is not found")
+			return "", "", fmt.Errorf("nodes.json is not found")
 		}
 	}
 
@@ -86,19 +109,13 @@ func GetReportEpoch(path string) (string, error) {
 	var nodesJsonData checkup.ReportLastNodes
 
 	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &nodesJsonData)) {
-		return "", fmt.Errorf("Unable to load nodes.json data.")
+		return "", "", fmt.Errorf("Unable to load nodes.json data.")
 	}
 
-	return nodesJsonData.LastCheck.Epoch, nil
+	return nodesJsonData.LastCheck.Epoch, nodesJsonData.LastCheck.Dir, nil
 }
 
-func CreateReport(apiUrl string, token string, project string, path string) (int64, error) {
-	epoch, err := GetReportEpoch(path)
-
-	if err != nil {
-		return -1, err
-	}
-
+func CreateReport(apiUrl string, token string, project string, epoch string) (int64, error) {
 	requestData := map[string]interface{}{
 		"access_token": token,
 		"project":      project,
@@ -136,7 +153,7 @@ func MakeRequest(apiUrl string, endpoint string, requestData map[string]interfac
 	}
 
 	resp, err := http.Post(apiUrl+endpoint, "application/json",
-    bytes.NewBuffer(bytesRepresentation))
+		bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		return nil, err
 	}

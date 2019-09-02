@@ -133,7 +133,6 @@ load_cli_res() {
 # Globals:
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
 #   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
-#   ARGS_ARE_READED
 # Arguments:
 #   None
 # Returns:
@@ -180,8 +179,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
   # starting from zero (convenient for arrays)
   CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
 
-  ARGS_ARE_READED="true"
-  dbg "possible args are readed"
+  dbg "possible args are read"
 }
 
 #######################################
@@ -249,6 +247,13 @@ process_cli_args() {
     if [[ "${1}" =~ $help_re ]]; then
        usage "Help" "0"
        exit 0
+    fi
+
+    if [[ "${AVAILABLE_MODES[@]}" =~ "${1}" ]]; then
+      ARG_VALUE[0]="${1}"
+      ARG_IS_GIVEN[0]="true"
+      shift 1
+      continue
     fi
 
     # avoid infinite loop if argument is unknown
@@ -411,6 +416,11 @@ validate_args() {
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
+  if [[ "${MODE}" = "None" ]]; then
+    export MODE="run"
+    ARG_VALUE[0]="run"
+    ARG_IS_GIVEN[0]="true"
+  fi
 
   if ([[ "$HTML" == "true" ]] || [[ "$PDF" == "true" ]]); then
     PANDOC=$(which pandoc || echo -n "0");
@@ -1195,7 +1205,6 @@ run_checks() {
     for i in ${check_failed_json_stack}; do
       echo "        '${i}'"
     done
-    msg "Markdown reports are also not created for these checks ^^"
   fi
 }
 
@@ -1309,7 +1318,6 @@ main() {
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC >/dev/null 2>&1 || true
   export LC_ALL=C
   local mode=""
-  local params="$@"
   declare -a newparams=()
 
   if [[ ! -z ${1+x} ]]; then
@@ -1317,40 +1325,7 @@ main() {
   fi
 
   read_possible_args
-  
-  i=1
-  for p in ${params[@]}; do
-    if [[ $i -eq "1" ]]; then
-      for m in ${AVAILABLE_MODES[@]}; do
-        if [[ "$m" == "$mode" ]]; then
-          if [[ "$mode" == "help" ]]; then
-            newparams[$i]="--help"
-          else
-            newparams[$i]="--mode"
-            i=$((i + 1))
-            newparams[$i]="$mode"
-          fi
-        fi
-      done
-      if [[ "${#newparams[@]}" -eq 0 ]]; then
-        newparams[$i]="--mode"
-        i=$((i + 1))
-        newparams[$i]="run"
-        i=$((i + 1))
-        newparams[$i]="$p"
-      fi
-    else
-      newparams[$i]="$p"
-    fi 
-    i=$((i + 1))
-  done
-
-  if [[ "${#newparams[@]}" -eq "0" ]]; then
-    process_cli_args "$@"
-  else
-    process_cli_args "${newparams[@]}"
-  fi;
-  
+  process_cli_args "$@"
   validate_args
 
   case $MODE in
