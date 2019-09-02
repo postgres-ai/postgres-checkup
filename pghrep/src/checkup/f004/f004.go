@@ -20,7 +20,7 @@ const F004_GENERAL_INFO string = "F004_GENERAL_INFO"
 const WARNING_BLOAT_RATIO float32 = 40.0
 const CRITICAL_BLOAT_RATIO float32 = 90.0
 const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0
-const MIN_INDEX_SIZE_TO_ANALYZE int64 = 1024 * 1024
+const MIN_TABLE_SIZE_TO_ANALYZE int64 = 1024 * 1024
 
 func appendTable(list []string, tableBloatData F004HeapBloat) []string {
 	return append(list, fmt.Sprintf(TABLE_DETAILS, tableBloatData.TableName,
@@ -48,12 +48,12 @@ func F004Process(report F004Report) checkup.ReportResult {
 		}
 		for _, table := range sortedTables {
 			heapBloatData := hostData.Data.HeapBloat[table]
-			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
-				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) && (heapBloatData.LiveDataSizeBytes > 0) {
+			if (heapBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
+				(heapBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) && (heapBloatData.BloatRatioFactor > 0) {
 				warningTables = appendTable(warningTables, heapBloatData)
 			}
-			if (heapBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO) &&
-				(heapBloatData.LiveDataSizeBytes > 0) {
+			if (heapBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO) &&
+				(heapBloatData.BloatRatioFactor > 0) {
 				criticalTables = appendTable(criticalTables, heapBloatData)
 			}
 		}
