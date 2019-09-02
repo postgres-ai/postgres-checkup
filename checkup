@@ -243,7 +243,7 @@ process_cli_args() {
 
   while [[ ! -z "${1+x}" ]]; do
     # print help if first argument matches regular expression
-    local help_re="-+(help|usage|\?)"
+    local help_re="(-+(help|usage|\?))|(help|usage|\?)"
     if [[ "${1}" =~ $help_re ]]; then
        usage "Help" "0"
        exit 0
@@ -539,11 +539,17 @@ usage() {
 
   echo "Usage:" >&${out_descriptor}
   echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
-  echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
+  echo "  ${SCRIPT_NAME} help" >&${out_descriptor}
 
   if [[ "$exit_code" -ne "0" ]]; then
     exit "$exit_code"
   fi
+
+  echo >&${out_descriptor}
+  echo "postgres-checkup can separately collect, process and upload data to server. " >&${out_descriptor}
+  echo "You can set the working mode with --mode option." >&${out_descriptor}
+  echo "Available values for mode: 'collect', 'process', 'upload', 'run'." >&${out_descriptor}
+  echo "Mode 'run' executes collect and process at once, it is default mode." >&${out_descriptor}
 
   # Printing CLI options starts here
 

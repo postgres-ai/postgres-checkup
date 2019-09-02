@@ -221,6 +221,13 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
+You can run collecting and processing data separatelly by specify working mode with option `--mode` or just as second part of command `checkup %mode%`.  
+Available working modes:  
+    `collect` - collect data;
+    `process` - generate MD reports with conclusions and recommendations;
+    `upload` - upload generated reports to server;
+    `run` - collect and process data at once,  this is defaul mode and it used when no one other mode not specified.
+
 ## Docker 🐳
 
 It's possible to use the `postgres-checkup` from a docker container.
