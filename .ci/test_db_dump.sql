@@ -58,6 +58,10 @@ delete from bloated where i % 2 = 0;
 
 -- F004
 create table t_with_bloat as select i from generate_series(1, 1000000) _(i);
+-- create table without data
+create table t_f004_empty as select i from generate_series(1, 1000000) _(i);
+alter table t_f004_empty set (autovacuum_enabled = 'off');
+analyze t_f004_empty;
 
 -- h002 Supports fk
 create table t_red_fk_1 as select id::int8 from generate_series(0, 1000000) _(id);
@@ -117,3 +121,7 @@ CREATE TABLE test_schema."orders_A"
 
 INSERT INTO test_schema."orders_A"(cnt) select id from generate_series(0, 100) _(id);
 SELECT setval('test_schema."orders_A_id_seq"'::regclass, 300000000, false);
+
+-- t_f004 continue
+delete from t_f004_empty;
+analyze t_f004_empty;
