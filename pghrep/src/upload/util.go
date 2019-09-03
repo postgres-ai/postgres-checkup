@@ -122,7 +122,7 @@ func CreateReport(apiUrl string, token string, project string, epoch string) (in
 		"epoch":        epoch,
 	}
 
-	response, rerr := MakeRequest(apiUrl, "/rpc/post_checkup_report", requestData)
+	response, rerr := MakeRequest(apiUrl, "/rpc/checkup_report_create", requestData)
 	if rerr != nil {
 		return -1, rerr
 	}
@@ -190,7 +190,7 @@ func UploadReportFile(apiUrl string, token string, reportId int64, path string) 
 		"type":              fileType,
 	}
 
-	response, uerr := MakeRequest(apiUrl, "/rpc/post_checkup_report_chunk", requestData)
+	response, uerr := MakeRequest(apiUrl, "/rpc/checkup_report_file_post", requestData)
 	if uerr != nil {
 		return fmt.Errorf("%s", uerr)
 	}
