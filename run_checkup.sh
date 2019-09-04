@@ -9,7 +9,7 @@ for host in $CHECKUP_HOSTS; do
 done
 
 echo "The first set of snapshots has been created. Wait 300 seconds..."
-sleep "${CHECKUP_SNAPSHOT_DISTANCE}"
+sleep "${CHECKUP_SNAPSHOT_DISTANCE_SECONDS}"
 # the distance ^^^ recommended: large enough to get good data, at least 10 minutes
 
 echo "Collect the second set of snapshots and build reports..."
