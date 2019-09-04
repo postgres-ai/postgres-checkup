@@ -8,7 +8,7 @@ for host in $CHECKUP_HOSTS; do
     --file resources/checks/K000_query_analysis.sh
 done
 
-echo "The first set of snapshots has been created. Wait 300 seconds..."
+echo "The first set of snapshots has been created. Wait ${CHECKUP_SNAPSHOT_DISTANCE_SECONDS} seconds..."
 sleep "${CHECKUP_SNAPSHOT_DISTANCE_SECONDS}"
 # the distance ^^^ recommended: large enough to get good data, at least 10 minutes
 
