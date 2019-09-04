@@ -1282,7 +1282,7 @@ run_process() {
 #######################################
 # Upload reports to a remote server (Postgres.ai Platform API compatible).
 # Globals:
-#   SCRIPT_DIR, UPLOADTOKEN, UPLOADAPIURL
+#   SCRIPT_DIR, UPLOADAPITOKEN, UPLOADAPIURL
 # Arguments:
 #   None
 # Returns:
@@ -1290,12 +1290,12 @@ run_process() {
 #######################################
 run_upload() {
   PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
-  if [[ ! -z ${UPLOADTOKEN+x} ]] && [[ "${UPLOADTOKEN}" != "None" ]]; then
+  if [[ ! -z ${UPLOADAPITOKEN+x} ]] && [[ "${UPLOADAPITOKEN}" != "None" ]]; then
     msg "Uploading the report to '${UPLOADAPIURL}' using Postgres.ai Platform API..."
     if [[ $DEBUG == "true" ]] ; then
-      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
+      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
     else 
-      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADTOKEN}" --apiurl="${UPLOADAPIURL}" --debug=0)
+      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=0)
     fi
   fi
 }
