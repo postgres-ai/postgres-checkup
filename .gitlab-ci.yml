@@ -87,10 +87,10 @@ test-general:
     # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
-    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config
     - apt-get -y install openssh-server
     - service ssh restart
-    
+
   script:
     - bash -version
     - psql -d dbname -U test_user -c "SELECT version();"
@@ -191,6 +191,7 @@ Docker build master:
   only:
     - master
     - docker_build
+    - docker_run_checkup_with_upload
   services:
     - docker:dind
   before_script:
