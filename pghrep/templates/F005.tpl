@@ -23,7 +23,7 @@ Current database: {{ .database }}
 {{- RawIntFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_size_bytes_sum" ) }}|
 {{- if (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_factor_avg") }}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_factor_avg" ) 2 }}{{ end }} |
 {{- if ge (Int (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_percent_avg" )) $minRatioWarning }}**{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_percent_avg" ) 2 }}**{{else}}{{- RawFloatFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "bloat_ratio_percent_avg" ) 2 }}{{end}}|
-{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "live_data_size_bytes_sum" ) 2 }} |||
+{{- ByteFormat (index (index (index (index $.results $.hosts.master) "data") "index_bloat_total") "live_data_size_bytes_sum" ) 2 }} ||
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
