@@ -1006,7 +1006,7 @@ update_nodes_json() {
   # generate new ALIAS_INDEX and ALIAS_NAME for a new host
   if [[ "$host_is_new" = "true" ]]; then
     # get maximum index
-    local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)"] | max' "${PROJECT_DIR}/nodes.json")
+    local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)" | tonumber] | max' "${PROJECT_DIR}/nodes.json")
     local new_alias_index=$(( prev_index + 1 ))
     local new_alias_name="node${new_alias_index}"
     ALIAS_INDEX="${new_alias_index}"
