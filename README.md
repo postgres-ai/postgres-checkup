@@ -225,7 +225,7 @@ You can collect and process data separately by specifying working mode name in C
 Available working modes:  
     `collect` - collect data;
     `process` - generate MD (and, optionally, HTML, PDF) reports with conclusions and recommendations;
-    `upload` - upload generated reports to server;
+    `upload` - upload generated reports to Postgres.ai platform;
     `run` - collect and process data at once. This is a default mode, it is used when no other mode is specified. Note, that upload is not included.
 
 ## Docker 🐳
