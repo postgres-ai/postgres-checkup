@@ -28,6 +28,7 @@ all: clean install vet buildplugins main
 install:
 	go get golang.org/x/net/html
 	go get github.com/dustin/go-humanize
+	go get gopkg.in/yaml.v2
 
 buildplugins:
 	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
