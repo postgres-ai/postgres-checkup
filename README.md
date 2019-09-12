@@ -221,7 +221,7 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
-You can collect and process data separately by specifying working mode with the option `--mode` or just like second part of command `checkup %mode%`.  
+You can collect and process data separately by specifying working mode name in CLI option `--mode %mode%` or using it as a "command" (`checkup %mode%`).  
 Available working modes:  
     `collect` - collect data;
     `process` - generate MD reports with conclusions and recommendations;
