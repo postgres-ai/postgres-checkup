@@ -34,12 +34,13 @@ import (
 	"./checkup/g001"
 	"./checkup/g002"
 	"./checkup/h001"
-    "./checkup/k000"
-    "./checkup/l003"
+	"./checkup/k000"
+	"./checkup/l003"
 
 	"./log"
 	"./orderedmap"
 	"./pyraconv"
+	"./upload"
 )
 
 var DEBUG bool = false
@@ -227,7 +228,7 @@ CheckId can be either ID of concrete check (e.g. H003) or represent the whole ca
 func generateMdReports(checkId string, reportData map[string]interface{}, outputDir string) bool {
 	category := checkId[0:1]
 	reportPrefix := ""
-	
+
 	checkNum, err := strconv.ParseInt(checkId[1:4], 10, 64)
 	if checkNum != 0 {
 		reportPrefix = checkId // specified check given
@@ -253,7 +254,7 @@ func generateMdReports(checkId string, reportData map[string]interface{}, output
 			curCheckId := fileName[0:4]
 			outputFileName := strings.Replace(fileName, ".tpl", ".md", -1)
 			reportData["checkId"] = curCheckId
-			
+
 			if !generateMdReport(curCheckId, outputFileName, reportData, outputDir) {
 				log.Err("Can't generate report " + outputFileName + " based on " + checkId + " json data")
 				return false
@@ -409,6 +410,11 @@ func main() {
 	checkDataPtr := flag.String("checkdata", "", "an filepath to json report")
 	outDirPtr := flag.String("outdir", "", "an directory where report need save")
 	debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
+	modeDataPtr := flag.String("mode", "", "working mode: 'generate' (default), 'upload'")
+	tokenDataPtr := flag.String("token", "", "API token to upload reports to remove server")
+	projectDataPtr := flag.String("project", "", "target project used during uploading")
+	pathDataPtr := flag.String("path", "", "path to artifacts directory used during uploading")
+	apiUrlDataPtr := flag.String("apiurl", "", "API URL for reports uploading")
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -419,6 +425,42 @@ func main() {
 
 	if *debugPtr == 1 {
 		DEBUG = true
+		log.DEBUG = true
+	} else {
+		DEBUG = false
+		log.DEBUG = false
+	}
+
+	if *modeDataPtr == "upload" {
+		token := *tokenDataPtr
+		project := *projectDataPtr
+		path := *pathDataPtr
+		apiUrl := *apiUrlDataPtr
+
+		if len(token) == 0 {
+			log.Err("Token is not defined")
+			return
+		}
+		if len(apiUrl) == 0 {
+			log.Err("API URL is not defined")
+			return
+		}
+		if len(project) == 0 {
+			log.Err("Project (for reports uploading) is not defined")
+			return
+		}
+		if len(path) == 0 {
+			log.Err("Artifacts directory is not defined")
+			return
+		}
+
+		err := upload.UploadReport(apiUrl, token, project, path)
+		if err != nil {
+			log.Err(err)
+			os.Exit(1)
+		}
+
+		return
 	}
 
 	if FileExists(checkData) {

@@ -166,7 +166,7 @@ jq -r . <<<${json_object} > "${cur_snapshot_fname}"
 res=""
 
 if [[ "${prev_fname_prefix}" -eq "0" ]]; then
-  echo "ERROR: need two checks to compare results. Please run whole check for this epoch again." >&2
+  echo "ERROR: To compare results, 2 runs are needed. Please run './checkup collect' once again for this epoch." >&2
   echo "NOTICE: ^^ this is not a real error. Just run check again." >&2
   exit 1
 fi
