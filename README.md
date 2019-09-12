@@ -226,7 +226,7 @@ Available working modes:
     `collect` - collect data;
     `process` - generate MD reports with conclusions and recommendations;
     `upload` - upload generated reports to server;
-    `run` - collect and process data at once. This is a default mode, it is used when no other mode is specified.
+    `run` - collect and process data at once. This is a default mode, it is used when no other mode is specified. Note, that upload is not included.
 
 ## Docker 🐳
 
