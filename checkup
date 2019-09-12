@@ -549,7 +549,7 @@ usage() {
   echo "postgres-checkup can separately collect, process and upload data to server. " >&${out_descriptor}
   echo "You can set the working mode with --mode option." >&${out_descriptor}
   echo "Available values for mode: 'collect', 'process', 'upload', 'run'." >&${out_descriptor}
-  echo "Mode 'run' executes collect and process at once, it is default mode." >&${out_descriptor}
+  echo "Mode 'run' executes collecting and processing at once, it is a default mode." >&${out_descriptor}
 
   # Printing CLI options starts here
 
