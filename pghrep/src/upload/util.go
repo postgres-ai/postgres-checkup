@@ -14,6 +14,11 @@ import (
 	"../log"
 )
 
+type APIResponse struct {
+	rawResponse  http.Response
+	jsonResponse map[string]interface{}
+}
+
 func UploadReport(apiUrl string, token string, project string, path string) error {
 	// enumerate files
 	var files []string
@@ -26,11 +31,11 @@ func UploadReport(apiUrl string, token string, project string, path string) erro
 
 	epoch, dir, err := GetReportLastCheckData(reportPath)
 	if err != nil {
-		return fmt.Errorf("Cannot read report information (epoch, dir) from nodes.json. %s", err)
+		return fmt.Errorf("Cannot read report information (epoch, dir) from nodes.json. %s.", err)
 	}
 
 	if dir == "" {
-		return fmt.Errorf("Empty report path read from nodes.json")
+		return fmt.Errorf("Empty report path read from nodes.json.")
 	}
 
 	files = append(files, reportPath+"nodes.json")
@@ -45,7 +50,7 @@ func UploadReport(apiUrl string, token string, project string, path string) erro
 
 	if len(files) == 0 {
 		return fmt.Errorf("There are no files to upload (report directories: "+
-			"'%s/json_files/' and '%s/md_reports')", reportPath, reportPath)
+			"'%s/json_files/' and '%s/md_reports').", reportPath, reportPath)
 	}
 
 	reportId, cerr := CreateReport(apiUrl, token, project, epoch)
@@ -104,7 +109,7 @@ func GetReportLastCheckData(path string) (string, string, error) {
 	nodesJsonPath := path + "nodes.json"
 	if _, err := os.Stat(nodesJsonPath); err != nil {
 		if os.IsNotExist(err) {
-			return "", "", fmt.Errorf("nodes.json is not found")
+			return "", "", fmt.Errorf("nodes.json is not found.")
 		}
 	}
 
@@ -132,9 +137,9 @@ func CreateReport(apiUrl string, token string, project string, epoch string) (in
 
 	var intId int64 = 0
 	var iok bool = false
-	floatId, fok := response["report_id"].(float64)
+	floatId, fok := response.jsonResponse["report_id"].(float64)
 	if !fok {
-		intId, iok = response["report_id"].(int64)
+		intId, iok = response.jsonResponse["report_id"].(int64)
 		if iok {
 			return intId, nil
 		}
@@ -142,14 +147,15 @@ func CreateReport(apiUrl string, token string, project string, epoch string) (in
 		return int64(floatId), nil
 	}
 
-	if msg, mok := response["message"]; mok {
-		return -1, fmt.Errorf("%s", msg)
+	if msg, mok := response.jsonResponse["message"]; mok {
+		return -1, fmt.Errorf("%s.", msg)
 	} else {
 		return -1, fmt.Errorf("Cannot create report.")
 	}
 }
 
-func MakeRequest(apiUrl string, endpoint string, requestData map[string]interface{}) (map[string]interface{}, error) {
+func MakeRequest(apiUrl string, endpoint string, requestData map[string]interface{}) (*APIResponse, error) {
+	var result APIResponse
 	bytesRepresentation, merr := json.Marshal(requestData)
 	if merr != nil {
 		return nil, merr
@@ -161,11 +167,17 @@ func MakeRequest(apiUrl string, endpoint string, requestData map[string]interfac
 		return nil, err
 	}
 
-	var result map[string]interface{}
+	result.rawResponse = *resp
+	var jsonResult map[string]interface{}
 
-	json.NewDecoder(resp.Body).Decode(&result)
+	jerr := json.NewDecoder(resp.Body).Decode(&jsonResult)
 
-	return result, nil
+	if jerr != nil {
+		return &result, fmt.Errorf("Decode json response error: %s.", jerr)
+	}
+
+	result.jsonResponse = jsonResult
+	return &result, nil
 }
 
 func UploadReportFile(apiUrl string, token string, reportId int64, path string) error {
@@ -195,16 +207,16 @@ func UploadReportFile(apiUrl string, token string, reportId int64, path string) 
 
 	response, uerr := MakeRequest(apiUrl, "/rpc/checkup_report_file_post", requestData)
 	if uerr != nil {
-		return fmt.Errorf("%s", uerr)
+		return fmt.Errorf("%s. %s.", response.rawResponse.Status, uerr)
 	}
 
-	if msg, mok := response["message"]; mok {
-		return fmt.Errorf("%s", msg)
+	if msg, mok := response.jsonResponse["message"]; mok {
+		return fmt.Errorf("%s. %s", response.rawResponse.Status, msg)
 	}
 
-	if _, rok := response["report_chunck_id"]; !rok {
-		log.Dbg("Response for uploading file '%s': ", response)
-		return fmt.Errorf("Response for uploading file '%s' do not content file id.", fileName)
+	if _, rok := response.jsonResponse["report_chunck_id"]; !rok {
+		return fmt.Errorf("Response for uploading file '%s' do not content file id. Response status: %s.",
+			fileName, response.rawResponse.Status)
 	}
 
 	return nil
