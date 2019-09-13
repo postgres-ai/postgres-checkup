@@ -203,7 +203,8 @@ func UploadReportFile(apiUrl string, token string, reportId int64, path string) 
 	}
 
 	if _, rok := response["report_chunck_id"]; !rok {
-		return fmt.Errorf("Response for uploading file '%s' do not content chunck id.", fileName)
+		log.Dbg("Response for uploading file '%s': ", response)
+		return fmt.Errorf("Response for uploading file '%s' do not content file id.", fileName)
 	}
 
 	return nil
