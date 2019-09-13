@@ -57,16 +57,19 @@ func UploadReport(apiUrl string, token string, project string, path string) erro
 
 	processed := 0
 	for _, f := range files {
+		log.Dbg(fmt.Sprintf("File '%s' found in project artifcats directory.", f))
 		fileType := strings.ToLower(strings.Replace(filepath.Ext(f), ".", "", -1))
 		if fileType != "json" && fileType != "sql" && fileType != "md" && fileType != "html" {
+			log.Dbg(fmt.Sprintf("File: '%s' skipped (Not json, sql, md or html).", f))
 			continue
 		}
-
+		log.Dbg(fmt.Sprintf("Try upload file: '%s'.", f))
 		uerr := UploadReportFile(apiUrl, token, reportId, f)
 		if uerr == nil {
 			processed++
+			log.Dbg("File: " + f + " uploaded without errors.")
 		} else {
-			log.Err(fmt.Sprintf("Cannot upload file %s. %s", f, uerr))
+			log.Err(fmt.Sprintf("Cannot upload file '%s'. %s", f, uerr))
 		}
 	}
 
@@ -194,8 +197,13 @@ func UploadReportFile(apiUrl string, token string, reportId int64, path string) 
 	if uerr != nil {
 		return fmt.Errorf("%s", uerr)
 	}
+
 	if msg, mok := response["message"]; mok {
 		return fmt.Errorf("%s", msg)
+	}
+
+	if _, rok := response["report_chunck_id"]; !rok {
+		return fmt.Errorf("Response for uploading file '%s' do not content chunck id.", fileName)
 	}
 
 	return nil
