@@ -899,7 +899,7 @@ host_pre_start_checks() {
       true
     else
       # use TCP for psql
-      export _PSQL="env PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${HOST}"
+      export _PSQL="PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${HOST}"
       export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${HOST}"
     fi
 
