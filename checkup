@@ -660,7 +660,7 @@ is_in_recovery() {
     dbg "host $HOST is 'standby'"
     return 0
   else
-    msg "ERROR: Cannot connect to specified host."
+    msg "ERROR: Cannot connect to the host: ${HOST}."
     exit 1
   fi
   return 13
