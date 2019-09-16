@@ -1205,10 +1205,10 @@ run_checks() {
     msg
   fi
 
-  if [[ "$PDF" == "true" ]]; then
+  if [[ "$PDF" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
     ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
   fi
-  if [[ "$HTML" == "true" ]]; then
+  if [[ "$HTML" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
     ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
   fi
 }
