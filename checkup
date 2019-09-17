@@ -862,14 +862,15 @@ glue_md_reports() {
     content="$content\n\n\n---\n<a name=\"postgres-checkup_$checkId\">&nbsp;</a>\n[Table of contents](#postgres-checkup_top)"
     report=$(cat "${cur_report}")
     content="$content\n$report"
-    if [[ "$checkId" =~ "K" ]]; then
-      if [[ "$checkId" != "K003" ]]; then
+    fileCheckId=$checkId
+    if [[ "$fileCheckId" =~ "K" ]]; then
+      if [[ "$fileCheckId" != "K003" ]]; then
         summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)||||"
         continue
       fi
-      checkId="K000";
+      fileCheckId="K000";
     fi
-    jsonFile=$(ls ${JSON_REPORTS_DIR}/${checkId}*.json)
+    jsonFile=$(ls ${JSON_REPORTS_DIR}/${fileCheckId}*.json)
     p1=$(jq '.recommendations | [.[]|.Message|startswith("[P1]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
       || jq 'if .p1 == false then 0 elif .p1 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
     p2=$(jq '.recommendations | [.[]|.Message|startswith("[P2]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
