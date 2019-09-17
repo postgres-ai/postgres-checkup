@@ -30,16 +30,16 @@ variables:
     - psql -h postgres -d dbname -U test_user -c "SELECT version();"
     - echo "Test H003 Non indexed FKs"
     - psql -h postgres -d dbname -U test_user -f .ci/h003_step_1.sql
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - ./checkup collect -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
     - psql -h postgres -d dbname -U test_user -f .ci/h003_step_2.sql
     - rm -Rf ./artifacts/
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
+    - ./checkup collect -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 302
     - echo "H003 passed"
     - echo "Test H002 redundant indexes"
     - psql -h postgres -d dbname -U test_user -f .ci/test_db_dump.sql
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup collect -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
@@ -55,6 +55,8 @@ variables:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && l001_indexes_size=$(cat ./artifacts/test/json_reports/$data_dir/L001_table_sizes.json | jq '.results .postgres .data .tables_data_total .indexes_size_bytes_sum') && echo $l001_indexes_size
     - diff=$((f005_indexes_size - l001_indexes_size)) && diff=${diff#-} && echo $diff && ratio=$((diff * 100 / l001_indexes_size)) && echo $ratio && ([[ $ratio -gt "5" ]]) && exit 303
     - echo "F005/L001 Total indexes size passed"
+    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/F004_heap_bloat.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && msg=$(grep "can be reduced 0.00 times" ./artifacts/test/md_reports/$data_dir/F004.md) && [[ ! -z "$msg" ]] && exit 304
     - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
     # Check small indexes
     - .ci/prepare_test_db.sh postgres
@@ -87,10 +89,10 @@ test-general:
     # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
-    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config
     - apt-get -y install openssh-server
     - service ssh restart
-    
+
   script:
     - bash -version
     - psql -d dbname -U test_user -c "SELECT version();"
@@ -101,16 +103,17 @@ test-general:
     - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
     # First run only for K00X reports
-    - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     # Last run of checkup
-    - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup process --project test
     # Check results
     - cat err.log
-    - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log || true
+    - grep -v "To compare results, 2 runs are needed. Please run './checkup collect' once again for this epoch." err.log > err1.log || true
     - grep -v "this is not a real error. Just run check again." err1.log > err.log || true
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
@@ -190,6 +193,7 @@ Docker build master:
   only:
     - master
     - docker_build
+    - docker_run_checkup_with_upload
   services:
     - docker:dind
   before_script:

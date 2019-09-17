@@ -1,4 +1,4 @@
-### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.2.1) (based on CI, single node).
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.2.2) (based on CI, single node).
 
 ***Disclaimer: Conclusions, Recommendations – work in progress.**
 To treat the data correctly, you need deep Postgres knowledge. Each report
@@ -220,6 +220,13 @@ A human-readable report can be found at:
 ```
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
+
+You can collect and process data separately by specifying working mode name in CLI option `--mode %mode%` or using it as a "command" (`checkup %mode%`).  
+Available working modes:  
+    `collect` - collect data;
+    `process` - generate MD (and, optionally, HTML, PDF) reports with conclusions and recommendations;
+    `upload` - upload generated reports to Postgres.ai platform;
+    `run` - collect and process data at once. This is the default mode, it is used when no other mode is specified. Note, that upload is not included.
 
 ## Docker 🐳
 

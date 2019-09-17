@@ -22,7 +22,7 @@ const F005_BLOAT_EXCESS_INFO string = "F005_BLOAT_EXCESS_INFO"
 const WARNING_BLOAT_RATIO float32 = 40.0
 const CRITICAL_BLOAT_RATIO float32 = 90.0
 const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0
-const MIN_TABLE_SIZE_TO_ANALYZE int64 = 1024 * 1024
+const MIN_INDEX_SIZE_TO_ANALYZE int64 = 1024 * 1024
 
 func appendIndex(list []string, indexBloatData F005IndexBloat) []string {
 	return append(list, fmt.Sprintf(INDEX_DETAILS, indexBloatData.IndexName,
@@ -52,15 +52,17 @@ func F005Process(report F005Report) checkup.ReportResult {
 		}
 		for _, index := range sortedIndexes {
 			indexBloatData := hostData.Data.IndexBloat[index]
-			if totalBloatIsCritical && indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE && i < 5 {
+			if totalBloatIsCritical && indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && i < 5 &&
+        (indexBloatData.BloatRatioFactor > 0) {
 				top5Indexes = appendIndex(top5Indexes, indexBloatData)
 				i++
 			}
-			if indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE && indexBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO {
+			if indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && indexBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO &&
+        (indexBloatData.BloatRatioFactor > 0) {
 				criticalIndexes = appendIndex(criticalIndexes, indexBloatData)
 			}
-			if (indexBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
-				(indexBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) {
+			if (indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
+				(indexBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) && (indexBloatData.BloatRatioFactor > 0) {
 				warningIndexes = appendIndex(warningIndexes, indexBloatData)
 			}
 		}
