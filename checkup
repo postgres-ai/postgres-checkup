@@ -863,13 +863,20 @@ glue_md_reports() {
     report=$(cat "${cur_report}")
     content="$content\n$report"
     if [[ "$checkId" =~ "K" ]]; then
+      if [[ "$checkId" != "K003" ]]; then
+        summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)||||"
+        continue
+      fi
       checkId="K000";
     fi
     jsonFile=$(ls ${JSON_REPORTS_DIR}/${checkId}*.json)
-    p1=$(jq '.recommendations | [.[]|.Message|startswith("[P1]")] | map(select(. == true)) | length' ${jsonFile} 2> /dev/null || echo "")
-    p2=$(jq '.recommendations | [.[]|.Message|startswith("[P2]")] | map(select(. == true)) | length' ${jsonFile} 2> /dev/null || echo "")
-    p3=$(jq '.recommendations | [.[]|.Message|startswith("[P3]")] | map(select(. == true)) | length' ${jsonFile} 2> /dev/null || echo "")
-    summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)|${p1}|${p2}|${p3}|"
+    p1=$(jq '.recommendations | [.[]|.Message|startswith("[P1]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p1 == false then 0 elif .p1 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    p2=$(jq '.recommendations | [.[]|.Message|startswith("[P2]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p2 == false then 0 elif .p2 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    p3=$(jq '.recommendations | [.[]|.Message|startswith("[P3]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p3 == false then 0 elif .p3 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)|${p1//\"/}|${p2//\"/}|${p3//\"/}|"
   done
   echo -e "$tableOfContents" >> "${out_fname}"
   echo -e "$summaryTable\n\n" >> "${out_fname}"
