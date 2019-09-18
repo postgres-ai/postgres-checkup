@@ -83,9 +83,9 @@ test-general:
     - source ~/.profile
     - sudo .ci/prepare_cluster.sh "11"
     - ps ax | grep postgres
-    - psql -U postgres -p 5432 -c 'show data_directory;'
-    - psql -U postgres -p 5433 -c 'show data_directory;'
-    - psql -U postgres -p 5434 -c 'show data_directory;'
+    - psql -U postgres --pg-port 5432 -c 'show data_directory;'
+    - psql -U postgres --pg-port 5433 -c 'show data_directory;'
+    - psql -U postgres --pg-port 5434 -c 'show data_directory;'
     # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
@@ -96,19 +96,19 @@ test-general:
   script:
     - bash -version
     - psql -d dbname -U test_user -c "SELECT version();"
-    - psql -p 5433 -d dbname -U test_user -c "SELECT version();"
-    - psql -p 5434 -d dbname -U test_user -c "SELECT version();"
+    - psql --pg-port 5433 -d dbname -U test_user -c "SELECT version();"
+    - psql --pg-port 5434 -d dbname -U test_user -c "SELECT version();"
     - psql -d dbname -U test_user -f .ci/test_db_dump.sql
     - .ci/prepare_test_db.sh
     - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
     # First run only for K00X reports
-    - ./checkup collect -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup collect  -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect -h postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     # Last run of checkup
-    - ./checkup collect  -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup collect  -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup process --project test
     # Check results

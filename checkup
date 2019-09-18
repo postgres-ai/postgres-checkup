@@ -1004,7 +1004,7 @@ host_pre_start_checks() {
   if [[ "$SSHHOST" != "None" ]]; then
     # ssh mode
     if configure_ssh_connection $SSHHOST; then
-      msg "SSH connection to $SSHHOST:$SSHPORT will use"
+      msg "Connection type: SSH ($SSHHOST:$SSHPORT)"
       export HOST=$SSHHOST
     else
       msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH."
@@ -1013,17 +1013,17 @@ host_pre_start_checks() {
   elif [[ "$PGHOST" != "None" ]]; then
     # psql mode
     if configure_psql_connection $PGHOST; then
-      msg "psql connection to $PGHOST:$PGPORT will use"
+      msg "Connection type: psql ($PGHOST:$PGPORT)"
       export HOST=$PGHOST
     fi
   else
     # auto detect connection command
     if configure_ssh_connection $HOST; then
-      msg "SSH connection to $HOST:$SSHPORT will use (auto)"
+      msg "Connection type: SSH ($HOST:$SSHPORT)"
     else
       msg "Cannot connect to the host: ${HOST}:${SSHPORT} via SSH."
       configure_psql_connection $HOST;
-      msg "psql connection to $HOST:$PGPORT will use (auto)"
+      msg "Connection type: psql ($HOST:$PGPORT)"
     fi
     export HOST
   fi
