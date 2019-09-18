@@ -22,6 +22,7 @@ SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
+DEFAULT_CONNECTION_TIMEOUT=10
 LARGE_DB_ITEMS_COUNT=100000
 AVAILABLE_MODES=("collect" "process" "upload" "help" "run")
 
@@ -416,6 +417,7 @@ validate_args() {
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
+  [[ "${CONNTIMEOUT}" = "None" ]] && export CONNTIMEOUT=${DEFAULT_CONNECTION_TIMEOUT} # connection timeout
   if [[ "${MODE}" = "None" ]]; then
     export MODE="run"
     ARG_VALUE[0]="run"
@@ -696,9 +698,12 @@ is_in_recovery() {
   if [[ "$res" = "f" ]]; then
     dbg "host $HOST is 'master'"
     return 12
-  else
+  elif [[ "$res" = "t" ]]; then
     dbg "host $HOST is 'standby'"
     return 0
+  else
+    msg "ERROR: Cannot connect to the host: ${HOST}."
+    exit 1
   fi
   return 13
 }
@@ -961,7 +966,7 @@ host_pre_start_checks() {
       true
     else
       # use TCP for psql
-      export _PSQL="${_PSQL} -h ${HOST}"
+      export _PSQL="PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${HOST}"
       export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${HOST}"
     fi
 
@@ -1293,6 +1298,14 @@ run_process() {
     echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
+  
+  if [[ "$PDF" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
+    ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
+  
+  if [[ "$HTML" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
+    ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
 }
 
 #######################################
@@ -1318,7 +1331,7 @@ run_upload() {
 
 ######### COMMANDS WRAPPERS ###########
 ssh() {
-  local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
+  local ssh_timeout_options="-o ConnectTimeout=${CONNTIMEOUT} -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
   local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
 
   local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
