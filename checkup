@@ -23,6 +23,8 @@ ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
 DEFAULT_CONNECTION_TIMEOUT=10
+DEFAULT_PG_PORT=5432
+DEFAULT_SSH_PORT=22
 LARGE_DB_ITEMS_COUNT=100000
 AVAILABLE_MODES=("collect" "process" "upload" "help" "run")
 
@@ -380,6 +382,58 @@ validate_arg_type() {
 }
 
 #######################################
+# Generate psql command
+# Globals:
+#   PSQL_CONN_OPTIONS, HOST, OPTIONS_ERROR_EXIT
+#   USERNAME, PGPASSWORD, DBNAME, STIMEOUT
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+generate_psql_cmd() {
+  local pg_port=$DEFAULT_PG_PORT
+  if [[ "$PGPORT" != "None" ]]; then
+    pg_port=$PGPORT
+  fi
+
+  # custom UNIX domain socket directory for PostgreSQL
+  local psql_unix_socket_option=""
+  if [[ "${PGSOCKET}" != "None" ]]; then
+    psql_unix_socket_option=" --host '${PGSOCKET}' "
+  fi
+
+  # custom psql binary path support
+  local psql_bin="psql"
+  if [[ "${PSQLBINARY}" != "None" ]]; then
+    psql_bin="${PSQLBINARY}"
+  fi
+
+  # generate or not PGPASSWORD string (for substitution)
+  if [[ ! -z ${PGPASSWORD+x} ]]; then
+    local pgpas_subst="PGPASSWORD=\"${PGPASSWORD}\" " # whitespace in the end of the string
+  else
+    local pgpas_subst=""
+  fi
+
+  # use default Postgres username or not
+  local user_substr=""
+  if [[ ! -z ${USERNAME+x} ]]; then
+    user_substr=" -U \"${USERNAME}\" "
+  fi
+
+  # Construct _PSQL macro for usage inside the check scripts
+  export PSQL_CONN_OPTIONS="--port=${pg_port} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
+  psql_command="${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
+  export _PSQL_NO_TIMEOUT="PGAPPNAME=checkup ${psql_command}"
+  export _PSQL="PGAPPNAME=checkup PGOPTIONS=\"-c statement_timeout=${STIMEOUT}s\" ${psql_command}"
+
+  dbg ""
+  dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
+  dbg ""
+}
+
+#######################################
 # Validate arguments and and save input variables
 # Globals:
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
@@ -418,27 +472,13 @@ validate_args() {
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
   [[ "${CONNTIMEOUT}" = "None" ]] && export CONNTIMEOUT=${DEFAULT_CONNECTION_TIMEOUT} # connection timeout
 
-  if [[ "$PGPORT" == "None" ]]; then
-    if [[ "$PORT" != "None" ]]; then
-      export PGPORT=$PORT
-    else
-      export PGPORT=5432
-    fi
-  fi
-
-  if [[ "$SSHPORT" == "None" ]]; then
-    if [[ "$PORT" != "None" ]]; then
-      export SSHPORT=$PORT
-    else
-      export SSHPORT=22
-    fi
-  fi
-
   if [[ "${MODE}" = "None" ]]; then
     export MODE="run"
     ARG_VALUE[0]="run"
     ARG_IS_GIVEN[0]="true"
   fi
+
+  generate_psql_cmd
 
   if ([[ "$HTML" == "true" ]] || [[ "$PDF" == "true" ]]); then
     PANDOC=$(which pandoc || echo -n "0");
@@ -465,41 +505,6 @@ validate_args() {
       exit 1
     fi
   fi
-
-  # custom UNIX domain socket directory for PostgreSQL
-  local psql_unix_socket_option=""
-  if [[ "${PGSOCKET}" != "None" ]]; then
-    psql_unix_socket_option=" --host '${PGSOCKET}' "
-  fi
-
-  # custom psql binary path support
-  local psql_bin="psql"
-  if [[ "${PSQLBINARY}" != "None" ]]; then
-    psql_bin="${PSQLBINARY}"
-  fi
-
-  # generate or not PGPASSWORD string (for substitution)
-  if [[ ! -z ${PGPASSWORD+x} ]]; then
-    local pgpas_subst="PGPASSWORD=\"${PGPASSWORD}\" " # whitespace in the end of the string
-  else
-    local pgpas_subst=""
-  fi
-
-  # use default Postgres username or not
-  local user_substr=""
-  if [[ ! -z ${USERNAME+x} ]]; then
-    user_substr=" -U \"${USERNAME}\" "
-  fi
-
-  # Construct _PSQL macro for usage inside the check scripts
-  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
-  psql_command="${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
-  export _PSQL_NO_TIMEOUT="PGAPPNAME=checkup ${psql_command}"
-  export _PSQL="PGAPPNAME=checkup PGOPTIONS=\"-c statement_timeout=${STIMEOUT}s\" ${psql_command}"
-
-  dbg ""
-  dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
-  dbg ""
 
   # error if mandatory options are not set (print as a stack)
   local buf=""
@@ -975,6 +980,14 @@ glue_md_reports() {
 configure_ssh_connection() {
   hostname=$1
 
+  if [[ "$SSHPORT" == "None" ]]; then
+    if [[ "$PORT" != "None" ]]; then
+      SSHPORT=$PORT
+    else
+      SSHPORT=$DEFAULT_SSH_PORT
+    fi
+  fi
+
   if native_hostname=$(ssh -p ${SSHPORT} -o ConnectTimeout=10 ${hostname} "hostname" 2>/dev/null); then
     # ssh to remote host and use local psql (default)
     export CHECK_HOST_CMD="ssh ${hostname}"
@@ -997,6 +1010,15 @@ configure_ssh_connection() {
 configure_psql_connection() {
   hostname=$1
 
+  if [[ "$PGPORT" == "None" ]]; then
+    if [[ "$PORT" != "None" ]]; then
+      PGPORT=$PORT
+    else
+      PGPORT=$DEFAULT_PG_PORT
+    fi
+    generate_psql_cmd
+  fi
+
   export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
 
   # use local psql and connect to remote postgres without ssh
@@ -1006,7 +1028,7 @@ configure_psql_connection() {
     true
   else
     # use TCP for psql
-    export _PSQL="${_PSQL} -h ${hostname}"
+    export _PSQL="PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${HOST}"
     export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${hostname}"
   fi
 
@@ -1030,13 +1052,14 @@ host_pre_start_checks() {
       msg "Connection type: SSH ($SSHHOST:$SSHPORT)"
       export HOST=$SSHHOST
     else
+      msg "Connection type: SSH ($SSHHOST:$SSHPORT)"
       msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH."
       exit 1
     fi
   elif [[ "$PGHOST" != "None" ]]; then
     # psql mode
     if configure_psql_connection $PGHOST; then
-      msg "Connection type: psql ($PGHOST:$PGPORT)"
+      msg "Defined connection type: psql ($PGHOST:$PGPORT)"
       export HOST=$PGHOST
     fi
   else
@@ -1208,8 +1231,6 @@ run_checks() {
   test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
 
   # perform all checks from './resources/checks/' directory
-  msg
-  msg "########## Perform checks for host '${HOST}':"
   if is_in_recovery; then
     ROLE="standby"
   else
@@ -1227,6 +1248,8 @@ run_checks() {
     export IS_LARGE_DB=0
   fi
 
+  msg
+  msg "########## Perform checks for host '${HOST}':"
   local output
   for CURRENT_CHECK_FNAME in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "${CURRENT_CHECK_FNAME}" ]] || continue
@@ -1408,8 +1431,13 @@ run_upload() {
 
 ######### COMMANDS WRAPPERS ###########
 ssh() {
+  local ssh_port=$DEFAULT_SSH_PORT
+  if [[ "$SSHPORT" != "None" ]]; then
+    ssh_port=$SSHPORT
+  fi
+
   local ssh_timeout_options="-o ConnectTimeout=${CONNTIMEOUT} -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
-  local ssh_options="-p ${SSHPORT} -o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
+  local ssh_options="-p ${ssh_port} -o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
 
   local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
   local ssh_master_options="-o ControlMaster=auto -o ControlPersist=yes"
