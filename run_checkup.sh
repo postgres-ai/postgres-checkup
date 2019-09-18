@@ -20,7 +20,7 @@ for host in $CHECKUP_HOSTS; do
 done
 
 echo "Generate human-readable reports..."
-./checkup process --config "${CHECKUP_CONFIG_PATH}" --html --pdf
+./checkup process --config "${CHECKUP_CONFIG_PATH}"
 
 echo "Upload the report to Postgres.ai platform..."
 ./checkup upload --config "${CHECKUP_CONFIG_PATH}"
