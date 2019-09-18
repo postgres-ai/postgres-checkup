@@ -22,6 +22,7 @@ SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
+DEFAULT_CONNECTION_TIMEOUT=10
 LARGE_DB_ITEMS_COUNT=100000
 AVAILABLE_MODES=("collect" "process" "upload" "help" "run")
 
@@ -415,6 +416,7 @@ validate_args() {
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
+  [[ "${CONNTIMEOUT}" = "None" ]] && export CONNTIMEOUT=${DEFAULT_CONNECTION_TIMEOUT} # connection timeout
 
   if [[ "$PGPORT" == "None" ]]; then
     if [[ "$PORT" != "None" ]]; then
@@ -721,9 +723,12 @@ is_in_recovery() {
   if [[ "$res" = "f" ]]; then
     dbg "host $HOST is 'master'"
     return 12
-  else
+  elif [[ "$res" = "t" ]]; then
     dbg "host $HOST is 'standby'"
     return 0
+  else
+    msg "ERROR: Cannot connect to the host: ${HOST}."
+    exit 1
   fi
   return 13
 }
@@ -911,6 +916,7 @@ glue_md_reports() {
 
   tableOfContents=""
   content=""
+  summaryTable="\n---\n### Issues found ###\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
   echo "" >> "${out_fname}"
   echo "<a name=\"postgres-checkup_top\">&nbsp;</a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
@@ -928,8 +934,25 @@ glue_md_reports() {
     content="$content\n\n\n---\n<a name=\"postgres-checkup_$checkId\">&nbsp;</a>\n[Table of contents](#postgres-checkup_top)"
     report=$(cat "${cur_report}")
     content="$content\n$report"
+    fileCheckId=$checkId
+    if [[ "$fileCheckId" =~ "K" ]]; then
+      if [[ "$fileCheckId" != "K003" ]]; then
+        summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)||||"
+        continue
+      fi
+      fileCheckId="K000";
+    fi
+    jsonFile=$(ls ${JSON_REPORTS_DIR}/${fileCheckId}*.json)
+    p1=$(jq '.recommendations | [.[]|.Message|startswith("[P1]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p1 == false then 0 elif .p1 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    p2=$(jq '.recommendations | [.[]|.Message|startswith("[P2]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p2 == false then 0 elif .p2 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    p3=$(jq '.recommendations | [.[]|.Message|startswith("[P3]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p3 == false then 0 elif .p3 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)|${p1//\"/}|${p2//\"/}|${p3//\"/}|"
   done
   echo -e "$tableOfContents" >> "${out_fname}"
+  echo -e "$summaryTable\n\n" >> "${out_fname}"
   echo -e "$content" >> "${out_fname}"
 
   if [[ "$PDF" == "true" ]]; then
@@ -1352,6 +1375,14 @@ run_process() {
     echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
+  
+  if [[ "$PDF" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
+    ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
+  
+  if [[ "$HTML" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
+    ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
 }
 
 #######################################
@@ -1377,7 +1408,7 @@ run_upload() {
 
 ######### COMMANDS WRAPPERS ###########
 ssh() {
-  local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
+  local ssh_timeout_options="-o ConnectTimeout=${CONNTIMEOUT} -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
   local ssh_options="-p ${SSHPORT} -o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
 
   local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
