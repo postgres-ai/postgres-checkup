@@ -512,7 +512,8 @@ validate_args() {
       fi
     fi
   done
-  if [[ "$HOST" == "None" ]] && [[ "$SSHHOST" == "None" ]] && [[ "$PGHOST" == "None" ]]; then
+  if [[ "$HOST" == "None" ]] && [[ "$SSHHOST" == "None" ]] &&
+    [[ "$PGHOST" == "None" ]] && ([[ "$MODE" == "collect" ]] || [[ "$MODE" == "run" ]]) ; then
         buf="$buf
   at least one of options '--hostname', '--ssh-hostname' or '--pg-hostname' must be set"
 #  mandatory option '--hostname' is not set"
