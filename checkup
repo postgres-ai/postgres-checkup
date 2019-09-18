@@ -411,12 +411,26 @@ validate_args() {
   done
 
   # fill default (not given) psql connection related variables
-  [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
-  [[ "${SSHPORT}" = "None" ]] && export SSHPORT=22
+
+  if [[ "$PGPORT" == "None" ]]; then
+    if [[ "$PORT" != "None" ]]; then
+      export PGPORT=$PORT
+    else
+      export PGPORT=5432
+    fi
+  fi
+
+  if [[ "$SSHPORT" == "None" ]]; then
+    if [[ "$PORT" != "None" ]]; then
+      export SSHPORT=$PORT
+    else
+      export SSHPORT=22
+    fi
+  fi
 
   if [[ "${MODE}" = "None" ]]; then
     export MODE="run"
@@ -498,6 +512,14 @@ validate_args() {
       fi
     fi
   done
+  if [[ "$HOST" == "None" ]] && [[ "$SSHHOST" == "None" ]] && [[ "$PGHOST" == "None" ]]; then
+        buf="$buf
+  at least one of options '--hostname', '--ssh-hostname' or '--pg-hostname' must be set"
+#  mandatory option '--hostname' is not set"
+        need_fail_exit=true
+        OPTIONS_ERROR_EXIT=true
+  fi
+
   if [[ "$need_fail_exit" = "true" ]]; then
     usage "$buf" "1"
   fi
@@ -918,6 +940,56 @@ glue_md_reports() {
 }
 
 #######################################
+# Configure SSH connection
+# Globals:
+#   CHECK_HOST_CMD, SSH_SUPPORT, SSHPORT, PORT
+# Arguments:
+#   (text) host name
+# Returns:
+#   Integer
+#######################################
+configure_ssh_connection() {
+  hostname=$1
+
+  if native_hostname=$(ssh -p ${SSHPORT} -o ConnectTimeout=10 ${hostname} "hostname" 2>/dev/null); then
+    # ssh to remote host and use local psql (default)
+    export CHECK_HOST_CMD="ssh ${hostname}"
+    export SSH_SUPPORT="true"
+    return 0
+  else
+    return 1
+  fi
+}
+
+#######################################
+# Configure psql connection
+# Globals:
+#   CHECK_HOST_CMD, SSH_SUPPORT, PGPORT, PORT
+# Arguments:
+#   (text) host name
+# Returns:
+#   Integer
+#######################################
+configure_psql_connection() {
+  hostname=$1
+
+  export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
+
+  # use local psql and connect to remote postgres without ssh
+  local re="127\.0"
+  if [[ "${hostname}" =~ $re || "${hostname}" = "localhost" ]]; then
+    # keep _PSQL and _PSQL_NO_TIMEOUT as is, use UNIX domain socket for psql
+    true
+  else
+    # use TCP for psql
+    export _PSQL="${_PSQL} -h ${hostname}"
+    export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${hostname}"
+  fi
+
+  export SSH_SUPPORT="false"
+}
+
+#######################################
 # Check rights, set global variables, etc.
 # Globals:
 #   HOST, CHECK_HOST_CMD
@@ -928,31 +1000,33 @@ glue_md_reports() {
 #   Integer
 #######################################
 host_pre_start_checks() {
-  # choise host connection command
-  # while checking ssh support
-  if native_hostname=$(ssh -p ${SSHPORT} $HOST "hostname" 2>/dev/null); then
-    # ssh to remote host and use local psql (default)
-    export CHECK_HOST_CMD="ssh ${HOST}"
-    export SSH_SUPPORT="true"
-  else
-    # swap ssh with bash
-    export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
-
-    # use local psql and connect to remote postgres without ssh
-    local re="127\.0"
-    if [[ "${HOST}" =~ $re || "${HOST}" = "localhost" ]]; then
-      # keep _PSQL and _PSQL_NO_TIMEOUT as is, use UNIX domain socket for psql
-      true
+  if [[ "$SSHHOST" != "None" ]]; then
+    # ssh mode
+    if configure_ssh_connection $SSHHOST; then
+      msg "SSH connection to $SSHHOST:$SSHPORT will use"
+      export HOST=$SSHHOST
     else
-      # use TCP for psql
-      export _PSQL="${_PSQL} -h ${HOST}"
-      export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${HOST}"
+      msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH."
+      exit 1
     fi
-
-    export SSH_SUPPORT="false"
+  elif [[ "$PGHOST" != "None" ]]; then
+    # psql mode
+    if configure_psql_connection $PGHOST; then
+      msg "psql connection to $PGHOST:$PGPORT will use"
+      export HOST=$PGHOST
+    fi
+  else
+    # auto detect connection command
+    if configure_ssh_connection $HOST; then
+      msg "SSH connection to $HOST:$SSHPORT will use (auto)"
+    else
+      msg "Cannot connect to the host: ${HOST}:${SSHPORT} via SSH."
+      configure_psql_connection $HOST;
+      msg "psql connection to $HOST:$PGPORT will use (auto)"
+    fi
+    export HOST
   fi
 
-  export HOST
   dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
   dbg "HOST: '${HOST}'"
   dbg "_PSQL: '${_PSQL}'"
