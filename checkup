@@ -1,17 +1,13 @@
 #!/bin/bash
 #
-# 2018 © Victor Yagofarov victor@postgres.ai
-# 2018 © Postgres.ai
+# Copyright © 2018-2019, Postgres.ai (https://postgres.ai), Nikolay Samokhvalov
 #
-# Perform a PostgreSQL instance(s) health checks (checkups)
+# Automated health-checks of PostgreSQL clusters
 #
-# Usage: $0 --help
+# Usage: ./checkup --help
 #
 
 # GLOBALS (user-assigned variables)
-CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
-                 # TODO(vyagofarov): think about timing
-                 # out commands in macOS
 FULL_REPORT_FNAME="0_Full_report.md"
 
 # GLOBALS (autoload, do not change)
@@ -139,7 +135,7 @@ load_cli_res() {
 # Returns:
 #   None
 #######################################
-read_possible_args() { # TODO(Nik) I cannot find where this function is being called
+read_possible_args() {
   local iter_num=0
   local section short_name full_name arg_type mandatary description
 
@@ -275,7 +271,7 @@ process_cli_args() {
       exit 1
     fi
 
-    # compare given argument with all possible arguments from cli.conf
+    # compare given argument to all possible arguments from cli.conf
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
@@ -1214,7 +1210,7 @@ run_checks() {
 
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
-    
+
     # if check name file given by CLI run only single check
     if [[ "${FILE}" != "None" ]]; then
       break
@@ -1262,7 +1258,7 @@ run_process() {
     if [[ "${FILE}" != "None" ]] && ! [[ "${FILE}" =~ "/${check_id}" ]]; then
       continue
     fi
-    
+
     local pghrep_output
     if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${json_file}" \
       --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
@@ -1323,7 +1319,7 @@ run_upload() {
     msg "Uploading the report to '${UPLOADAPIURL}' using Postgres.ai Platform API..."
     if [[ $DEBUG == "true" ]] ; then
       $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
-    else 
+    else
       $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=0)
     fi
   fi
