@@ -109,7 +109,7 @@ func LoadJsonFile(filePath string) map[string]interface{} {
 	if FileExists(filePath) {
 		fileContent, err := ioutil.ReadFile(GetFilePath(filePath)) // just pass the file name
 		if err != nil {
-			log.Err("Can't read file: ", filePath, err)
+			log.Err("Can't read file:", filePath, err)
 			return nil
 		}
 
@@ -191,7 +191,7 @@ func getRawData(data map[string]interface{}) {
 	// for every host get data
 	var rawData []interface{}
 	hosts := pyraconv.ToInterfaceMap(data["hosts"])
-	log.Dbg("Data hosts: ", hosts)
+	log.Dbg("Data hosts:", hosts)
 	results := pyraconv.ToInterfaceMap(data["results"])
 	masterName := pyraconv.ToString(hosts["master"])
 	masterResults := pyraconv.ToInterfaceMap(results[masterName])
@@ -300,7 +300,7 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
 	reporTpl := templates.Lookup(reportFileName)
 	data := reportData
 	if reporTpl == nil {
-		log.Err("Template " + checkId + ".tpl not found.")
+		log.Err("Template " + checkId + ".tpl not found")
 		getRawData(data)
 		reportFileName = "raw.tpl"
 		reporTpl = templates.Lookup(reportFileName)
@@ -480,21 +480,21 @@ func main() {
 		resultData = LoadJsonFile(checkData)
 
 		if resultData == nil {
-			log.Fatal("ERROR: File defined by '--checkdata' contains invalid JSON")
+			log.Fatal("File given by --checkdata content wrong json data")
 			return
 		}
 
 		resultData["source_path_full"] = checkData
 		resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
 	} else {
-		log.Err("ERROR: File defined by '--checkdata' not found")
+		log.Err("File given by --checkdata not found")
 		return
 	}
 
 	if resultData != nil {
 		checkId = pyraconv.ToString(resultData["checkId"])
 	} else {
-		log.Fatal("ERROR: Content defined by '--checkdata' is invalid JSON")
+		log.Fatal("Content defined by '--checkdata' is invalid JSON")
 	}
 
 	checkId = strings.ToUpper(checkId)
@@ -503,7 +503,7 @@ func main() {
 
 	err := reorderHosts(resultData)
 	if err != nil {
-		log.Err("There is no data to generate the report.")
+		log.Err("There is no data to generate the report")
 	}
 
 	config := cfg.NewConfig()
@@ -524,7 +524,7 @@ func main() {
 
 	reportDone := generateMdReports(checkId, resultData, outputDir)
 	if !reportDone {
-		log.Fatal("Cannot generate report. Data file or template is wrong.")
+		log.Fatal("Cannot generate report. Data file or template is wrong")
 	}
 }
 

@@ -197,7 +197,6 @@ load_config_params () {
     exit 1
   fi
 
-  build_pghrep
   eval $(${PGHREP_BIN} --mode loadcfg --path $config_filename 2>/dev/null)
 
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
@@ -743,7 +742,7 @@ build_pghrep() {
   dbg "building pghrep..."
   local save_pwd="${PWD}"
   cd "${SCRIPT_DIR}/pghrep"
-  make install buildplugins main >/dev/null
+  make install main >/dev/null
   cd "${save_pwd}"
   export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
   dbg "done building pghrep"
@@ -1358,6 +1357,7 @@ main() {
     mode="$1"
   fi
 
+  build_pghrep
   read_possible_args
   process_cli_args "$@"
   validate_args
@@ -1369,19 +1369,16 @@ main() {
       ;;
     "process" )
       check_bin_deps
-      build_pghrep
       run_process
       ;;
     "upload" )
       check_bin_deps
-      build_pghrep
       run_upload
       ;;
     "run" )
       host_pre_start_checks
       run_checks
       check_bin_deps
-      build_pghrep
       run_process
       ;;
   esac
