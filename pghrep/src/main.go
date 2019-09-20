@@ -471,6 +471,10 @@ func main() {
 			os.Exit(1)
 		}
 
+		if len(config) == 0 {
+			log.Fatal(fmt.Sprintf("Config '%s' is empty", path))
+		}
+
 		outputConfig(config)
 
 		return

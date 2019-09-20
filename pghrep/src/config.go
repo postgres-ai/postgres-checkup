@@ -10,7 +10,9 @@ import (
 
 const CONFIG_PARAM_PREFIX = "CONFIG"
 
-type CheckupConfig map[string]string
+type CheckupProjectConfig map[string]string
+
+type CheckupConfig []CheckupProjectConfig
 
 func loadConfig(path string) (CheckupConfig, error) {
 	var config CheckupConfig
@@ -32,7 +34,10 @@ func loadConfig(path string) (CheckupConfig, error) {
 }
 
 func outputConfig(config CheckupConfig) {
-	for key, value := range config {
-		fmt.Printf("%s__%s=\"%s\"\n", CONFIG_PARAM_PREFIX, strings.Replace(key, "-", "_", -1), value)
+	if len(config) > 0 {
+		// Now we support only one project config
+		for key, value := range config[0] {
+			fmt.Printf("%s__%s=\"%s\"\n", CONFIG_PARAM_PREFIX, strings.Replace(key, "-", "_", -1), value)
+		}
 	}
 }
