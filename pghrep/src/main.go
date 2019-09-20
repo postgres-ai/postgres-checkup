@@ -415,6 +415,7 @@ func main() {
 	projectDataPtr := flag.String("project", "", "target project used during uploading")
 	pathDataPtr := flag.String("path", "", "path to artifacts directory used during uploading")
 	apiUrlDataPtr := flag.String("apiurl", "", "API URL for reports uploading")
+
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -431,7 +432,8 @@ func main() {
 		log.DEBUG = false
 	}
 
-	if *modeDataPtr == "upload" {
+	switch *modeDataPtr {
+	case "upload":
 		token := *tokenDataPtr
 		project := *projectDataPtr
 		path := *pathDataPtr
@@ -439,19 +441,19 @@ func main() {
 
 		if len(token) == 0 {
 			log.Err("Token is not defined")
-			return
+			os.Exit(1)
 		}
 		if len(apiUrl) == 0 {
 			log.Err("API URL is not defined")
-			return
+			os.Exit(1)
 		}
 		if len(project) == 0 {
 			log.Err("Project (for reports uploading) is not defined")
-			return
+			os.Exit(1)
 		}
 		if len(path) == 0 {
 			log.Err("Artifacts directory is not defined")
-			return
+			os.Exit(1)
 		}
 
 		err := upload.UploadReport(apiUrl, token, project, path)
@@ -459,6 +461,22 @@ func main() {
 			log.Err(err)
 			os.Exit(1)
 		}
+
+		return
+	case "loadcfg":
+		path := *pathDataPtr
+		if len(path) == 0 {
+			log.Err("Config path is not defined")
+			os.Exit(1)
+		}
+
+		config, err := loadConfig(path)
+		if err != nil {
+			log.Err(fmt.Sprintf("Cannot load config. %s", err))
+			os.Exit(1)
+		}
+
+		outputConfig(config)
 
 		return
 	}
@@ -517,7 +535,7 @@ func main() {
 
 func preprocessReportData(checkId string, config cfg.Config,
 	data map[string]interface{}) error {
-	switch checkId {
+	switch strings.ToUpper(checkId) {
 	case "A002":
 		// Try to load actual Postgres versions.
 		err := config.LoadVersions()

@@ -193,10 +193,13 @@ load_config_params () {
   dbg "Load params from config file"
   config_filename=${1}
   if [[ ! -f "$config_filename" ]]; then
-    msg "Config filename ${config_filename} not found."
+    err "Config filename ${config_filename} not found."
     exit 1
   fi
-  source ${BASH_SOURCE%/*}/resources/parse_yaml.sh $config_filename "CONFIG_"
+
+  build_pghrep
+  eval $(${PGHREP_BIN} --mode loadcfg --path $config_filename 2>/dev/null)
+
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     var_name="CONFIG__"${FULL_NAME[$i]}
     var_name=${var_name//-/_}
