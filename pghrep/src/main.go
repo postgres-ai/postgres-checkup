@@ -480,14 +480,14 @@ func main() {
 		resultData = LoadJsonFile(checkData)
 
 		if resultData == nil {
-			log.Fatal("ERROR: File given by --checkdata content wrong json data.")
+			log.Fatal("ERROR: File defined by '--checkdata' contains invalid JSON")
 			return
 		}
 
 		resultData["source_path_full"] = checkData
 		resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
 	} else {
-		log.Err("ERROR: File given by --checkdata not found")
+		log.Err("ERROR: File defined by '--checkdata' not found")
 		return
 	}
 
