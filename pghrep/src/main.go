@@ -492,7 +492,7 @@ func main() {
 		resultData["source_path_full"] = checkData
 		resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
 	} else {
-		log.Err("ERROR: File given by --checkdata not found")
+		log.Err("ERROR: File defined by '--checkdata' not found")
 		return
 	}
 
