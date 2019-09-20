@@ -440,20 +440,16 @@ func main() {
 		apiUrl := *apiUrlDataPtr
 
 		if len(token) == 0 {
-			log.Err("Token is not defined")
-			os.Exit(1)
+			log.Fatal("Token is not defined")
 		}
 		if len(apiUrl) == 0 {
-			log.Err("API URL is not defined")
-			os.Exit(1)
+			log.Fatal("API URL is not defined")
 		}
 		if len(project) == 0 {
-			log.Err("Project (for reports uploading) is not defined")
-			os.Exit(1)
+			log.Fatal("Project (for reports uploading) is not defined")
 		}
 		if len(path) == 0 {
-			log.Err("Artifacts directory is not defined")
-			os.Exit(1)
+			log.Fatal("Artifacts directory is not defined")
 		}
 
 		err := upload.UploadReport(apiUrl, token, project, path)
@@ -466,13 +462,12 @@ func main() {
 	case "loadcfg":
 		path := *pathDataPtr
 		if len(path) == 0 {
-			log.Err("Config path is not defined")
-			os.Exit(1)
+			log.Fatal("Config path is not defined")
 		}
 
 		config, err := loadConfig(path)
 		if err != nil {
-			log.Err(fmt.Sprintf("Cannot load config. %s", err))
+			log.Fatal(fmt.Sprintf("Cannot load config. %s", err))
 			os.Exit(1)
 		}
 
@@ -499,7 +494,7 @@ func main() {
 	if resultData != nil {
 		checkId = pyraconv.ToString(resultData["checkId"])
 	} else {
-		log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
+		log.Fatal("ERROR: Content defined by '--checkdata' is invalid JSON")
 	}
 
 	checkId = strings.ToUpper(checkId)
