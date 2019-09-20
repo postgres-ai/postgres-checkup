@@ -485,7 +485,7 @@ func main() {
 		resultData = LoadJsonFile(checkData)
 
 		if resultData == nil {
-			log.Fatal("ERROR: File given by --checkdata content wrong json data.")
+			log.Fatal("ERROR: File defined by '--checkdata' contains invalid JSON")
 			return
 		}
 
