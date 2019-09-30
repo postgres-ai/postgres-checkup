@@ -30,16 +30,16 @@ variables:
     - psql -h postgres -d dbname -U test_user -c "SELECT version();"
     - echo "Test H003 Non indexed FKs"
     - psql -h postgres -d dbname -U test_user -f .ci/h003_step_1.sql
-    - ./checkup collect -с .ci/test.yml --file ./resources/checks/H003_non_indexed_fks.sh
+    - ./checkup collect -c .ci/test.yml --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
     - psql -h postgres -d dbname -U test_user -f .ci/h003_step_2.sql
     - rm -Rf ./artifacts/
-    - ./checkup collect -с .ci/test.yml --file ./resources/checks/H003_non_indexed_fks.sh
+    - ./checkup collect -c .ci/test.yml --file ./resources/checks/H003_non_indexed_fks.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 302
     - echo "H003 passed"
     - echo "Test H002 redundant indexes"
     - psql -h postgres -d dbname -U test_user -f .ci/test_db_dump.sql
-    - ./checkup collect -с .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup collect -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
@@ -49,25 +49,25 @@ variables:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
     - echo "H002 passed"
-    - ./checkup -с .ci/test.yml --file ./resources/checks/F005_index_bloat.sh
-    - ./checkup -с .ci/test.yml --file ./resources/checks/L001_table_sizes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/F005_index_bloat.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/L001_table_sizes.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && f005_indexes_size=$(cat ./artifacts/test/json_reports/$data_dir/F005_index_bloat.json | jq '.results .postgres .data .index_bloat_total .real_size_bytes_sum') && echo $f005_indexes_size
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && l001_indexes_size=$(cat ./artifacts/test/json_reports/$data_dir/L001_table_sizes.json | jq '.results .postgres .data .tables_data_total .indexes_size_bytes_sum') && echo $l001_indexes_size
     - diff=$((f005_indexes_size - l001_indexes_size)) && diff=${diff#-} && echo $diff && ratio=$((diff * 100 / l001_indexes_size)) && echo $ratio && ([[ $ratio -gt "5" ]]) && exit 303
     - echo "F005/L001 Total indexes size passed"
-    - ./checkup -с .ci/test.yml --file ./resources/checks/F004_heap_bloat.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/F004_heap_bloat.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && msg=$(grep "can be reduced 0.00 times" ./artifacts/test/md_reports/$data_dir/F004.md) && [[ ! -z "$msg" ]] && exit 304
     - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
     # Check small indexes
     - .ci/prepare_test_db.sh postgres
-    - ./checkup -с .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
     ## unused
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 209
     ## redundant
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 210
     - echo "Check small indexes in small db mode passed"
     - .ci/prepare_large_db.sh postgres
-    - ./checkup -с .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
     ## unused
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 211
     ## redundant
