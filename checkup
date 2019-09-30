@@ -873,12 +873,13 @@ check_bin_deps() {
 glue_md_reports() {
   # final report path and name
   local out_fname="${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}"
+  local database=$(jq '.last_check.database' ${PROJECT_DIR}/nodes.json)
 
   # do not re-generate full report if '--file' is given
   [[ "${FILE}" != "None" ]] && return 0
 
   # make header
-  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${DBNAME}'" > "${out_fname}"
+  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${database}'" > "${out_fname}"
   echo "## Epoch number: '${EPOCH}'" >> "${out_fname}"
   echo "NOTICE: while most reports describe the “current database”, some of them may contain cluster-wide information describing all databases in the cluster." >> "${out_fname}"
   echo >> "${out_fname}"
@@ -1095,8 +1096,9 @@ update_nodes_json() {
      --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg dir "${SHORT_DIR_NAME}" \
      --arg epoch "${EPOCH}" \
+     --arg database "${DBNAME}" \
      --arg role_change_detected_at "${role_changed_at}" \
-     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir, database: $database }' \
      "${input_json_fname}" \
      > "${result_fname_tmp}"
   mv "${result_fname_tmp}" "${result_fname}"
