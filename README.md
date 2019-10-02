@@ -173,7 +173,7 @@ with option `--ssh-port`.
 accept connections can be defined with option `--pg-port`
 
 In case when `--pg-port` or `--ssh-port` not defined but `--port` defined,  value of `--port` option
-will be used instead `--pg-port` or `--ssh-port` in depend of current connection type.
+will be used instead of `--pg-port` or `--ssh-port` depending on the current connection type.
 
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
 
