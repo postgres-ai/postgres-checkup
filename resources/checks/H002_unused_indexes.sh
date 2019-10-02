@@ -114,7 +114,7 @@ never_used_indexes as (
 
 ), never_used_indexes_json as (
   select
-    json_object_agg(nuin.schema_name || '.' || nuin.index_name, nuin) as json
+    json_object_agg(coalesce(nuin.schema_name, 'public') || '.' || nuin.index_name, nuin) as json
   from never_used_indexes_num nuin
 ),
 -- Rarely used indexes
@@ -163,7 +163,7 @@ rarely_used_indexes as (
   from rarely_used_indexes
 ), rarely_used_indexes_json as (
   select
-    json_object_agg(ruin.schema_name || '.' || ruin.index_name, ruin) as json
+    json_object_agg(coalesce(ruin.schema_name, 'public') || '.' || ruin.index_name, ruin) as json
   from rarely_used_indexes_num ruin
 ),
 -- Redundant indexes
@@ -225,8 +225,8 @@ index_data as (
   left join fk_indexes fi on
     fi.fk_table_ref = ri.table_name
     and fi.opclasses like (ri.opclasses || '%')
-  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) =
-    substring(ri.index_def from position('USING' in ri.index_def) for length(ri.index_def))
+--  where substring(ri.main_index_def from position('USING' in ri.main_index_def) for length(ri.main_index_def)) =
+--    substring(ri.index_def from position('USING' in ri.index_def) for length(ri.index_def))
 ),
 -- Cut recursive links
 redundant_indexes_tmp_num as (
@@ -290,7 +290,7 @@ redundant_indexes_tmp_num as (
   from redundant_indexes_grouped rig
 ), redundant_indexes_json as (
   select
-    json_object_agg(rin.schema_name || '.' || rin.index_name, rin) as json
+    json_object_agg(coalesce(rin.schema_name, 'public') || '.' || rin.index_name, rin) as json
   from redundant_indexes_num rin
 ), redundant_indexes_total as (
     select
