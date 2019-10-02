@@ -2,8 +2,8 @@ package a002
 
 // Analysis of Postgres major version
 const MSG_UNKNOWN_VERSION_CONCLUSION string = "[P1] PostgreSQL major version `%s` is unknown (on `%s`). " +
-    "It means that PostgreSQL Global Development Group does not support your PostgreSQL version. " +
-    "In case of bugs and security issues you are on your own.  \n" // NikolayS: very rare; most likely it's a devel version.
+	"It means that PostgreSQL Global Development Group does not support your PostgreSQL version. " +
+	"In case of bugs and security issues you are on your own.  \n" // NikolayS: very rare; most likely it's a devel version.
 const MSG_UNKNOWN_VERSION_RECOMMENDATION string = "[P1] On `%s`, consider using one of supported major versions.  \n"
 const MSG_NOT_SUPPORTED_VERSION_CONCLUSION string = "[P1] Postgres major version being used is `%s` and it is " +
 	"NOT supported by PostgreSQL Global Development Group. The support has ended: `%s`. This is a major issue. New bugs and security " +
@@ -20,14 +20,15 @@ const MSG_SUPPORTED_VERSION_CONCLUSION string = "Postgres major version being us
 	"of bugs and security issues, updates (new minor versions) with fixes will be released and available for use." +
 	" Read more: [Versioning Policy](https://www.postgresql.org/support/versioning/).  \n"
 const MSG_NOT_LAST_MAJOR_VERSION_CONCLUSION string = "[P3] Consider upgrading to the newest major version: %.0f. " +
-    "It has a lot of new features and improvements.  \n"
+	"It has a lot of new features and improvements.  \n"
 
 // Analysis of minor version
 const MSG_LAST_MINOR_VERSION_CONCLUSION string = "`%s` is the most up-to-date Postgres minor version in the branch `%s`.  \n"
+const MSG_SEE_CHANGES_BETWEEN_VER string = "[between %s and %s](https://why-upgrade.depesz.com/show?from=%s&to=%s)"
 const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_1 string = "[P2] The minor version being used (`%s`) is not up-to-date " +
-    "(the newest version: `%s`). See [the full list of changes between %s and %s](https://why-upgrade.depesz.com/show?from=%s&to=%s).  \n"
+	"(the newest version: `%s`). See the full list of changes %s.  \n"
 const MSG_NOT_LAST_MINOR_VERSION_CONCLUSION_N string = "[P2] The minor versions being used (`%s`) are not up-to-date " +
-    "(the newest version: `%s`). See [the full list of changes between %s and %s](https://why-upgrade.depesz.com/show?from=%s&to=%s).  \n"
+	"(the newest version: `%s`). See the full list of changes %s.  \n"
 const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_1 string = "[P2] Postgres minor version on the master and replica(s) differ. Node `%s` uses Postgres `%s`.  \n"
 const MSG_NOT_ALL_VERSIONS_SAME_CONCLUSION_N string = "[P2] Postgres minor version on the master and replica(s) differ. Nodes `%s` use Postgres `%s`.  \n"
 const MSG_NOT_ALL_VERSIONS_SAME_RECOMMENDATION string = "[P2] Please upgrade Postgres so its versions on all nodes match.  \n"
