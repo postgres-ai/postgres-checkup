@@ -926,13 +926,6 @@ glue_md_reports() {
   echo -e "$tableOfContents" >> "${out_fname}"
   echo -e "$summaryTable\n\n" >> "${out_fname}"
   echo -e "$content" >> "${out_fname}"
-
-  if [[ "$PDF" == "true" ]]; then
-    ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
-  fi
-  if [[ "$HTML" == "true" ]]; then
-    ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
-  fi
 }
 
 #######################################
