@@ -82,19 +82,19 @@ func TestL003P1_N(t *testing.T) {
 	var hostResult L003ReportHostResult = L003ReportHostResult{
 		Data: L003ReportHostResultData{
 			Tables: map[string]L003Table{
-				"test_schema.orders": L003Table{
-					Table:               "test_schema.orders",
-					Pk:                  "id",
-					Type:                "int4",
-					CurrentMaxValue:     80000000,
-					CapacityUsedPercent: 37.25,
-				},
 				"test_schema.orders_A": L003Table{
 					Table:               "test_schema.orders_A",
 					Pk:                  "id",
 					Type:                "int4",
 					CurrentMaxValue:     300000000,
 					CapacityUsedPercent: 13.97,
+				},
+				"test_schema.ordersB": L003Table{
+					Table:               "test_schema.orders_B",
+					Pk:                  "id",
+					Type:                "int4",
+					CurrentMaxValue:     80000000,
+					CapacityUsedPercent: 37.25,
 				},
 			},
 			MinTableSizeBytes: 0,
