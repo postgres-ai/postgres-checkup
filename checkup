@@ -890,7 +890,7 @@ glue_md_reports() {
 
   tableOfContents=""
   content=""
-  summaryTable="\n---\n### Issues found ###\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
+  summaryTable="\n---\n### Issues found ###\n\nThe empty lines represent reports for which Conclusions and Recommendations are not yet implemented.\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
   echo "" >> "${out_fname}"
   echo "<a name=\"postgres-checkup_top\">&nbsp;</a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
