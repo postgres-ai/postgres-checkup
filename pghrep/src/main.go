@@ -109,7 +109,7 @@ func LoadJsonFile(filePath string) map[string]interface{} {
 	if FileExists(filePath) {
 		fileContent, err := ioutil.ReadFile(GetFilePath(filePath)) // just pass the file name
 		if err != nil {
-			log.Err("Can't read file: ", filePath, err)
+			log.Err("Can't read file:", filePath, err)
 			return nil
 		}
 
@@ -191,7 +191,7 @@ func getRawData(data map[string]interface{}) {
 	// for every host get data
 	var rawData []interface{}
 	hosts := pyraconv.ToInterfaceMap(data["hosts"])
-	log.Dbg("Data hosts: ", hosts)
+	log.Dbg("Data hosts:", hosts)
 	results := pyraconv.ToInterfaceMap(data["results"])
 	masterName := pyraconv.ToString(hosts["master"])
 	masterResults := pyraconv.ToInterfaceMap(results[masterName])
@@ -300,7 +300,7 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
 	reporTpl := templates.Lookup(reportFileName)
 	data := reportData
 	if reporTpl == nil {
-		log.Err("Template " + checkId + ".tpl not found.")
+		log.Err("Template " + checkId + ".tpl not found")
 		getRawData(data)
 		reportFileName = "raw.tpl"
 		reporTpl = templates.Lookup(reportFileName)
@@ -415,6 +415,7 @@ func main() {
 	projectDataPtr := flag.String("project", "", "target project used during uploading")
 	pathDataPtr := flag.String("path", "", "path to artifacts directory used during uploading")
 	apiUrlDataPtr := flag.String("apiurl", "", "API URL for reports uploading")
+
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -431,27 +432,24 @@ func main() {
 		log.DEBUG = false
 	}
 
-	if *modeDataPtr == "upload" {
+	switch *modeDataPtr {
+	case "upload":
 		token := *tokenDataPtr
 		project := *projectDataPtr
 		path := *pathDataPtr
 		apiUrl := *apiUrlDataPtr
 
 		if len(token) == 0 {
-			log.Err("Token is not defined")
-			return
+			log.Fatal("Token is not defined")
 		}
 		if len(apiUrl) == 0 {
-			log.Err("API URL is not defined")
-			return
+			log.Fatal("API URL is not defined")
 		}
 		if len(project) == 0 {
-			log.Err("Project (for reports uploading) is not defined")
-			return
+			log.Fatal("Project (for reports uploading) is not defined")
 		}
 		if len(path) == 0 {
-			log.Err("Artifacts directory is not defined")
-			return
+			log.Fatal("Artifacts directory is not defined")
 		}
 
 		err := upload.UploadReport(apiUrl, token, project, path)
@@ -461,27 +459,46 @@ func main() {
 		}
 
 		return
+	case "loadcfg":
+		path := *pathDataPtr
+		if len(path) == 0 {
+			log.Fatal("Config path is not defined")
+		}
+
+		config, err := loadConfig(path)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Cannot load config. %s", err))
+			os.Exit(1)
+		}
+
+		if len(config) == 0 {
+			log.Fatal(fmt.Sprintf("Config '%s' is empty", path))
+		}
+
+		outputConfig(config)
+
+		return
 	}
 
 	if FileExists(checkData) {
 		resultData = LoadJsonFile(checkData)
 
 		if resultData == nil {
-			log.Fatal("ERROR: File given by --checkdata content wrong json data.")
+			log.Fatal("File given by --checkdata content wrong json data")
 			return
 		}
 
 		resultData["source_path_full"] = checkData
 		resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
 	} else {
-		log.Err("ERROR: File given by --checkdata not found")
+		log.Err("File given by --checkdata not found")
 		return
 	}
 
 	if resultData != nil {
 		checkId = pyraconv.ToString(resultData["checkId"])
 	} else {
-		log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
+		log.Fatal("Content defined by '--checkdata' is invalid JSON")
 	}
 
 	checkId = strings.ToUpper(checkId)
@@ -490,7 +507,7 @@ func main() {
 
 	err := reorderHosts(resultData)
 	if err != nil {
-		log.Err("There is no data to generate the report.")
+		log.Err("There is no data to generate the report")
 	}
 
 	config := cfg.NewConfig()
@@ -511,13 +528,13 @@ func main() {
 
 	reportDone := generateMdReports(checkId, resultData, outputDir)
 	if !reportDone {
-		log.Fatal("Cannot generate report. Data file or template is wrong.")
+		log.Fatal("Cannot generate report. Data file or template is wrong")
 	}
 }
 
 func preprocessReportData(checkId string, config cfg.Config,
 	data map[string]interface{}) error {
-	switch checkId {
+	switch strings.ToUpper(checkId) {
 	case "A002":
 		// Try to load actual Postgres versions.
 		err := config.LoadVersions()
