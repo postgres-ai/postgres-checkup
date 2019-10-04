@@ -138,7 +138,7 @@ func TestF004Warnig(t *testing.T) {
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_3": F004HeapBloat{
-			Num:               2,
+			Num:               3,
 			IsNa:              "",
 			TableName:         "table_3",
 			ExtraSizeBytes:    3915776,
@@ -153,7 +153,7 @@ func TestF004Warnig(t *testing.T) {
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_4": F004HeapBloat{
-			Num:               2,
+			Num:               4,
 			IsNa:              "",
 			TableName:         "table_4",
 			ExtraSizeBytes:    3915776,
@@ -168,7 +168,7 @@ func TestF004Warnig(t *testing.T) {
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_5": F004HeapBloat{
-			Num:               2,
+			Num:               5,
 			IsNa:              "",
 			TableName:         "table_5",
 			ExtraSizeBytes:    3915776,
@@ -183,7 +183,7 @@ func TestF004Warnig(t *testing.T) {
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_6": F004HeapBloat{
-			Num:               2,
+			Num:               6,
 			IsNa:              "",
 			TableName:         "table_6",
 			ExtraSizeBytes:    3915776,
