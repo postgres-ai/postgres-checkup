@@ -48,6 +48,8 @@ variables:
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 206
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.ctnr_idx01"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 209
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.ctnr_idx04"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 210
     - echo "H002 passed"
     - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/F005_index_bloat.sh
     - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/L001_table_sizes.sh
@@ -62,16 +64,16 @@ variables:
     - .ci/prepare_test_db.sh postgres
     - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
     ## unused
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 209
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 210
     ## redundant
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 210
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 211
     - echo "Check small indexes in small db mode passed"
     - .ci/prepare_large_db.sh postgres
     - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
     ## unused
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 211
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 212
     ## redundant
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 212
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 213
     - echo "Check small indexes in large db mode passed"
 
 test-general:
