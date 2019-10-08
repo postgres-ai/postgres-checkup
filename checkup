@@ -193,10 +193,12 @@ load_config_params () {
   dbg "Load params from config file"
   config_filename=${1}
   if [[ ! -f "$config_filename" ]]; then
-    msg "Config filename ${config_filename} not found."
+    err "Config filename ${config_filename} not found."
     exit 1
   fi
-  source ${BASH_SOURCE%/*}/resources/parse_yaml.sh $config_filename "CONFIG_"
+
+  eval $(${PGHREP_BIN} --mode loadcfg --path $config_filename 2>/dev/null)
+
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     var_name="CONFIG__"${FULL_NAME[$i]}
     var_name=${var_name//-/_}
@@ -740,7 +742,7 @@ build_pghrep() {
   dbg "building pghrep..."
   local save_pwd="${PWD}"
   cd "${SCRIPT_DIR}/pghrep"
-  make install buildplugins main >/dev/null
+  make install main >/dev/null
   cd "${save_pwd}"
   export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
   dbg "done building pghrep"
@@ -888,7 +890,7 @@ glue_md_reports() {
 
   tableOfContents=""
   content=""
-  summaryTable="\n---\n### Issues found ###\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
+  summaryTable="\n---\n### Issues found ###\n\nThe empty lines represent reports for which Conclusions and Recommendations are not yet implemented.\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
   echo "" >> "${out_fname}"
   echo "<a name=\"postgres-checkup_top\">&nbsp;</a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
@@ -1357,6 +1359,7 @@ main() {
     mode="$1"
   fi
 
+  build_pghrep
   read_possible_args
   process_cli_args "$@"
   validate_args
@@ -1368,19 +1371,16 @@ main() {
       ;;
     "process" )
       check_bin_deps
-      build_pghrep
       run_process
       ;;
     "upload" )
       check_bin_deps
-      build_pghrep
       run_upload
       ;;
     "run" )
       host_pre_start_checks
       run_checks
       check_bin_deps
-      build_pghrep
       run_process
       ;;
   esac

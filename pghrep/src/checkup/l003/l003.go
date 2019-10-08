@@ -18,7 +18,9 @@ func L003Process(report L003Report) (checkup.ReportResult, error) {
 	var tables []string
 
 	for _, hostData := range report.Results {
-		for _, tableData := range hostData.Data.Tables {
+		sortedTables := checkup.SortItemsByFloat64(hostData.Data.Tables, "CapacityUsedPercent", true)
+		for _, table := range sortedTables {
+			tableData := hostData.Data.Tables[table]
 			if tableData.CapacityUsedPercent <= MAX_RATIO_PERCENT {
 				continue
 			}

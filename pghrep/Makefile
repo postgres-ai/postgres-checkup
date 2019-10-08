@@ -23,17 +23,12 @@ LDFLAGS = -ldflags "-s -w \
 PLUGINS_SRC := $(wildcard plugins/*.go)
 
 # Build the project
-all: clean install vet buildplugins main
+all: clean install vet main
 
 install:
 	go get golang.org/x/net/html
 	go get github.com/dustin/go-humanize
 	go get gopkg.in/yaml.v2
-
-buildplugins:
-	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
-		go build ${LDFLAGS} -buildmode=plugin -o bin/$$f.so ./plugins/$$f.go ; \
-	done
 
 main:
 	GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./src/
@@ -44,11 +39,6 @@ test:
 	go test ./src/checkup/*/
 
 vet:
-	# Command go vet examine all go files in a single scope, which isn't suitable for plugins.
-	# We will run it separately for plugins and main sources.
-	@for f in $(basename $(patsubst plugins/%.go,%,$(PLUGINS_SRC))); do \
-		go vet ./plugins/$$f.go || exit 1 ; \
-	done
 	go vet ./src/...
 
 fmt:
@@ -60,5 +50,5 @@ clean:
 run:
 	go run ${LDFLAGS} ./src/*
 
-.PHONY: all buildplugins main test vet fmt clean run
+.PHONY: all main test vet fmt clean run
 
