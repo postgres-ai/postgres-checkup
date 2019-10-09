@@ -875,12 +875,8 @@ check_bin_deps() {
 glue_md_reports() {
   # final report path and name
   local out_fname="${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}"
-  local epoch=$(jq '.last_check.epoch' ${PROJECT_DIR}/nodes.json)
-  local database=$(jq '.last_check.database' ${PROJECT_DIR}/nodes.json)
-  database="${database/\"/}"
-  database="${database/\"/}"
-  epoch="${epoch/\"/}"
-  epoch="${epoch/\"/}"
+  local epoch=$(jq -r '.last_check.epoch' ${PROJECT_DIR}/nodes.json)
+  local database=$(jq -r '.last_check.database' ${PROJECT_DIR}/nodes.json)
 
   # do not re-generate full report if '--file' is given
   [[ "${FILE}" != "None" ]] && return 0
