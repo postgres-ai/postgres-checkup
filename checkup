@@ -980,6 +980,29 @@ host_pre_start_checks() {
 }
 
 #######################################
+# Prepare to create new 'nodes.json' in the project dir
+# Fill/update hostname, role, internal alias
+# Start/update 'epoch' of the check
+# Globals:
+#   PROJECT_DIR,
+#   ALIAS_NAME, ALIAS_INDEX, ROLE, JSON_REPORTS_DIR
+#   TIMESTAMP_DIR, SHORT_DIR_NAME,
+#   MD_REPORTS_DIR
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+init_nodes_json() {
+    ALIAS_NAME="node1"
+    ALIAS_INDEX="1"
+    prev_role="${ROLE}"
+    JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${EPOCH}_${TIMESTAMP_DIR}"
+    MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
+    SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
+}
+
+#######################################
 # Update/create 'nodes.json' in the project dir
 # Fill/update hostname, role, internal alias
 # Start/update 'epoch' of the check
@@ -1012,12 +1035,7 @@ update_nodes_json() {
 
   # if file 'nodes.json' does not exist generate alias for a first host
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
-    ALIAS_NAME="node1"
-    ALIAS_INDEX="1"
-    prev_role="${ROLE}"
-    JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${EPOCH}_${TIMESTAMP_DIR}"
-    MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${EPOCH}_${TIMESTAMP_DIR}"
-    SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
+    init_nodes_json;
 
     local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
 
@@ -1032,34 +1050,44 @@ update_nodes_json() {
       exit 1
     fi
 
-    # read current nodes.json
-    ALIAS_NAME=$(jq -r '.hosts.'\"${HOST}\"'.internal_alias' "${PROJECT_DIR}/nodes.json")
-
-    # mark host as new if we can't find alias by path with HOST
-    if [[ "${ALIAS_NAME}" = "null" ]]; then
-      host_is_new="true"
-      dbg "host '${HOST}' is a new host"
-    fi
-
-    ALIAS_INDEX=$(jq -r '.hosts.'\"${HOST}\"'.index' "${PROJECT_DIR}/nodes.json")
-    prev_role=$(jq -r '.hosts.'\"${HOST}\"'.role' "${PROJECT_DIR}/nodes.json")
     prev_epoch=$(jq -r '.last_check.epoch' "${PROJECT_DIR}/nodes.json")
+    prev_timestamp_dirname=$(jq -r '.last_check.dir' "${PROJECT_DIR}/nodes.json")
+    if [[ "${prev_epoch}" != "${EPOCH}" ]]; then
+      # New epoch
+      # Backup nodes.json and remove
+      mv "${PROJECT_DIR}/nodes.json" "${PROJECT_DIR}/${prev_timestamp_dirname}_nodes.json"
+      init_nodes_json;
 
-    # create a new epoch dirs or use existing
-    if test -d "${PROJECT_DIR}/json_reports/${EPOCH}"_*/../; then
-      SHORT_DIR_NAME=$(find "${PROJECT_DIR}/json_reports/" -type d -name ${EPOCH}_*)
-      SHORT_DIR_NAME=$(basename "${SHORT_DIR_NAME}")
-      JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
-
-      MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
+      local input_json_fname="${SCRIPT_DIR}/resources/templates/nodes.json"
     else
-      SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
-      JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+      # read current nodes.json
+      ALIAS_NAME=$(jq -r '.hosts.'\"${HOST}\"'.internal_alias' "${PROJECT_DIR}/nodes.json")
 
-      MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
+      # mark host as new if we can't find alias by path with HOST
+      if [[ "${ALIAS_NAME}" = "null" ]]; then
+        host_is_new="true"
+        dbg "host '${HOST}' is a new host"
+      fi
+
+      ALIAS_INDEX=$(jq -r '.hosts.'\"${HOST}\"'.index' "${PROJECT_DIR}/nodes.json")
+      prev_role=$(jq -r '.hosts.'\"${HOST}\"'.role' "${PROJECT_DIR}/nodes.json")
+
+      # create a new epoch dirs or use existing
+      if test -d "${PROJECT_DIR}/json_reports/${EPOCH}"_*/../; then
+        SHORT_DIR_NAME=$(find "${PROJECT_DIR}/json_reports/" -type d -name ${EPOCH}_*)
+        SHORT_DIR_NAME=$(basename "${SHORT_DIR_NAME}")
+        JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+
+        MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
+      else
+        SHORT_DIR_NAME="${EPOCH}_${TIMESTAMP_DIR}"
+        JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${SHORT_DIR_NAME}"
+
+        MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${SHORT_DIR_NAME}"
+      fi
+
+      local input_json_fname="${PROJECT_DIR}/nodes.json"
     fi
-
-    local input_json_fname="${PROJECT_DIR}/nodes.json"
   fi
 
   export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR_NAME
