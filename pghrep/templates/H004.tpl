@@ -6,7 +6,7 @@ Current database: {{ .database }}
 {{if (index .results .reorderedHosts.master)}}
 {{- if (index (index .results .reorderedHosts.master) "data") }}
 Stats reset: {{ (index (index (index .results .reorderedHosts.master) "data") "database_stat").stats_age }} ago ({{ DtFormat (index (index (index .results .reorderedHosts.master) "data") "database_stat").stats_reset }})  
-{{- if le (Int (index (index (index .results .reorderedHosts.master) "data") "database_stat").days) 30 }}
+{{ if le (Int (index (index (index .results .reorderedHosts.master) "data") "database_stat").days) 30 }}
 :warning: Statistics age is less than 30 days. Make decisions on index cleanup with caution!
 {{- end }}  
 {{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes")) 0 }}NOTICE: only indexes larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_index_size_bytes") 0 }} are analyzed.  {{end}}
