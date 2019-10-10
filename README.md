@@ -364,8 +364,9 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 ## H. Index Analysis
 
 - [x] H001 Invalid indexes #192, #51
-- [x] H002 Unused and redundant indexes #51, #180, #170, #168, #322
+- [x] H002 Unused indexes #51, #180, #170, #168, #322
 - [x] H003 Non-indexed foreign keys #52, #142, #173
+- [x] H004 Redundant indexes #460
 
 ## J.  Capacity Planning
 
