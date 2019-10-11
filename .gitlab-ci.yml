@@ -59,7 +59,7 @@ variables:
     - echo "F005/L001 Total indexes size passed"
     - ./checkup -c .ci/test.yml --file ./resources/checks/F004_heap_bloat.sh
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && msg=$(grep "can be reduced 0.00 times" ./artifacts/test/md_reports/$data_dir/F004.md) && [[ ! -z "$msg" ]] && exit 304
-    - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
+    #- ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
     # Check small indexes
     - .ci/prepare_test_db.sh postgres
     - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
