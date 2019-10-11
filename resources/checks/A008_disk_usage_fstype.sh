@@ -20,15 +20,22 @@ PG_STATS_TEMP_DIR=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
 EOF
 )
 
-PG_LOG_DIR=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
-  show log_directory
+log_destination=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+  show log_destination
 EOF
 )
 
-# process relative paths
-if ! [[ "${PG_LOG_DIR}" =~ ^/ ]]; then
-  PG_LOG_DIR="${PG_DATA_DIR}/${PG_LOG_DIR}"
+if [[ "$log_destination" != "syslog" ]]; then
+  PG_LOG_DIR=$(${CHECK_HOST_CMD} "${_PSQL} -f -" <<EOF
+  show log_directory
+EOF
+)
+  # process relative paths
+  if ! [[ "${PG_LOG_DIR}" =~ ^/ ]]; then
+    PG_LOG_DIR="${PG_DATA_DIR}/${PG_LOG_DIR}"
+  fi
 fi
+
 if ! [[ "${PG_STATS_TEMP_DIR}" =~ ^/ ]]; then
   PG_STATS_TEMP_DIR="${PG_DATA_DIR}/${PG_STATS_TEMP_DIR}"
 fi
