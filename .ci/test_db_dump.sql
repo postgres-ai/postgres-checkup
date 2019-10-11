@@ -19,6 +19,17 @@ create index concurrently i_unused on t_with_unused_index(i);
 create table t_with_redundant_index as select i from generate_series(1, 1000000) _(i);
 create index concurrently i_redundant_1 on t_with_redundant_index(i);
 create index concurrently i_redundant_2 on t_with_redundant_index(i);
+
+-- redundant for functional and uniq keys
+create table ctnr as select id, id as pnum, id as m_id, id as type_id, id as b, id as todel from generate_series(1, 1000000) _(id);
+alter table ctnr add primary key (id);
+alter table ctnr add constraint ctnr_uk01 unique (pnum, m_id);
+create index ctnr_idx01 on ctnr using btree(pnum);
+create index ctnr_idx02 on ctnr using btree(type_id);
+create index ctnr_idx03 on ctnr using btree(b);
+create index ctnr_idx04 on ctnr using btree(b) where pnum > 0;
+create index ctnr_idx06 on ctnr using btree(todel);
+
 -- redundant for uniq, primary keys
 create table t_with_redundant_idx as select id, id as f1, id as f2, id as f3, id as f4 from generate_series(1, 1000000) _(id);
 alter table t_with_redundant_idx add primary key (id);

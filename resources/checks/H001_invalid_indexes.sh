@@ -58,7 +58,7 @@ with fk_indexes as (
   from data
 ), data_json as (
   select
-    json_object_agg(d.schema_name || '.' || d.index_name, d) as json
+    json_object_agg(coalesce(d.schema_name, 'public') || '.' || d.index_name, d) as json
   from num_data d
 )
 select
