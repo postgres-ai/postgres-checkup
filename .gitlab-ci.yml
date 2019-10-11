@@ -63,6 +63,7 @@ variables:
     # Check small indexes
     - .ci/prepare_test_db.sh postgres
     - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H004_redundant_indexes.sh
     ## unused
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 210
     ## redundant
@@ -70,6 +71,7 @@ variables:
     - echo "Check small indexes in small db mode passed"
     - .ci/prepare_large_db.sh postgres
     - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H004_redundant_indexes.sh
     ## unused
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 212
     ## redundant
