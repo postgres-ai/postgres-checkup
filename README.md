@@ -164,15 +164,15 @@ For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.
 
-Also you can define specific way to connect SSH or `psql` as follow:
+Also, you can define a specific way to connect: SSH or `psql`:
 
-`--ssh-hostname db2.vpn.local` means use only SSH for connection. SSH port can be define as well
+`--ssh-hostname db2.vpn.local`  - SSH will be used for the connection. SSH port can be defined as well
 with option `--ssh-port`.
 
-`--pg-hostname db2.vpn.local` means use only `psql` for connection. The port where PostgreSQL
-accept connections can be defined with option `--pg-port`
+`--pg-hostname db2.vpn.local` - `psql` will be used for connection. The port where PostgreSQL
+accepts connections can be defined with the option `--pg-port`
 
-In case when `--pg-port` or `--ssh-port` not defined but `--port` defined,  value of `--port` option
+In case when `--pg-port` or `--ssh-port` are not defined but `--port` is defined, value of `--port` option
 will be used instead of `--pg-port` or `--ssh-port` depending on the current connection type.
 
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).

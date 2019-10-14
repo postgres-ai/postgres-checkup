@@ -528,6 +528,32 @@ validate_args() {
         OPTIONS_ERROR_EXIT=true
   fi
 
+  local hosts=0
+  [[ "$SSHHOST" != "None" ]] && hosts=$((hosts + 1))
+  [[ "$PGHOST" != "None" ]] && hosts=$((hosts + 1))
+  [[ "$HOST" != "None" ]] && hosts=$((hosts + 1))
+
+  if [[ $hosts -gt 1 ]]; then
+    buf="$buf
+  only one of options '--hostname', '--ssh-hostname' or '--pg-hostname' must be set"
+    need_fail_exit=true
+    OPTIONS_ERROR_EXIT=true
+  fi
+
+  if [[ "$PGPORT" != "None" ]] && ([[ "$SSHHOST" != "None" ]] || [[ "$HOST" != "None" ]]) ; then
+    buf="$buf
+  '--pg-port' must be set only with '--pg-hostname'"
+    need_fail_exit=true
+    OPTIONS_ERROR_EXIT=true
+  fi
+
+  if [[ "$SSHPORT" != "None" ]] && ([[ "$PGHOST" != "None" ]] || [[ "$HOST" != "None" ]]) ; then
+    buf="$buf
+  '--ssh-port' must be set only with '--ssh-hostname'"
+    need_fail_exit=true
+    OPTIONS_ERROR_EXIT=true
+  fi
+
   if [[ "$need_fail_exit" = "true" ]]; then
     usage "$buf" "1"
   fi
@@ -732,7 +758,7 @@ is_in_recovery() {
     dbg "host $HOST is 'standby'"
     return 0
   else
-    msg "ERROR: Cannot connect to the host: ${HOST}."
+    msg "ERROR: Cannot connect to the host: ${HOST}"
     exit 1
   fi
   return 13
@@ -1028,7 +1054,7 @@ configure_psql_connection() {
     true
   else
     # use TCP for psql
-    export _PSQL="PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${HOST}"
+    export _PSQL="PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${hostname}"
     export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${hostname}"
   fi
 
@@ -1046,6 +1072,9 @@ configure_psql_connection() {
 #   Integer
 #######################################
 host_pre_start_checks() {
+echo "PG: $PGHOST  $PGPORT"
+echo "SSH: $SSHHOST  $SSHPORT"
+
   if [[ "$SSHHOST" != "None" ]]; then
     # ssh mode
     if configure_ssh_connection $SSHHOST; then
@@ -1053,7 +1082,7 @@ host_pre_start_checks() {
       export HOST=$SSHHOST
     else
       msg "Connection type: SSH ($SSHHOST:$SSHPORT)"
-      msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH."
+      msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH"
       exit 1
     fi
   elif [[ "$PGHOST" != "None" ]]; then
@@ -1067,7 +1096,7 @@ host_pre_start_checks() {
     if configure_ssh_connection $HOST; then
       msg "Connection type: SSH ($HOST:$SSHPORT)"
     else
-      msg "Cannot connect to the host: ${HOST}:${SSHPORT} via SSH."
+      msg "Cannot connect to the host: ${HOST}:${SSHPORT} via SSH"
       configure_psql_connection $HOST;
       msg "Connection type: psql ($HOST:$PGPORT)"
     fi
