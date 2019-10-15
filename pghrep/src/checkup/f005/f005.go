@@ -3,10 +3,12 @@ package f005
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	checkup ".."
 	"../../fmtutils"
+	"../f004"
 	"github.com/dustin/go-humanize/english"
 )
 
@@ -32,12 +34,14 @@ func appendIndex(list []string, indexBloatData F005IndexBloat) []string {
 }
 
 // Generate conclusions and recommendatons
-func F005Process(report F005Report) checkup.ReportResult {
+func F005Process(report F005Report, bloatedTables []string) checkup.ReportResult {
 	var result checkup.ReportResult
 	// check total values
 	var top5Indexes []string
 	var criticalIndexes []string
 	var warningIndexes []string
+	var bloatedIndexes []string
+	var bloatedTableIndexes []string
 	totalBloatIsCritical := false
 	var totalData F005IndexBloatTotal
 	var databaseSize int64
@@ -53,18 +57,26 @@ func F005Process(report F005Report) checkup.ReportResult {
 		for _, index := range sortedIndexes {
 			indexBloatData := hostData.Data.IndexBloat[index]
 			if totalBloatIsCritical && indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && i < 5 &&
-        (indexBloatData.BloatRatioFactor > 0) {
+				(indexBloatData.BloatRatioFactor > 0) {
 				top5Indexes = appendIndex(top5Indexes, indexBloatData)
 				i++
 			}
 			if indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && indexBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO &&
-        (indexBloatData.BloatRatioFactor > 0) {
+				(indexBloatData.BloatRatioFactor > 0) {
 				criticalIndexes = appendIndex(criticalIndexes, indexBloatData)
 			}
 			if (indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
 				(indexBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) && (indexBloatData.BloatRatioFactor > 0) {
 				warningIndexes = appendIndex(warningIndexes, indexBloatData)
 			}
+			if (indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) {
+				if ok, _ := checkup.StringInArray(indexBloatData.TableName, bloatedTables); ok {
+					bloatedTableIndexes = append(bloatedTableIndexes, "`"+indexBloatData.IndexName+"`")
+				} else {
+					bloatedIndexes = append(bloatedIndexes, "`"+indexBloatData.IndexName+"`")
+				}
+			}
+
 		}
 	}
 	if totalBloatIsCritical {
@@ -101,6 +113,12 @@ func F005Process(report F005Report) checkup.ReportResult {
 		}
 		result.P2 = true
 	}
+	if len(bloatedIndexes) > 0 {
+		result.AppendRecommendation(F005_BLOAT_WARNING, MSG_BLOAT_WARNING_RECOMMENDATION_INDEXES, WARNING_BLOAT_RATIO, english.WordSeries(bloatedIndexes, "and"))
+	}
+	if len(bloatedIndexes) > 0 {
+		result.AppendRecommendation(F005_BLOAT_WARNING, MSG_BLOAT_WARNING_RECOMMENDATION_TABLE_INDEXES, WARNING_BLOAT_RATIO, english.WordSeries(bloatedTableIndexes, "and"))
+	}
 	if len(result.Recommendations) > 0 {
 		result.AppendRecommendation(F005_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_1)
 		result.AppendRecommendation(F005_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_2)
@@ -118,6 +136,16 @@ func F005PreprocessReportData(data map[string]interface{}) {
 	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
 		return
 	}
-	result := F005Process(report)
+
+	i := strings.LastIndex(filePath, string(os.PathSeparator))
+	path := filePath[:i+1]
+	f004FilePath := path + string(os.PathSeparator) + "F004_heap_bloat.json"
+	f004Report, err := f004.F004LoadReportData(f004FilePath)
+	var bloatedTables []string
+	if err == nil {
+		bloatedTables = f004.F004GetBloatedTables(f004Report)
+	}
+
+	result := F005Process(report, bloatedTables)
 	checkup.SaveReportResult(data, result)
 }

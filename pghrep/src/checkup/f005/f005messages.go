@@ -37,3 +37,6 @@ const MSG_BLOAT_WARNING_CONCLUSION_N string = "[P2] There are %d indexes with si
 const MSG_BLOAT_CRITICAL_CONCLUSION_N string = "[P1] The following %d indexes have significant size (>1 MiB) and bloat estimate > %.2f%%:  \n%s  \n"
 
 const INDEX_DETAILS string = "    - `%s`: size %s, can be reduced %.2f times, by ~%s (~%.2f%%)\n"
+
+const MSG_BLOAT_WARNING_RECOMMENDATION_INDEXES string = "The following indexes have estimated bloat > %.2f%%: %s. Use this list to reduce the bloat applying one of the approaches described below."
+const MSG_BLOAT_WARNING_RECOMMENDATION_TABLE_INDEXES string = "And these indexes also have estimated bloat > %.2f%%: %s. But they belong to the highly bloated tables, so if you plan to process those tables you may not need to use this additional list."
