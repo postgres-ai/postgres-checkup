@@ -13,6 +13,7 @@ import (
 const F004_TOTAL_BLOAT_EXCESS string = "F004_TOTAL_BLOAT_EXCESS"
 const F004_TOTAL_BLOAT_LOW string = "F004_TOTAL_BLOAT_LOW"
 const F004_BLOAT_CRITICAL string = "F004_BLOAT_CRITICAL"
+const F004_BLOATED_TABLES string = "F004_BLOATED_TABLES"
 const F004_BLOAT_WARNING string = "F004_BLOAT_WARNING"
 const F004_BLOAT_INFO string = "F004_BLOAT_INFO"
 const F004_GENERAL_INFO string = "F004_GENERAL_INFO"
@@ -92,7 +93,7 @@ func F004Process(report F004Report) checkup.ReportResult {
 		result.P2 = true
 	}
 	if len(bloatedTables) > 0 {
-		result.AppendRecommendation(F004_BLOAT_WARNING, MSG_BLOAT_WARNING_RECOMMENDATION_TABLES, WARNING_BLOAT_RATIO, english.WordSeries(bloatedTables, "and"))
+		result.AppendRecommendation(F004_BLOATED_TABLES, MSG_BLOAT_WARNING_RECOMMENDATION_TABLES, WARNING_BLOAT_RATIO, strings.Join(bloatedTables, ", "))
 	}
 	if len(result.Recommendations) > 0 {
 		result.AppendRecommendation(F004_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_1)

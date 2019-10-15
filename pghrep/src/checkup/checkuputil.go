@@ -321,7 +321,7 @@ func GetItemsSortedByNum(data interface{}) []string {
 	return SortItemsByInt(data, "Num", false)
 }
 
-// Check if exists string in array and return index
+// Check if the string exists in the array. If it is so, return its index
 func StringInArray(val string, array []string) (exists bool, index int) {
 	exists = false
 	index = -1

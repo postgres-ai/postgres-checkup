@@ -20,6 +20,8 @@ const F005_BLOAT_CRITICAL_INFO string = "F005_BLOAT_CRITICAL_INFO"
 const F005_BLOAT_INFO string = "F005_BLOAT_INFO"
 const F005_GENERAL_INFO string = "F005_GENERAL_INFO"
 const F005_BLOAT_EXCESS_INFO string = "F005_BLOAT_EXCESS_INFO"
+const F005_BLOATED_INDEXES string = "F005_BLOATED_INDEXES"
+const F005_BLOATED_TABLE_INDEXES string = "F005_BLOATED_TABLE_INDEXES"
 
 const WARNING_BLOAT_RATIO float32 = 40.0
 const CRITICAL_BLOAT_RATIO float32 = 90.0
@@ -114,10 +116,12 @@ func F005Process(report F005Report, bloatedTables []string) checkup.ReportResult
 		result.P2 = true
 	}
 	if len(bloatedIndexes) > 0 {
-		result.AppendRecommendation(F005_BLOAT_WARNING, MSG_BLOAT_WARNING_RECOMMENDATION_INDEXES, WARNING_BLOAT_RATIO, english.WordSeries(bloatedIndexes, "and"))
+		result.AppendRecommendation(F005_BLOATED_INDEXES, MSG_BLOAT_WARNING_RECOMMENDATION_INDEXES, WARNING_BLOAT_RATIO,
+			strings.Join(bloatedIndexes, ", "))
 	}
-	if len(bloatedIndexes) > 0 {
-		result.AppendRecommendation(F005_BLOAT_WARNING, MSG_BLOAT_WARNING_RECOMMENDATION_TABLE_INDEXES, WARNING_BLOAT_RATIO, english.WordSeries(bloatedTableIndexes, "and"))
+	if len(bloatedTableIndexes) > 0 {
+		result.AppendRecommendation(F005_BLOATED_TABLE_INDEXES, MSG_BLOAT_WARNING_RECOMMENDATION_TABLE_INDEXES,
+			WARNING_BLOAT_RATIO, strings.Join(bloatedTableIndexes, ", "))
 	}
 	if len(result.Recommendations) > 0 {
 		result.AppendRecommendation(F005_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_1)
