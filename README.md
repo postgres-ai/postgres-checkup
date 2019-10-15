@@ -166,7 +166,7 @@ For example: in half a year we can switch to "epoch number `2`".
 
 Also, you can define a specific way to connect: SSH or `psql`:
 
-`--ssh-hostname db2.vpn.local`  - SSH will be used for the connection. SSH port can be defined as well
+`--ssh-hostname db2.vpn.local` - SSH will be used for the connection. SSH port can be defined as well
 with option `--ssh-port`.
 
 `--pg-hostname db2.vpn.local` - `psql` will be used for connection. The port where PostgreSQL
