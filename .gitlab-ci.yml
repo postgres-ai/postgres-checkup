@@ -103,13 +103,13 @@ test-general:
     - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
     # First run only for K00X reports
-    - ./checkup collect --pg-hostname postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup collect  --pg-hostname postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup collect  --pg-hostname postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect -h postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     # Last run of checkup
-    - ./checkup collect  --pg-hostname postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup collect  --pg-hostname postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup collect  --pg-hostname postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
     - ./checkup process --project test
     # Check results
     - cat err.log
