@@ -169,7 +169,7 @@ Also, you can define a specific way to connect: SSH or `psql`:
 `--ssh-hostname db2.vpn.local` - SSH will be used for the connection. SSH port can be defined as well
 with option `--ssh-port`.
 
-`--pg-hostname db2.vpn.local` - `psql` will be used for connection. The port where PostgreSQL
+`--pg-hostname db2.vpn.local` - `psql` will be used for the connection. The port where PostgreSQL
 accepts connections can be defined with the option `--pg-port`
 
 In case when `--pg-port` or `--ssh-port` are not defined but `--port` is defined, value of `--port` option
