@@ -29,7 +29,11 @@ const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0
 const MIN_INDEX_SIZE_TO_ANALYZE int64 = 1024 * 1024
 
 func appendIndex(list []string, indexBloatData F005IndexBloat) []string {
-	return append(list, fmt.Sprintf(INDEX_DETAILS, indexBloatData.IndexName,
+	var indexName = indexBloatData.IndexName
+	if indexBloatData.SchemaName != "" {
+		indexName = indexBloatData.SchemaName + "." + indexName
+	}
+	return append(list, fmt.Sprintf(INDEX_DETAILS, indexName,
 		fmtutils.ByteFormat(float64(indexBloatData.RealSizeBytes), 2),
 		indexBloatData.BloatRatioFactor, fmtutils.ByteFormat(float64(indexBloatData.ExtraSizeBytes), 2),
 		indexBloatData.BloatRatioPercent))
@@ -72,13 +76,16 @@ func F005Process(report F005Report, bloatedTables []string) checkup.ReportResult
 				warningIndexes = appendIndex(warningIndexes, indexBloatData)
 			}
 			if (indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) {
+				var indexName = indexBloatData.IndexName
+				if indexBloatData.SchemaName != "" {
+					indexName = indexBloatData.SchemaName + "." + indexName
+				}
 				if ok, _ := checkup.StringInArray(indexBloatData.TableName, bloatedTables); ok {
-					bloatedTableIndexes = append(bloatedTableIndexes, "`"+indexBloatData.IndexName+"`")
+					bloatedTableIndexes = append(bloatedTableIndexes, "`"+indexName+"`")
 				} else {
-					bloatedIndexes = append(bloatedIndexes, "`"+indexBloatData.IndexName+"`")
+					bloatedIndexes = append(bloatedIndexes, "`"+indexName+"`")
 				}
 			}
-
 		}
 	}
 	if totalBloatIsCritical {
