@@ -9,6 +9,7 @@ const MSG_TOTAL_BLOAT_LOW_CONCLUSION string = "The estimated table (heap) bloat 
 const MSG_BLOAT_CRITICAL_RECOMMENDATION string = "[P1] Reduce and prevent the high level of table bloat:\n" +
 	"    - to prevent a high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
 	"    - eliminate or reduce the current table bloat using one of the approaches listed below.\n"
+const MSG_BLOAT_WARNING_RECOMMENDATION_TABLES string = "The following tables have size > 1 MiB and table bloat estimate > %.2f%%. Use this list to reduce the bloat applying one of the approaches described below. Here are these tables: %s."
 const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] Consider the following:\n" +
 	"    - to prevent a high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
 	"    - eliminate or reduce the current table bloat using one of the approaches listed below.\n"

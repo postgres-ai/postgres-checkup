@@ -214,7 +214,7 @@ The list of broken indexes (invalid state) to be removed or reindexed.
 
 ### H002 Unused and Redundant Indexes
 
-Shows the list of never used, rarely used and redundant indexes.
+Shows the list of never used and rarely used indexes.
 Helps to understand how much space they occupy.
 
 > Insights:
@@ -226,6 +226,12 @@ Helps to understand how much space they occupy.
 ### H003 Non-indexed Foreign Keys
 
 Checks if all foreign keys have indexes in referencing tables.
+
+### H004 Redundant Indexes
+
+Shows the list of redundant indexes.
+Helps to understand how much space they occupy.
+
 
 # K. SQL Query Analysis
 

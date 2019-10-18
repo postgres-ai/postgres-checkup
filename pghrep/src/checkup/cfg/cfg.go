@@ -31,8 +31,12 @@ type Config struct {
 const POSTGRES_RELEASES_URL string = "https://git.postgresql.org/gitweb/?p=postgresql.git;a=tags"
 const RELEASE_CODE = "REL"
 
-// TODO(anatoly): Fill up 12 version on release or load this information automatically.
 var versionsDefault map[string]Version = map[string]Version{
+	"12": Version{
+		FirstRelease:  "2019-10-03",
+		FinalRelease:  "2024-11-14",
+		MinorVersions: []int{0},
+	},
 	"11": Version{
 		FirstRelease:  "2018-10-18",
 		FinalRelease:  "2023-11-09",

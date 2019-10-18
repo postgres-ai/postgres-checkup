@@ -153,12 +153,12 @@ func GetUniques(array []string) []string {
 }
 
 func LimitList(array []string) []string {
-	if len(array) <= RECOMMENDATION_ITEMS_LIMIT {
-		return array
-	} else {
+	if len(array) > (RECOMMENDATION_ITEMS_LIMIT + 1) {
 		limitedArray := array[0:RECOMMENDATION_ITEMS_LIMIT]
 		limitedArray = append(limitedArray, MSG_ETC_ITEM)
 		return limitedArray
+	} else {
+		return array
 	}
 }
 
@@ -226,8 +226,8 @@ func GetMasterHostName(hosts ReportHosts) string {
 	return firstHostName
 }
 
-// Get map keys sorted by field num inside struct
-func GetItemsSortedByNum(data interface{}) []string {
+// Get map keys sorted by defined int field inside struct
+func SortItemsByInt(data interface{}, field string, reverse bool) []string {
 	var result []string
 	var numData map[int]string = map[int]string{}
 	var keys []int
@@ -245,7 +245,7 @@ func GetItemsSortedByNum(data interface{}) []string {
 				continue
 			}
 
-			valNum := val.FieldByName("Num")
+			valNum := val.FieldByName(field)
 
 			if valNum.Kind() == reflect.Invalid {
 				continue
@@ -259,10 +259,80 @@ func GetItemsSortedByNum(data interface{}) []string {
 
 		sort.Ints(keys)
 
+		if reverse {
+			sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+		}
+
 		for _, key := range keys {
 			result = append(result, numData[key])
 		}
 	}
 
 	return result
+}
+
+// Get map keys sorted by defined float64 field inside struct
+func SortItemsByFloat64(data interface{}, field string, reverse bool) []string {
+	var result []string
+	var numData map[float64]string = map[float64]string{}
+	var keys []float64
+
+	v := reflect.ValueOf(data)
+
+	if v.Kind() == reflect.Map {
+		v2 := v.MapKeys()
+
+		for _, itemData := range v2 {
+			id := itemData.Interface()
+			val := v.MapIndex(itemData)
+
+			if val.Kind() != reflect.Struct {
+				continue
+			}
+
+			valNum := val.FieldByName(field)
+
+			if valNum.Kind() == reflect.Invalid {
+				continue
+			}
+
+			num := valNum.Interface()
+			floatNum := num.(float64)
+			numData[floatNum] = id.(string)
+			keys = append(keys, floatNum)
+		}
+
+		sort.Float64s(keys)
+
+		if reverse {
+			sort.Sort(sort.Reverse(sort.Float64Slice(keys)))
+		}
+
+		for _, key := range keys {
+			result = append(result, numData[key])
+		}
+	}
+
+	return result
+}
+
+// Get map keys sorted by field num inside struct
+func GetItemsSortedByNum(data interface{}) []string {
+	return SortItemsByInt(data, "Num", false)
+}
+
+// Check if the string exists in the array. If it is so, return its index
+func StringInArray(val string, array []string) (exists bool, index int) {
+	exists = false
+	index = -1
+
+	for i, v := range array {
+		if val == v {
+			index = i
+			exists = true
+			return
+		}
+	}
+
+	return
 }

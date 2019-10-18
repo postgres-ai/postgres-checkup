@@ -1,17 +1,13 @@
 #!/bin/bash
 #
-# 2018 © Victor Yagofarov victor@postgres.ai
-# 2018 © Postgres.ai
+# Copyright © 2018-2019, Postgres.ai (https://postgres.ai), Nikolay Samokhvalov
 #
-# Perform a PostgreSQL instance(s) health checks (checkups)
+# Automated health-checks of PostgreSQL clusters
 #
-# Usage: $0 --help
+# Usage: ./checkup --help
 #
 
 # GLOBALS (user-assigned variables)
-CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
-                 # TODO(vyagofarov): think about timing
-                 # out commands in macOS
 FULL_REPORT_FNAME="0_Full_report.md"
 
 # GLOBALS (autoload, do not change)
@@ -141,7 +137,7 @@ load_cli_res() {
 # Returns:
 #   None
 #######################################
-read_possible_args() { # TODO(Nik) I cannot find where this function is being called
+read_possible_args() {
   local iter_num=0
   local section short_name full_name arg_type mandatary description
 
@@ -199,10 +195,12 @@ load_config_params () {
   dbg "Load params from config file"
   config_filename=${1}
   if [[ ! -f "$config_filename" ]]; then
-    msg "Config filename ${config_filename} not found."
+    err "Config filename ${config_filename} not found."
     exit 1
   fi
-  source ${BASH_SOURCE%/*}/resources/parse_yaml.sh $config_filename "CONFIG_"
+
+  eval $(${PGHREP_BIN} --mode loadcfg --path $config_filename 2>/dev/null)
+
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     var_name="CONFIG__"${FULL_NAME[$i]}
     var_name=${var_name//-/_}
@@ -277,7 +275,7 @@ process_cli_args() {
       exit 1
     fi
 
-    # compare given argument with all possible arguments from cli.conf
+    # compare given argument to all possible arguments from cli.conf
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
@@ -793,7 +791,7 @@ build_pghrep() {
   dbg "building pghrep..."
   local save_pwd="${PWD}"
   cd "${SCRIPT_DIR}/pghrep"
-  make install buildplugins main >/dev/null
+  make install main >/dev/null
   cd "${save_pwd}"
   export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
   dbg "done building pghrep"
@@ -926,13 +924,15 @@ check_bin_deps() {
 glue_md_reports() {
   # final report path and name
   local out_fname="${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}"
+  local epoch=$(jq -r '.last_check.epoch' ${PROJECT_DIR}/nodes.json)
+  local database=$(jq -r '.last_check.database' ${PROJECT_DIR}/nodes.json)
 
   # do not re-generate full report if '--file' is given
   [[ "${FILE}" != "None" ]] && return 0
 
   # make header
-  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${DBNAME}'" > "${out_fname}"
-  echo "## Epoch number: '${EPOCH}'" >> "${out_fname}"
+  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${database}'" > "${out_fname}"
+  echo "## Epoch number: '${epoch}'" >> "${out_fname}"
   echo "NOTICE: while most reports describe the “current database”, some of them may contain cluster-wide information describing all databases in the cluster." >> "${out_fname}"
   echo >> "${out_fname}"
   echo "Last modified at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
@@ -940,7 +940,7 @@ glue_md_reports() {
 
   tableOfContents=""
   content=""
-  summaryTable="\n---\n### Issues found ###\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
+  summaryTable="\n---\n### Issues found ###\n\nThe empty lines represent reports for which Conclusions and Recommendations are not yet implemented.\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
   echo "" >> "${out_fname}"
   echo "<a name=\"postgres-checkup_top\">&nbsp;</a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
@@ -1218,8 +1218,9 @@ update_nodes_json() {
      --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg dir "${SHORT_DIR_NAME}" \
      --arg epoch "${EPOCH}" \
+     --arg database "${DBNAME}" \
      --arg role_change_detected_at "${role_changed_at}" \
-     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir, database: $database }' \
      "${input_json_fname}" \
      > "${result_fname_tmp}"
   mv "${result_fname_tmp}" "${result_fname}"
@@ -1333,7 +1334,7 @@ run_checks() {
 
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
-    
+
     # if check name file given by CLI run only single check
     if [[ "${FILE}" != "None" ]]; then
       break
@@ -1381,7 +1382,7 @@ run_process() {
     if [[ "${FILE}" != "None" ]] && ! [[ "${FILE}" =~ "/${check_id}" ]]; then
       continue
     fi
-    
+
     local pghrep_output
     if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${json_file}" \
       --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
@@ -1442,7 +1443,7 @@ run_upload() {
     msg "Uploading the report to '${UPLOADAPIURL}' using Postgres.ai Platform API..."
     if [[ $DEBUG == "true" ]] ; then
       $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
-    else 
+    else
       $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=0)
     fi
   fi
@@ -1483,6 +1484,7 @@ main() {
     mode="$1"
   fi
 
+  build_pghrep
   read_possible_args
   process_cli_args "$@"
   validate_args
@@ -1494,19 +1496,16 @@ main() {
       ;;
     "process" )
       check_bin_deps
-      build_pghrep
       run_process
       ;;
     "upload" )
       check_bin_deps
-      build_pghrep
       run_upload
       ;;
     "run" )
       host_pre_start_checks
       run_checks
       check_bin_deps
-      build_pghrep
       run_process
       ;;
   esac
