@@ -535,14 +535,14 @@ validate_args() {
 
   if [[ $hosts -gt 1 ]]; then
     buf="$buf
-  only one of options '--hostname', '--ssh-hostname' or '--pg-hostname' must be set"
+  only one of options '--hostname', '--ssh-hostname' or '--pg-hostname' may be used"
     need_fail_exit=true
     OPTIONS_ERROR_EXIT=true
   fi
 
   if [[ "$SSHPORT" != "None" ]] && ([[ "$PGHOST" != "None" ]] || [[ "$HOST" != "None" ]]) ; then
     buf="$buf
-  '--ssh-port' must be set only with '--ssh-hostname'"
+  '--ssh-port' may be used only with '--ssh-hostname'"
     need_fail_exit=true
     OPTIONS_ERROR_EXIT=true
   fi
@@ -1068,27 +1068,27 @@ host_pre_start_checks() {
   if [[ "$SSHHOST" != "None" ]]; then
     # ssh mode
     if configure_ssh_connection $SSHHOST; then
-      msg "Connection type: SSH ($SSHHOST:$SSHPORT)"
+      msg "Connection type (specified): SSH ($SSHHOST:$SSHPORT)"
       export HOST=$SSHHOST
     else
-      msg "Connection type: SSH ($SSHHOST:$SSHPORT)"
+      msg "Connection type (specified): SSH ($SSHHOST:$SSHPORT)"
       msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH"
       exit 1
     fi
   elif [[ "$PGHOST" != "None" ]]; then
     # psql mode
     if configure_psql_connection $PGHOST; then
-      msg "Defined connection type: psql ($PGHOST:$PGPORT)"
+      msg "Сonnection type (specified): PostgreSQL ($PGHOST:$PGPORT)"
       export HOST=$PGHOST
     fi
   else
     # auto detect connection command
     if configure_ssh_connection $HOST; then
-      msg "Connection type: SSH ($HOST:$SSHPORT)"
+      msg "Connection type (auto-detected): SSH ($HOST:$SSHPORT)"
     else
       msg "Cannot connect to the host: ${HOST}:${SSHPORT} via SSH"
       configure_psql_connection $HOST;
-      msg "Connection type: psql ($HOST:$PGPORT)"
+      msg "Connection type (auto-detected): PostgreSQL ($HOST:$PGPORT)"
     fi
     export HOST
   fi
