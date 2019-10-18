@@ -1,4 +1,4 @@
-### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.2.2) (based on CI, single node).
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.2.2) (based on CI, multi node).
 
 ***Disclaimer: Conclusions, Recommendations – work in progress.**
 To treat the data correctly, you need deep Postgres knowledge. Each report
@@ -163,8 +163,18 @@ project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sig
 For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.
-
 If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
+
+Also, you can define a specific way to connect: SSH or `psql`:
+
+`--ssh-hostname db2.vpn.local` - SSH will be used for the connection. SSH port can be defined as well
+with option `--ssh-port`.
+
+`--pg-hostname db2.vpn.local` - `psql` will be used for the connection. The port where PostgreSQL
+accepts connections can be defined with the option `--pg-port`.
+
+In case when `--pg-port` or `--ssh-port` are not defined but `--port` is defined, value of `--port` option
+will be used instead of `--pg-port` or `--ssh-port` depending on the current connection type.
 
 For comprehensive analysis, it is recommended to run the tool on the master and
 all its replicas – postgres-checkup is able to combine all the information from
