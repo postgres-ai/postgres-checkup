@@ -13,6 +13,7 @@ import (
 const F004_TOTAL_BLOAT_EXCESS string = "F004_TOTAL_BLOAT_EXCESS"
 const F004_TOTAL_BLOAT_LOW string = "F004_TOTAL_BLOAT_LOW"
 const F004_BLOAT_CRITICAL string = "F004_BLOAT_CRITICAL"
+const F004_BLOATED_TABLES string = "F004_BLOATED_TABLES"
 const F004_BLOAT_WARNING string = "F004_BLOAT_WARNING"
 const F004_BLOAT_INFO string = "F004_BLOAT_INFO"
 const F004_GENERAL_INFO string = "F004_GENERAL_INFO"
@@ -35,6 +36,7 @@ func F004Process(report F004Report) checkup.ReportResult {
 	// check total values
 	var criticalTables []string
 	var warningTables []string
+	var bloatedTables []string
 	totalBloatIsCritical := false
 	var totalData F004HeapBloatTotal
 	var databaseSize int64
@@ -55,6 +57,9 @@ func F004Process(report F004Report) checkup.ReportResult {
 			if (heapBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO) &&
 				(heapBloatData.BloatRatioFactor > 0) {
 				criticalTables = appendTable(criticalTables, heapBloatData)
+			}
+			if (heapBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) {
+				bloatedTables = append(bloatedTables, "`"+heapBloatData.TableName+"`")
 			}
 		}
 	}
@@ -87,6 +92,9 @@ func F004Process(report F004Report) checkup.ReportResult {
 		}
 		result.P2 = true
 	}
+	if len(bloatedTables) > 0 {
+		result.AppendRecommendation(F004_BLOATED_TABLES, MSG_BLOAT_WARNING_RECOMMENDATION_TABLES, WARNING_BLOAT_RATIO, strings.Join(bloatedTables, ", "))
+	}
 	if len(result.Recommendations) > 0 {
 		result.AppendRecommendation(F004_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_1)
 		result.AppendRecommendation(F004_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_2)
@@ -97,13 +105,41 @@ func F004Process(report F004Report) checkup.ReportResult {
 	return result
 }
 
+func F004LoadReportData(filePath string) (F004Report, error) {
+	var report F004Report
+	jsonRaw := checkup.LoadRawJsonReport(filePath)
+
+	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
+		return report, fmt.Errorf("Unable to load F004 report.")
+	}
+
+	return report, nil
+}
+
 func F004PreprocessReportData(data map[string]interface{}) {
 	var report F004Report
+	var err error
 	filePath := data["source_path_full"].(string)
-	jsonRaw := checkup.LoadRawJsonReport(filePath)
-	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
+
+	report, err = F004LoadReportData(filePath)
+	if err != nil {
 		return
 	}
+
 	result := F004Process(report)
 	checkup.SaveReportResult(data, result)
+}
+
+func F004GetBloatedTables(report F004Report) []string {
+	var bloatedTables []string
+	for _, hostData := range report.Results {
+		sortedTables := checkup.GetItemsSortedByNum(hostData.Data.HeapBloat)
+		for _, table := range sortedTables {
+			heapBloatData := hostData.Data.HeapBloat[table]
+			if (heapBloatData.RealSizeBytes > MIN_TABLE_SIZE_TO_ANALYZE) && (heapBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) {
+				bloatedTables = append(bloatedTables, heapBloatData.TableName)
+			}
+		}
+	}
+	return bloatedTables
 }

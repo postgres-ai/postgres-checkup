@@ -320,3 +320,19 @@ func SortItemsByFloat64(data interface{}, field string, reverse bool) []string {
 func GetItemsSortedByNum(data interface{}) []string {
 	return SortItemsByInt(data, "Num", false)
 }
+
+// Check if the string exists in the array. If it is so, return its index
+func StringInArray(val string, array []string) (exists bool, index int) {
+	exists = false
+	index = -1
+
+	for i, v := range array {
+		if val == v {
+			index = i
+			exists = true
+			return
+		}
+	}
+
+	return
+}

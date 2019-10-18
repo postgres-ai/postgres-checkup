@@ -3,10 +3,12 @@ package f005
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	checkup ".."
 	"../../fmtutils"
+	"../f004"
 	"github.com/dustin/go-humanize/english"
 )
 
@@ -18,6 +20,8 @@ const F005_BLOAT_CRITICAL_INFO string = "F005_BLOAT_CRITICAL_INFO"
 const F005_BLOAT_INFO string = "F005_BLOAT_INFO"
 const F005_GENERAL_INFO string = "F005_GENERAL_INFO"
 const F005_BLOAT_EXCESS_INFO string = "F005_BLOAT_EXCESS_INFO"
+const F005_BLOATED_INDEXES string = "F005_BLOATED_INDEXES"
+const F005_BLOATED_TABLE_INDEXES string = "F005_BLOATED_TABLE_INDEXES"
 
 const WARNING_BLOAT_RATIO float32 = 40.0
 const CRITICAL_BLOAT_RATIO float32 = 90.0
@@ -25,19 +29,25 @@ const CRITICAL_TOTAL_BLOAT_RATIO float32 = 20.0
 const MIN_INDEX_SIZE_TO_ANALYZE int64 = 1024 * 1024
 
 func appendIndex(list []string, indexBloatData F005IndexBloat) []string {
-	return append(list, fmt.Sprintf(INDEX_DETAILS, indexBloatData.IndexName,
+	var indexName = indexBloatData.IndexName
+	if indexBloatData.SchemaName != "" {
+		indexName = indexBloatData.SchemaName + "." + indexName
+	}
+	return append(list, fmt.Sprintf(INDEX_DETAILS, indexName,
 		fmtutils.ByteFormat(float64(indexBloatData.RealSizeBytes), 2),
 		indexBloatData.BloatRatioFactor, fmtutils.ByteFormat(float64(indexBloatData.ExtraSizeBytes), 2),
 		indexBloatData.BloatRatioPercent))
 }
 
 // Generate conclusions and recommendatons
-func F005Process(report F005Report) checkup.ReportResult {
+func F005Process(report F005Report, bloatedTables []string) checkup.ReportResult {
 	var result checkup.ReportResult
 	// check total values
 	var top5Indexes []string
 	var criticalIndexes []string
 	var warningIndexes []string
+	var bloatedIndexes []string
+	var bloatedTableIndexes []string
 	totalBloatIsCritical := false
 	var totalData F005IndexBloatTotal
 	var databaseSize int64
@@ -53,17 +63,28 @@ func F005Process(report F005Report) checkup.ReportResult {
 		for _, index := range sortedIndexes {
 			indexBloatData := hostData.Data.IndexBloat[index]
 			if totalBloatIsCritical && indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && i < 5 &&
-        (indexBloatData.BloatRatioFactor > 0) {
+				(indexBloatData.BloatRatioFactor > 0) {
 				top5Indexes = appendIndex(top5Indexes, indexBloatData)
 				i++
 			}
 			if indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE && indexBloatData.BloatRatioPercent >= CRITICAL_BLOAT_RATIO &&
-        (indexBloatData.BloatRatioFactor > 0) {
+				(indexBloatData.BloatRatioFactor > 0) {
 				criticalIndexes = appendIndex(criticalIndexes, indexBloatData)
 			}
 			if (indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) &&
 				(indexBloatData.BloatRatioPercent < CRITICAL_BLOAT_RATIO) && (indexBloatData.BloatRatioFactor > 0) {
 				warningIndexes = appendIndex(warningIndexes, indexBloatData)
+			}
+			if (indexBloatData.RealSizeBytes > MIN_INDEX_SIZE_TO_ANALYZE) && (indexBloatData.BloatRatioPercent >= WARNING_BLOAT_RATIO) {
+				var indexName = indexBloatData.IndexName
+				if indexBloatData.SchemaName != "" {
+					indexName = indexBloatData.SchemaName + "." + indexName
+				}
+				if ok, _ := checkup.StringInArray(indexBloatData.TableName, bloatedTables); ok {
+					bloatedTableIndexes = append(bloatedTableIndexes, "`"+indexName+"`")
+				} else {
+					bloatedIndexes = append(bloatedIndexes, "`"+indexName+"`")
+				}
 			}
 		}
 	}
@@ -101,6 +122,14 @@ func F005Process(report F005Report) checkup.ReportResult {
 		}
 		result.P2 = true
 	}
+	if len(bloatedIndexes) > 0 {
+		result.AppendRecommendation(F005_BLOATED_INDEXES, MSG_BLOAT_WARNING_RECOMMENDATION_INDEXES, WARNING_BLOAT_RATIO,
+			strings.Join(bloatedIndexes, ", "))
+	}
+	if len(bloatedTableIndexes) > 0 {
+		result.AppendRecommendation(F005_BLOATED_TABLE_INDEXES, MSG_BLOAT_WARNING_RECOMMENDATION_TABLE_INDEXES,
+			WARNING_BLOAT_RATIO, strings.Join(bloatedTableIndexes, ", "))
+	}
 	if len(result.Recommendations) > 0 {
 		result.AppendRecommendation(F005_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_1)
 		result.AppendRecommendation(F005_GENERAL_INFO, MSG_BLOAT_GENERAL_RECOMMENDATION_2)
@@ -118,6 +147,16 @@ func F005PreprocessReportData(data map[string]interface{}) {
 	if !checkup.CheckUnmarshalResult(json.Unmarshal(jsonRaw, &report)) {
 		return
 	}
-	result := F005Process(report)
+
+	i := strings.LastIndex(filePath, string(os.PathSeparator))
+	path := filePath[:i+1]
+	f004FilePath := path + string(os.PathSeparator) + "F004_heap_bloat.json"
+	f004Report, err := f004.F004LoadReportData(f004FilePath)
+	var bloatedTables []string
+	if err == nil {
+		bloatedTables = f004.F004GetBloatedTables(f004Report)
+	}
+
+	result := F005Process(report, bloatedTables)
 	checkup.SaveReportResult(data, result)
 }
