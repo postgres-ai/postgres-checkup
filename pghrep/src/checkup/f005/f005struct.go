@@ -8,6 +8,7 @@ type F005IndexBloat struct {
 	Num               int     `json:"num"`
 	IsNa              string  `json:"is_na"`
 	IndexName         string  `json:"index_name"`
+	SchemaName        string  `json:"schema_name"`
 	TableName         string  `json:"table_name"`
 	IndexTableName    string  `json:"index_table_name"`
 	RealSizeBytes     int64   `json:"real_size_bytes"`
