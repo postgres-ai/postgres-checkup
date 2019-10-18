@@ -38,14 +38,17 @@ with fk_indexes as (
       'CREATE INDEX',
       'CREATE INDEX CONCURRENTLY'
     ) as revert_code,
-    case when fi.index_name is not null then true else false end as supports_fk
+    (
+      select count(1)
+      from fk_indexes fi
+      where
+        fi.fk_table_ref = pct.relname
+        and fi.opclasses like (array_to_string(pidx.indclass, ', ') || '%')
+     ) > 0 as supports_fk
   from pg_index pidx
   join pg_class as pci on pci.oid = pidx.indexrelid
   join pg_class as pct on pct.oid = pidx.indrelid
   left join pg_namespace pn on pn.oid = pct.relnamespace
-  left join fk_indexes fi on
-    fi.fk_table_ref = pct.relname
-    and fi.opclasses like (array_to_string(pidx.indclass, ', ') || '%')
   where pidx.indisvalid = false
 ), data_total as (
     select
