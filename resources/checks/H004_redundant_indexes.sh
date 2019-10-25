@@ -83,11 +83,14 @@ index_data as (
 ), redundant_indexes_fk as (
   select
     ri.*,
-    case when fi.index_name is not null then true else false end as supports_fk
+    (
+      select count(1)
+      from fk_indexes fi
+      where
+        fi.fk_table_ref = ri.table_name
+        and fi.opclasses like (ri.opclasses || '%')
+     ) > 0 as supports_fk
   from redundant_indexes ri
-  left join fk_indexes fi on
-    fi.fk_table_ref = ri.table_name
-    and fi.opclasses like (ri.opclasses || '%')
 ),
 -- Cut recursive links
 redundant_indexes_tmp_num as (

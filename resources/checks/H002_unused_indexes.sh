@@ -85,12 +85,14 @@ with fk_indexes as (
     formated_table_name,
     formated_relation_name,
     i.opclasses,
-    case when fi.index_name is not null then true else false end as supports_fk
+    (
+      select count(1)
+      from fk_indexes fi
+      where fi.fk_table_ref = i.table_name
+        and fi.schema_name = i.schema_name
+        and fi.opclasses like (i.opclasses || '%')
+    ) > 0 as supports_fk
   from indexes i
-  left join fk_indexes fi on
-    fi.fk_table_ref = i.table_name
-    and fi.schema_name = i.schema_name 
-    and fi.opclasses like (i.opclasses || '%')
   join table_scans ts on ts.relid = i.indrelid
 ),
 -- Never used indexes
