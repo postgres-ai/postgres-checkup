@@ -44,7 +44,11 @@ func H002Process(report H002Report) (checkup.ReportResult, error) {
 					len(hostData.Data.NeverUsedIndexes))
 			}
 
-			result.AppendRecommendation(H002_UNUSED_INDEXES_FOUND, MSG_UNUSED_INDEXES_FOUND_R1)
+			var p = "[P3] "
+			if result.P2 {
+				p = "[P2] "
+			}
+			result.AppendRecommendation(H002_UNUSED_INDEXES_FOUND, p+MSG_UNUSED_INDEXES_FOUND_R1)
 			result.AppendRecommendation(H002_UNUSED_INDEXES_FOUND, MSG_UNUSED_INDEXES_FOUND_R2)
 			result.AppendRecommendation(H002_UNUSED_INDEXES_FOUND, MSG_UNUSED_INDEXES_FOUND_R3)
 

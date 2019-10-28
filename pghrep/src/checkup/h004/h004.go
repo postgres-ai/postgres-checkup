@@ -44,7 +44,11 @@ func H004Process(report H004Report) (checkup.ReportResult, error) {
 					len(hostData.Data.RedundantIndexes))
 			}
 
-			result.AppendRecommendation(H004_REDUNDANT_INDEXES_FOUND, MSG_REDUNDANT_INDEXES_FOUND_R1)
+			var p = "[P3] "
+			if result.P2 {
+				p = "[P2] "
+			}
+			result.AppendRecommendation(H004_REDUNDANT_INDEXES_FOUND, p+MSG_REDUNDANT_INDEXES_FOUND_R1)
 			result.AppendRecommendation(H004_REDUNDANT_INDEXES_FOUND, MSG_REDUNDANT_INDEXES_FOUND_R2)
 			result.AppendRecommendation(H004_REDUNDANT_INDEXES_FOUND, MSG_REDUNDANT_INDEXES_FOUND_R3)
 
