@@ -10,7 +10,7 @@ const MSG_UNUSED_INDEXES_FOUND_R1 string = "Use the database migration provided 
 	"blocking issues.Use the database migration provided below to drop the unused indexes. Keep in mind, that under load, " +
 	"it is recommended to use `DROP INDEX CONCURRENTLY` (and `CREATE INDEX CONCURRENTLY` if reverting is needed) to avoid blocking issues."
 const MSG_UNUSED_INDEXES_FOUND_R2 string = "Be careful dropping the indexes. If you have multiple setups of your software, the analysis " +
-	"of just one setup might be not enough. Some indexes might be used only on a limited number of setups. " +
+	"of just a single setup might be not enough. Some indexes might be used (and therefore, needed) only on a limited number of setups. " +
 	"Also, in some cases, developers prepare indexes for new features in advance – in this case dropping such indexes might be not a good idea."
 const MSG_UNUSED_INDEXES_FOUND_R3 string = "If there are some doubts, consider a more careful approach. Before actual dropping, indexes " +
 	"are disabled using queries like `UPDATE pg_index SET  indisvalid = false WHERE indexrelid::regclass = (select oid " +
