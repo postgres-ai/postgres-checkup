@@ -14,7 +14,7 @@ const MSG_UNUSED_INDEXES_FOUND_R2 string = "Be careful dropping the indexes. If 
 	"Also, in some cases, developers prepare indexes for new features in advance – in such cases, dropping those indexes is not a good idea."
 const MSG_UNUSED_INDEXES_FOUND_R3 string = "If there are some doubts, consider a more careful approach. Before actual dropping, indexes " +
 	"are disabled using queries like `UPDATE pg_index SET  indisvalid = false WHERE indexrelid::regclass = (select oid " +
-	"from pg_class where relname = 'u_users_email');`. Indexes will continue to get updates. In case of some performance degradations, " +
+	"FROM pg_class WHERE relname = 'u_users_email');`. After disabling, the indexes will continue to receive updates but disabled indexes will be not used by queries. In the case of any performance degradations, " +
 	"re-enable the corresponding indexes, setting `indisvalid` to `true`. If everything looks fine, after a significant period of observations, " +
 	"proceed with `DROP INDEX CONCURRENTLY`."
 
