@@ -32,7 +32,6 @@ func H004Process(report H004Report) (checkup.ReportResult, error) {
 
 		if len(hostData.Data.RedundantIndexes) > 0 && len(hostData.Data.Do) > 0 &&
 			len(hostData.Data.UnDo) > 0 {
-			// P2
 			if (float64(hostData.Data.RedundantIndexesTotal.IndexSizeBytesSum) /
 				float64(hostData.Data.DatabaseStat.DatabaseSizeBytes) * 100) > REDUNDANT_INDEXES_CRITICL_SIZE_PERCENT {
 				result.P2 = true

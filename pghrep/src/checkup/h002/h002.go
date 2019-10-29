@@ -32,7 +32,6 @@ func H002Process(report H002Report) (checkup.ReportResult, error) {
 
 		if len(hostData.Data.NeverUsedIndexes) > 0 && len(hostData.Data.Do) > 0 &&
 			len(hostData.Data.UnDo) > 0 {
-			// P2
 			if (float64(hostData.Data.NeverUsedIndexesTotal.IndexSizeBytesSum) /
 				float64(hostData.Data.DatabaseStat.DatabaseSizeBytes) * 100) > UNUSED_INDEXES_CRITICL_SIZE_PERCENT {
 				result.P2 = true

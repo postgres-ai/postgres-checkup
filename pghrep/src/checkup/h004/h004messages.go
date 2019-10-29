@@ -5,7 +5,7 @@ const MSG_REDUNDANT_INDEXES_FOUND_P3_CONCLUSION string = "[P3] There is %d redun
 
 const MSG_REDUNDANT_INDEXES_FOUND_R1 string = "Use the database migration provided below to drop the redundant indexes. Keep in mind, that under " +
 	"load, it is recommended to use `DROP INDEX CONCURRENTLY` (and `CREATE INDEX CONCURRENTLY` if reverting is needed) " +
-	"to avoid blocking issues.  Use the database migration provided below to drop the redundant indexes. Keep in mind, that under load, " +
+	"to avoid blocking issues. Use the database migration provided below to drop the redundant indexes. Keep in mind, that under load, " +
 	"it is recommended to use `DROP INDEX CONCURRENTLY` (and `CREATE INDEX CONCURRENTLY` if reverting is needed) to avoid " +
 	"blocking issues.Use the database migration provided below to drop the redundant indexes. Keep in mind, that under load, " +
 	"it is recommended to use `DROP INDEX CONCURRENTLY` (and `CREATE INDEX CONCURRENTLY` if reverting is needed) to avoid blocking issues."
@@ -13,7 +13,7 @@ const MSG_REDUNDANT_INDEXES_FOUND_R2 string = "Be careful dropping the indexes. 
 	"of just one setup might be not enough. Some indexes might be used only on a limited number of setups. " +
 	"Also, in some cases, developers prepare indexes for new features in advance – in this case dropping such indexes might be not a good idea."
 const MSG_REDUNDANT_INDEXES_FOUND_R3 string = "If there are some doubts, consider a more careful approach. Before actual dropping, indexes " +
-	"are disabled using queries like `UPDATE pg_index SET  indisvalid = false WHERE indexrelid::regclass = (select oid " +
+	"are disabled using queries like `UPDATE pg_index SET indisvalid = false WHERE indexrelid::regclass = (select oid " +
 	"from pg_class where relname = 'u_users_email');`. Indexes will continue to get updates. In case of some performance degradations, " +
 	"re-enable the corresponding indexes, setting `indisvalid` to `true`. If everything looks fine, after a significant period of observations, " +
 	"proceed with `DROP INDEX CONCURRENTLY`."
