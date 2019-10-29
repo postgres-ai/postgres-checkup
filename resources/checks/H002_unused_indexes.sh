@@ -43,7 +43,7 @@ with fk_indexes as (
     cr.relname as table_name,
     ci.relname as index_name,
     quote_ident(n.nspname) as formated_schema_name,
-    quote_ident(ci.relname) as formated_index_name,
+    coalesce(nullif(quote_ident(n.nspname), 'public') || '.', '') || quote_ident(ci.relname) as formated_index_name,
     quote_ident(cr.relname) as formated_table_name,
     coalesce(nullif(quote_ident(n.nspname), 'public') || '.', '') || quote_ident(cr.relname) as formated_relation_name,
     si.idx_scan,
@@ -167,7 +167,29 @@ rarely_used_indexes as (
   select
     json_object_agg(coalesce(ruin.schema_name, 'public') || '.' || ruin.index_name, ruin) as json
   from rarely_used_indexes_num ruin
-), database_stat as (
+), 
+do_lines as (
+  select 
+    format(
+      'DROP INDEX CONCURRENTLY %s; -- %s, %s, table %s',
+      formated_index_name,
+      pg_size_pretty(index_size_bytes)::text,
+      reason,
+      formated_relation_name
+    ) as line
+  from never_used_indexes nui
+  order by table_name, index_name
+), undo_lines as (
+  select
+    replace(
+      format('%s; -- table %s', index_def, formated_relation_name),
+      'CREATE INDEX',
+      'CREATE INDEX CONCURRENTLY'
+    ) as line
+  from never_used_indexes nui
+  order by table_name, index_name
+),
+database_stat as (
   select
     row_to_json(dbstat)
   from (
@@ -177,7 +199,8 @@ rarely_used_indexes as (
         date_trunc('minute',now()),
         date_trunc('minute',sd.stats_reset)
       ) as stats_age,
-      ((extract(epoch from now()) - extract(epoch from sd.stats_reset))/86400)::int as days
+      ((extract(epoch from now()) - extract(epoch from sd.stats_reset))/86400)::int as days,
+      (select pg_database_size(current_database())) as database_size_bytes
     from pg_stat_database sd
     where datname = current_database()
   ) dbstat
@@ -193,6 +216,10 @@ select
     (select * from rarely_used_indexes_json),
     'rarely_used_indexes_total',
     (select row_to_json(ruit) from rarely_used_indexes_total as ruit),
+    'do',
+    (select json_agg(dl.line) from do_lines as dl),
+    'undo',
+    (select json_agg(ul.line) from undo_lines as ul),    
     'database_stat',
     (select * from database_stat),
     'min_index_size_bytes',

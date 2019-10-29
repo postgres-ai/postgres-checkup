@@ -161,7 +161,29 @@ redundant_indexes_tmp_num as (
       sum(index_size_bytes) as index_size_bytes_sum,
       sum(table_size_bytes) as table_size_bytes_sum
     from redundant_indexes_grouped
-), database_stat as (
+),
+do_lines as (
+  select 
+    format(
+      'DROP INDEX CONCURRENTLY %s; -- %s, %s, table %s',
+      formated_index_name,
+      pg_size_pretty(index_size_bytes)::text,
+      reason,
+      formated_relation_name
+    ) as line
+  from redundant_indexes_grouped
+  order by table_name, index_name
+), undo_lines as (
+  select
+    replace(
+      format('%s; -- table %s', index_def, formated_relation_name),
+      'CREATE INDEX',
+      'CREATE INDEX CONCURRENTLY'
+    ) as line
+  from redundant_indexes_grouped
+  order by table_name, index_name
+),
+database_stat as (
   select
     row_to_json(dbstat)
   from (
@@ -171,7 +193,8 @@ redundant_indexes_tmp_num as (
         date_trunc('minute',now()),
         date_trunc('minute',sd.stats_reset)
       ) as stats_age,
-      ((extract(epoch from now()) - extract(epoch from sd.stats_reset))/86400)::int as days
+      ((extract(epoch from now()) - extract(epoch from sd.stats_reset))/86400)::int as days,
+      (select pg_database_size(current_database())) as database_size_bytes
     from pg_stat_database sd
     where datname = current_database()
   ) dbstat
@@ -183,6 +206,10 @@ select
     (select * from redundant_indexes_json),
     'redundant_indexes_total',
     (select row_to_json(rit) from redundant_indexes_total as rit),
+    'do',
+    (select json_agg(dl.line) from do_lines as dl),
+    'undo',
+    (select json_agg(ul.line) from undo_lines as ul),    
     'database_stat',
     (select * from database_stat),
     'min_index_size_bytes',
