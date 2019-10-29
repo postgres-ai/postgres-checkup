@@ -34,6 +34,8 @@ import (
 	"./checkup/g001"
 	"./checkup/g002"
 	"./checkup/h001"
+	"./checkup/h002"
+	"./checkup/h004"
 	"./checkup/k000"
 	"./checkup/l003"
 
@@ -550,6 +552,10 @@ func preprocessReportData(checkId string, config cfg.Config,
 		a008.A008PreprocessReportData(data)
 	case "H001":
 		h001.H001PreprocessReportData(data)
+	case "H002":
+		h002.H002PreprocessReportData(data)
+	case "H004":
+		h004.H004PreprocessReportData(data)
 	case "F001":
 		f001.F001PreprocessReportData(data)
 	case "F002":
