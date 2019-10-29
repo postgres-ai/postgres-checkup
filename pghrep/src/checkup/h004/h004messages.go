@@ -1,7 +1,7 @@
 package h004
 
 const MSG_REDUNDANT_INDEXES_FOUND_P2_CONCLUSION string = "[P2] %d redundant index(es) have been found and their total size exceeds %.2f%% of the database size."
-const MSG_REDUNDANT_INDEXES_FOUND_P3_CONCLUSION string = "[P3] There is %d redundant index found."
+const MSG_REDUNDANT_INDEXES_FOUND_P3_CONCLUSION string = "[P3] %d redundant index have been found."
 
 const MSG_REDUNDANT_INDEXES_FOUND_R1 string = "Use the database migration provided below to drop the redundant indexes. Keep in mind, that under " +
 	"load, it is recommended to use `DROP INDEX CONCURRENTLY` (and `CREATE INDEX CONCURRENTLY` if reverting is needed) " +
