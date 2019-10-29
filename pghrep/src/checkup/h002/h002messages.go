@@ -1,6 +1,6 @@
 package h002
 
-const MSG_UNUSED_INDEXES_FOUND_P2_CONCLUSION string = "[P2] There is %d unused index with total size > %.2f%% of database size found."
+const MSG_UNUSED_INDEXES_FOUND_P2_CONCLUSION string = "[P2] %d unused index(es) have been found and their total size exceeds %.2f%% of the database size."
 const MSG_UNUSED_INDEXES_FOUND_P3_CONCLUSION string = "[P3] There is %d unused index found."
 
 const MSG_UNUSED_INDEXES_FOUND_R1 string = "Use the database migration provided below to drop the unused indexes. Keep in mind, that under " +
