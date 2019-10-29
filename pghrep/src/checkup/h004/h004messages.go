@@ -1,6 +1,6 @@
 package h004
 
-const MSG_REDUNDANT_INDEXES_FOUND_P2_CONCLUSION string = "[P2] There is %d redundant index with total size > %.2f%% of database size found."
+const MSG_REDUNDANT_INDEXES_FOUND_P2_CONCLUSION string = "[P2] %d redundant index(es) have been found and their total size exceeds %.2f%% of the database size."
 const MSG_REDUNDANT_INDEXES_FOUND_P3_CONCLUSION string = "[P3] There is %d redundant index found."
 
 const MSG_REDUNDANT_INDEXES_FOUND_R1 string = "Use the database migration provided below to drop the redundant indexes. Keep in mind, that under " +
