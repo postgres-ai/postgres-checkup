@@ -34,6 +34,8 @@ EOF
   if ! [[ "${PG_LOG_DIR}" =~ ^/ ]]; then
     PG_LOG_DIR="${PG_DATA_DIR}/${PG_LOG_DIR}"
   fi
+else
+  PG_LOG_DIR="syslog"
 fi
 
 if ! [[ "${PG_STATS_TEMP_DIR}" =~ ^/ ]]; then
@@ -120,6 +122,10 @@ if $(${CHECK_HOST_CMD} "sudo stat \"$PG_LOG_DIR\" >/dev/null 2>&1"); then
   echo ","
   echo "\"log_directory\":"
   print_df "$PG_LOG_DIR"
+elif [[ "$PG_LOG_DIR" == "syslog" ]]; then
+  echo ","
+  echo "\"log_directory\":"
+  df_to_json "syslog" "" "" "" "" "" "" "" ""
 fi
 
 echo "},"
