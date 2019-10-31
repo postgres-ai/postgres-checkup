@@ -1,10 +1,10 @@
-### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.2.2) (based on CI, multi node).
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.3.0) (based on CI, multi node).
 
 ***Disclaimer: Conclusions, Recommendations – work in progress.**
 To treat the data correctly, you need deep Postgres knowledge. Each report
 consists of 3 sections: Observations, Conclusions, and Recommendations.
 Observations are filled automatically. As for Conclusions and Recommendations
-sections, as of June 2019, only several reports have autogeneration for them.*
+sections, as of October 2019, onlyLimited number of reports have autogeneration for them.*
 
 
 # About
