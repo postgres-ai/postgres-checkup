@@ -87,6 +87,7 @@ func F005Process(report F005Report, bloatedTables []string) checkup.ReportResult
 				}
 			}
 		}
+		break
 	}
 	if totalBloatIsCritical {
 		result.AppendConclusion(F005_TOTAL_BLOAT_EXCESS, MSG_TOTAL_BLOAT_EXCESS_CONCLUSION,

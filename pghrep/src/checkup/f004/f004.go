@@ -62,6 +62,7 @@ func F004Process(report F004Report) checkup.ReportResult {
 				bloatedTables = append(bloatedTables, "`"+heapBloatData.TableName+"`")
 			}
 		}
+		break
 	}
 	if totalBloatIsCritical {
 		result.AppendConclusion(F004_TOTAL_BLOAT_EXCESS, MSG_TOTAL_BLOAT_EXCESS_CONCLUSION,

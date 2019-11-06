@@ -31,4 +31,4 @@ const MSG_OOM_AUTIVACUUM_WORKMEM_BEGIN string = "`autovacuum_work_mem` is %s"
 const MSG_OOM_AUTIVACUUM_WORKMEM_NOTSET string = "(it's set to `-1` so the actual value is inherited from `maintenance_work_mem`)"
 const MSG_OOM_AUTIVACUUM_WORKMEM_END string = "and maximum %d autovacuum workers may work simultaneously, so together they may consume up to %s, " +
 	"or %.2f%%%% of RAM. It makes `autovacuum_work_mem/autovacuum_max_workers` pair a major contributor to the overall memory consumption.\n"
-const MSG_OOM_BASE_RECOMMENDATION_DETAIL string = "First of all, pay attention to the following settings:\n"
+const MSG_OOM_BASE_RECOMMENDATION_DETAIL string = "First of all, pay attention to the following settings:  \n"

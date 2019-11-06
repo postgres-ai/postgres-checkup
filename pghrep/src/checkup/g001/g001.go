@@ -218,7 +218,7 @@ func G001CheckOOMRisk(report G001Report, a001 a001.A001Report, result checkup.Re
 			}
 
 			if recommendation != "" {
-				recommendation = MSG_OOM_BASE_RECOMMENDATION + MSG_OOM_BASE_RECOMMENDATION_DETAIL + recommendation
+				recommendation = MSG_OOM_BASE_RECOMMENDATION + " " + MSG_OOM_BASE_RECOMMENDATION_DETAIL + recommendation
 			}
 
 			result.AppendConclusion(G001_OOM, conclusion)
