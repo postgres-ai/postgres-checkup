@@ -51,8 +51,20 @@ func F005Process(report F005Report, bloatedTables []string) checkup.ReportResult
 	totalBloatIsCritical := false
 	var totalData F005IndexBloatTotal
 	var databaseSize int64
+	var masterHost string
+
+	for host, hostData := range report.LastNodesJson.Hosts {
+		if hostData.Role == "master" {
+			masterHost = host
+			break
+		}
+	}
+
 	i := 0
-	for _, hostData := range report.Results {
+	for host, hostData := range report.Results {
+		if host != masterHost {
+			continue
+		}
 		sortedIndexes := checkup.GetItemsSortedByNum(hostData.Data.IndexBloat)
 		databaseSize = hostData.Data.DatabaseSizeBytes
 		totalData = hostData.Data.IndexBloatTotal

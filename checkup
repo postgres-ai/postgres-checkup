@@ -734,7 +734,7 @@ generate_report_json() {
 # Do not use this function before 'host_pre_start_checks()'
 #
 # Globals:
-#   HOST
+#   HOST, ROLE
 # Arguments:
 #   None
 # Returns:
@@ -750,6 +750,8 @@ is_in_recovery() {
     return 0
   else
     msg "ERROR: Cannot connect to the host: ${HOST}"
+    export ROLE="unavailable"
+    update_nodes_json
     exit 1
   fi
   return 13
@@ -1114,14 +1116,6 @@ update_nodes_json() {
   local host_is_new="false"
   ALIAS_NAME=""
   ALIAS_INDEX=""
-  ROLE=""
-
-  # check 'is role has been changed?"
-  if is_in_recovery; then
-    ROLE="standby"
-  else
-    ROLE="master"
-  fi
 
   # if file 'nodes.json' does not exist generate alias for a first host
   if [[ ! -f "${PROJECT_DIR}/nodes.json" ]]; then
@@ -1243,6 +1237,10 @@ run_checks() {
   export PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
   test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
 
+  # fix timestamp before check
+  export TIMESTAMP_DIR=$(date +'%Y_%m_%dT%H_%M_%S_%z') # for use in directories names
+  export TIMESTAMPTZ=$(date +'%Y-%m-%d %H:%M:%S.0%z')
+
   # perform all checks from './resources/checks/' directory
   if is_in_recovery; then
     ROLE="standby"
@@ -1293,10 +1291,6 @@ run_checks() {
     msg "=== Run on '${HOST}': ${CURRENT_CHECK_FNAME} ==="
 
     local check_is_failed="false"
-
-    # fix timestamp before check
-    export TIMESTAMP_DIR=$(date +'%Y_%m_%dT%H_%M_%S_%z') # for use in directories names
-    export TIMESTAMPTZ=$(date +'%Y-%m-%d %H:%M:%S.0%z')
 
     # alot of magic is here
     update_nodes_json

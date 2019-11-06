@@ -40,7 +40,19 @@ func F004Process(report F004Report) checkup.ReportResult {
 	totalBloatIsCritical := false
 	var totalData F004HeapBloatTotal
 	var databaseSize int64
-	for _, hostData := range report.Results {
+	var masterHost string
+
+	for host, hostData := range report.LastNodesJson.Hosts {
+		if hostData.Role == "master" {
+			masterHost = host
+			break
+		}
+	}
+
+	for host, hostData := range report.Results {
+		if host != masterHost {
+			continue
+		}
 		sortedTables := checkup.GetItemsSortedByNum(hostData.Data.HeapBloat)
 		databaseSize = hostData.Data.DatabaseSizeBytes
 		totalData = hostData.Data.HeapBloatTotal
