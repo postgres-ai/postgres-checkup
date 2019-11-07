@@ -7,6 +7,14 @@ import (
 	checkup ".."
 )
 
+var TestLastNodesJson checkup.ReportLastNodes = checkup.ReportLastNodes{
+	Hosts: checkup.ReportHosts{
+		"test-host": {
+			Role: "master",
+		},
+	},
+}
+
 func TestF005Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F005Report
@@ -56,6 +64,7 @@ func TestF005Success(t *testing.T) {
 		},
 	}
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F005Process(report, []string{})
 	if result.P1 || result.P2 || result.P3 ||
 		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_LOW) {
@@ -82,6 +91,7 @@ func TestF005TotalExcess(t *testing.T) {
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{}
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F005Process(report, []string{})
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_EXCESS) ||
@@ -142,6 +152,7 @@ func TestF005Warnig(t *testing.T) {
 	}
 
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F005Process(report, []string{})
 	if !result.P2 ||
 		!checkup.ResultInList(result.Conclusions, F005_BLOAT_WARNING) ||
@@ -202,6 +213,7 @@ func TestF005Critical(t *testing.T) {
 	}
 
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F005Process(report, []string{})
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, F005_BLOAT_CRITICAL) ||

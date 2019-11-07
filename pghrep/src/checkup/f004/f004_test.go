@@ -7,6 +7,14 @@ import (
 	checkup ".."
 )
 
+var TestLastNodesJson checkup.ReportLastNodes = checkup.ReportLastNodes{
+	Hosts: checkup.ReportHosts{
+		"test-host": {
+			Role: "master",
+		},
+	},
+}
+
 func TestF004Success(t *testing.T) {
 	fmt.Println(t.Name())
 	var report F004Report
@@ -55,6 +63,7 @@ func TestF004Success(t *testing.T) {
 	}
 
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F004Process(report)
 	if result.P1 ||
 		result.P2 ||
@@ -83,6 +92,7 @@ func TestF004TotalExcess(t *testing.T) {
 	}
 	hostResult.Data.HeapBloat = map[string]F004HeapBloat{}
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F004Process(report)
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, F004_TOTAL_BLOAT_EXCESS) {
@@ -199,6 +209,7 @@ func TestF004Warnig(t *testing.T) {
 		},
 	}
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F004Process(report)
 	if !result.P2 ||
 		!checkup.ResultInList(result.Conclusions, F004_BLOAT_WARNING) ||
@@ -257,6 +268,7 @@ func TestF004Critical(t *testing.T) {
 	}
 
 	report.Results = F004ReportHostsResults{"test-host": hostResult}
+	report.LastNodesJson = TestLastNodesJson
 	result := F004Process(report)
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, F004_BLOAT_CRITICAL) ||
