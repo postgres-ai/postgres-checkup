@@ -1,6 +1,15 @@
 #!/bin/bash
 
 echo "Collect the first set of snapshots (only for K*** reports)..."
+
+HOSTS=$CHECKUP_HOSTS
+if [[ ! -z ${PG_CHECKUP_HOSTS+x} ]]; then
+  HOSTS=$PG_CHECKUP_HOSTS
+fi
+if [[ ! -z ${SSH_CHECKUP_HOSTS+x} ]]; then
+  HOSTS=$SSH_CHECKUP_HOSTS
+fi
+
 for host in $CHECKUP_HOSTS; do
   ./checkup collect \
     --config "${CHECKUP_CONFIG_PATH}" \
@@ -13,7 +22,7 @@ sleep "${CHECKUP_SNAPSHOT_DISTANCE_SECONDS}"
 # the distance ^^^ recommended: large enough to get good data, at least 10 minutes
 
 echo "Collect the second set of snapshots and build reports..."
-for host in $CHECKUP_HOSTS; do
+for host in $HOSTS; do
   ./checkup collect \
     --config "${CHECKUP_CONFIG_PATH}" \
     --hostname "${host}"
