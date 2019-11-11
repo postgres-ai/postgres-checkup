@@ -146,7 +146,7 @@ cd postgres-checkup
 ## Example of Use
 
 Let's make a report for a project named `prod1`. Assume that we have two servers,
-`db1.vpn.local` and `db1.vpn.local`.
+`db1.vpn.local` and `db2.vpn.local`.
 
 Postgres-checkup automatically detects which one is a master:
 
