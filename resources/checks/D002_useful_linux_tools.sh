@@ -33,7 +33,9 @@ check_list() {
   for util in $list ; do
     [[ "$cnt" -eq "0" ]] && comma="" || comma=","
     IFS="$SAVE_IFS" # non-standart IFS ruins ${CHECK_HOST_CMD}
-    if $(${CHECK_HOST_CMD} "sudo which $util >/dev/null 2>&1"); then
+    local res=$(${CHECK_HOST_CMD} "sudo which $util 2>&1")
+    res=$(echo "$res" | grep -v "\[sudo\] password for ")
+    if [[ "$res" != "" ]]; then
       json="${json}${comma} \"$util\": \"yes\""
     else
       json="${json}${comma} \"$util\": \"\""

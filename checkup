@@ -1460,7 +1460,11 @@ ssh() {
       ssh_options="$ssh_options -S $ssh_master_socket $ssh_master_options"
   fi
 
-  command ssh $ssh_options "$@"
+  if [[ "$@" == *"sudo"* ]] && [[ ! -z ${SSHSUDOPASSWORD+x} ]] ; then
+    command echo "$SSHSUDOPASSWORD" | command ssh -tt $ssh_options "$@"
+  else
+    command ssh $ssh_options "$@"
+  fi
 }
 
 #######################################

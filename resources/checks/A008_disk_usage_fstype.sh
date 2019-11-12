@@ -91,7 +91,9 @@ df_to_json() {
 #######################################
 print_df() {
   local path="$1"
-  df_to_json "${path}" $(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\" | tail -n +2")
+  local df=$(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\"")
+  df=$(echo "$df" | grep -v "\[sudo\] password for" | tail -n +2)
+  df_to_json "${path}" $df
 }
 
 # json output starts here
@@ -132,7 +134,8 @@ echo "},"
 echo "\"fs_data\":{"
 
 i=0
-points=$(${CHECK_HOST_CMD} "sudo df -TPh | tail -n +2")
+points=$(${CHECK_HOST_CMD} "sudo df -TPh")
+points=$(echo "$points" | grep -v "\[sudo\] password for" | tail -n +2)
 while read -r line; do
   if [[ $i -gt 0 ]]; then
     echo ",\"$i\":{"

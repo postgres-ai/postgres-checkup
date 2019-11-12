@@ -292,6 +292,10 @@ you cannot use `localhost` in `-h` parameter. You have to use a bridge between
 host OS and Docker Engine. By default, host IP is `172.17.0.1` in `docker0`
 network, but it vary depending on configuration. More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
 
+If you use SSH connection to the Postgres server, where access to sudo has been
+restricted by password you can specify such password using environment
+variable SSHSUDOPASSWORD.
+
 ## Credits
 
 Some reports are based on or inspired by useful queries created and improved by
