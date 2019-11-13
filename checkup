@@ -1461,7 +1461,7 @@ ssh() {
   fi
 
   if [[ "$@" == *"sudo"* ]] && [[ ! -z ${SSHSUDOPASSWORD+x} ]] ; then
-    command echo "$SSHSUDOPASSWORD" | command ssh -tt $ssh_options "$@"
+    command echo "$SSHSUDOPASSWORD" | command ssh -q -tt $ssh_options "$@"
   else
     command ssh $ssh_options "$@"
   fi
