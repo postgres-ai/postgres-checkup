@@ -1174,11 +1174,20 @@ update_nodes_json() {
   mkdir -p "${JSON_REPORTS_DIR}"
 
   local role_changed_at="never"
-  if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
-    msg "WARNING: important difference between checks detected:"
-    msg "WARNING: host's role has been changed from '${prev_role}' to '${ROLE}'"
-    role_changed_at="${TIMESTAMPTZ}"
+
+  if [[ "$prev_role" != "null" ]]; then
+    if [[ "${prev_role}" != "${ROLE}" ]]; then
+      msg "WARNING: important difference between checks detected:"
+      msg "WARNING: host's role has been changed from '${prev_role}' to '${ROLE}'"
+      role_changed_at="${TIMESTAMPTZ}"
+    fi
+  else
+    # if we checking host first time and it does not available do not store it to nodes.json
+    if [[ "$ROLE" == "unavailable" ]]; then
+      return
+    fi
   fi
+
 
   # generate new ALIAS_INDEX and ALIAS_NAME for a new host
   if [[ "$host_is_new" = "true" ]]; then
