@@ -10,7 +10,7 @@ if [[ ! -z ${SSH_CHECKUP_HOSTS+x} ]]; then
   HOSTS=$SSH_CHECKUP_HOSTS
 fi
 
-for host in $CHECKUP_HOSTS; do
+for host in $HOSTS; do
   ./checkup collect \
     --config "${CHECKUP_CONFIG_PATH}" \
     --hostname "${host}" \
