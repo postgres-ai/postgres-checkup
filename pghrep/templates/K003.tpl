@@ -17,12 +17,12 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 
 {{ if gt (len (index (index (index .results .hosts.master) "data") "queries")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
-| \# | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
+| \#<br/>(query id) | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
 |----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "queries") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "queries") $key) -}}
-| {{- $key}} | 
+| {{- $key}}<br/>({{$value.queryid}})|
 {{- EscapeQuery (WordWrap (LimitStr $value.query 1000) 30) }}<br/>[Full query]({{ $value.link }}) | 
 {{- RawIntFormat $value.diff_calls }}<br/>{{ NumFormat $value.per_sec_calls 2 }}/sec<br/>{{ NumFormat $value.per_call_calls 2 }}/call<br/>{{ NumFormat $value.ratio_calls 2 }}% | 
 {{- RawFloatFormat $value.diff_total_time 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_total_time }}/sec<br/>{{ MsFormat $value.per_call_total_time }}/call<br/>{{ NumFormat $value.ratio_total_time 2 }}% | 
@@ -56,12 +56,12 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 
 {{ if gt (len (index (index (index $.results $host) "data") "queries")) 50 }}Top 50 rows{{ end }}  
 
-| \# | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
+| \#<br/>(query id) | Query | Calls | &#9660;&nbsp;Total&nbsp;time | Rows | shared_blks_hit | shared_blks_read | shared_blks_dirtied | shared_blks_written | blk_read_time | blk_write_time | kcache_reads | kcache_writes | kcache_user_time_ms | kcache_system_time |
 |----|----------|-------|------------|------|-----------------|------------------|---------------------|---------------------|---------------|----------------|--------------|---------------|---------------------|--------------------|
 {{ range $i, $key := (index (index (index (index $.results $host) "data") "queries") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $host) "data") "queries") $key) -}}
-|{{- $key}} | 
+|{{- $key}}<br/>({{$value.queryid}})| 
 {{- EscapeQuery (WordWrap (LimitStr $value.query 1000) 30) }}<br/>[Full query]({{ $value.link }}) | 
 {{- RawIntFormat $value.diff_calls }}<br/>{{ NumFormat $value.per_sec_calls 2 }}/sec<br/>{{ NumFormat $value.per_call_calls 2 }}/call<br/>{{ NumFormat $value.ratio_calls 2 }}% | 
 {{- RawFloatFormat $value.diff_total_time 2 }}&nbsp;ms<br/>{{ MsFormat $value.per_sec_total_time }}/sec<br/>{{ MsFormat $value.per_call_total_time }}/call<br/>{{ NumFormat $value.ratio_total_time 2 }}% | 
