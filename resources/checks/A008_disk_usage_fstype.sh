@@ -66,7 +66,9 @@ fi
 #   json
 #######################################
 df_to_json() {
-  echo "{
+  if [[ ! -z ${1+x} ]] && [[ ! -z ${2+x} ]] && [[ ! -z ${3+x} ]] && [[ ! -z ${4+x} ]] &&
+    [[ ! -z ${5+x} ]] && [[ ! -z ${6+x} ]] && [[ ! -z ${7+x} ]] && [[ ! -z ${8+x} ]]; then
+    echo "{
   \"fstype\": \"$3\",
   \"size\": \"$4\",
   \"avail\": \"$6\",
@@ -76,7 +78,11 @@ df_to_json() {
   \"path\": \"$1\",
   \"device\": \"$2\"
 }"
-
+  else
+    errmsg "ERROR: Wrong result of 'sudo df' command"
+    return 1
+  fi
+  return 0
 }
 
 #######################################
@@ -91,9 +97,14 @@ df_to_json() {
 #######################################
 print_df() {
   local path="$1"
-  local df=$(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\"")
-  df=$(echo "$df" | grep -v "\[sudo\] password for" | tail -n +2)
-  df_to_json "${path}" $df
+  local rawDf=$(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\"")
+  df=$(echo "$rawDf" | grep -v "\[sudo\] password for" | tail -n +2)
+  if df_to_json "${path}" $df; then
+    rawDf=""
+  else
+    echo "null"
+    errmsg "'sudo df' returns: '$rawDf'"
+  fi
 }
 
 # json output starts here
@@ -137,14 +148,14 @@ i=0
 points=$(${CHECK_HOST_CMD} "sudo df -TPh")
 points=$(echo "$points" | grep -v "\[sudo\] password for" | tail -n +2)
 while read -r line; do
-  if [[ $i -gt 0 ]]; then
-    echo ",\"$i\":{"
-  else
-    echo "\"$i\":{"
-  fi
-  let i=$i+1
   params=($line)
-  echo "  \"fstype\": \"${params[1]}\",
+  if [[ ${#params[@]} -ge 1 ]]; then
+    if [[ $i -gt 0 ]]; then
+      echo ",\"$i\":{"
+    else
+      echo "\"$i\":{"
+    fi
+    echo "  \"fstype\": \"${params[1]}\",
   \"size\": \"${params[2]}\",
   \"avail\": \"${params[4]}\",
   \"used\": \"${params[3]}\",
@@ -153,5 +164,7 @@ while read -r line; do
   \"path\": \"${params[6]}\",
   \"device\": \"${params[0]}\"
 }"
+  fi;
+  let i=$i+1
 done <<< "$points"
 echo "}}"
