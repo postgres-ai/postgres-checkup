@@ -1475,16 +1475,6 @@ ssh() {
       ssh_options="$ssh_options -S $ssh_master_socket $ssh_master_options"
   fi
 
-  errmsg "SSH CMD: $@"
-  if [[ "$@" == *"sudo"* ]]; then
-    errmsg "DEBUG: SSH CMD: sudo found in command"
-  fi
-  if [[ ! -z ${SSHSUDOPASSWORD+x} ]];  then
-    errmsg "DEBUG: SSH CMD: SSHSUDOPASSWORD is set"
-  else
-    errmsg "DEBUG: SSH CMD: SSHSUDOPASSWORD is NOT set"
-  fi
-
   if [[ "$@" == *"sudo"* ]] && [[ ! -z ${SSHSUDOPASSWORD+x} ]] ; then
     command echo "$SSHSUDOPASSWORD" | command ssh -q -tt $ssh_options "$@"
   else
