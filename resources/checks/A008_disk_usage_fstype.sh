@@ -80,7 +80,7 @@ df_to_json() {
 }"
   else
     errmsg "ERROR: Wrong result of 'sudo df' command"
-    return 1
+    exit 1
   fi
   return 0
 }
@@ -98,7 +98,7 @@ df_to_json() {
 print_df() {
   local path="$1"
   local rawDf=$(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\"")
-  df=$(echo "$rawDf" | grep -v "\[sudo\] password for" | tail -n +2)
+  df=$(echo "$rawDf" | grep -v "\[sudo\] password for" | tail -n 1)
   if df_to_json "${path}" $df; then
     rawDf=""
   else

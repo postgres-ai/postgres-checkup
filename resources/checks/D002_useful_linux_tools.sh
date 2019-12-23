@@ -51,6 +51,7 @@ res2=$(${CHECK_HOST_CMD} "sudo which sudo")
 res2=$(echo "$res2" | grep -v "\[sudo\] password for ")
 if [[ "$res1" != "$res2" ]]; then
   errmsg "ERROR: Can not execute 'which' on target server."
+  exit 1
 fi
 
 # build json object to stdout
