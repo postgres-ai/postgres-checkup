@@ -292,7 +292,7 @@ you cannot use `localhost` in `-h` parameter. You have to use a bridge between
 host OS and Docker Engine. By default, host IP is `172.17.0.1` in `docker0`
 network, but it vary depending on configuration. More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
 
-If you use SSH connection and `sudo` on remote servers requires a password,
+If you use SSH connection and `sudo` on the remote server requires a password,
 you can provide this password using the `SSHSUDOPASSWORD` environment variable.
 
 ## Credits
