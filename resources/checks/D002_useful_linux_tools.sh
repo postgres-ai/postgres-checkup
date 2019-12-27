@@ -56,7 +56,7 @@ fi
 
 # build json object to stdout
 echo "{"
-check_list "cpu" "$cpu_list" && echo -n ","
+check_list "cpu" "${cpu_list}" && echo -n ","
 check_list "free_space" "$disk_usage_list" && echo -n ","
 check_list "io" "$io_list" && echo -n ","
 check_list "memory" "$memory_list" && echo -n ","
