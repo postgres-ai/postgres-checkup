@@ -30,7 +30,7 @@ check_list() {
   IFS=","
   local cnt="0"
   local comma=""
-  for util in $list ; do
+  for util in $list; do
     [[ "$cnt" -eq "0" ]] && comma="" || comma=","
     IFS="$SAVE_IFS" # non-standart IFS ruins ${CHECK_HOST_CMD}
     local res=$(${CHECK_HOST_CMD} "sudo which $util 2>&1")
