@@ -100,6 +100,7 @@ print_df() {
   local path="$1"
   local rawDf=$(${CHECK_HOST_CMD} "sudo df -TPh \"${path}\"")
   df=$(echo "$rawDf" | grep -v "\[sudo\] password for" | tail -n 1)
+
   if df_to_json "${path}" $df; then
     rawDf=""
   else
