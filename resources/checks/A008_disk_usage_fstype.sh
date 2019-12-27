@@ -82,6 +82,7 @@ df_to_json() {
     errmsg "ERROR: Wrong result of 'sudo df' command"
     exit 1
   fi
+
   return 0
 }
 
