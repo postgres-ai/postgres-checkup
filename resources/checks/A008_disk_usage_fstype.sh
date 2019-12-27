@@ -105,7 +105,7 @@ print_df() {
     rawDf=""
   else
     echo "null"
-    errmsg "'sudo df' returns: '$rawDf'"
+    errmsg "Cannot get disk information. 'sudo df' returned: '$rawDf'"
   fi
 }
 
