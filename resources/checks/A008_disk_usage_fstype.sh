@@ -151,6 +151,7 @@ points=$(${CHECK_HOST_CMD} "sudo df -TPh")
 points=$(echo "$points" | grep -v "\[sudo\] password for" | tail -n +2)
 while read -r line; do
   params=($line)
+
   if [[ ${#params[@]} -ge 1 ]]; then
     if [[ $i -gt 0 ]]; then
       echo ",\"$i\":{"
