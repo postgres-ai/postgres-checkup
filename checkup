@@ -57,7 +57,7 @@ function dbg() {
 }
 
 #######################################
-# Print an error/warning/notice to STDERR with timestamp
+# Print an error/warning/notice to STDERR with timestamp and error location
 #   Please use 'exit' with code after usage
 #   of this function (if needed)
 # Globals:
@@ -69,6 +69,21 @@ function dbg() {
 #######################################
 function err() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: ${FUNCNAME[1]}: $@" >&2
+}
+
+#######################################
+# Print an error/warning/notice to STDERR with timestamp only
+#   Please use 'exit' with code after usage
+#   of this function (if needed)
+# Globals:
+#   None
+# Arguments:
+#   (text) Error message
+# Returns:
+#   (text) STDERR
+#######################################
+function errmsg() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@" >&2
 }
 
 #######################################
@@ -1460,7 +1475,11 @@ ssh() {
       ssh_options="$ssh_options -S $ssh_master_socket $ssh_master_options"
   fi
 
-  command ssh $ssh_options "$@"
+  if [[ "$@" == *" sudo "* ]] && [[ ! -z ${SSHSUDOPASSWORD+x} ]] ; then
+    command echo "$SSHSUDOPASSWORD" | command ssh -q -tt $ssh_options "$@"
+  else
+    command ssh $ssh_options "$@"
+  fi
 }
 
 #######################################

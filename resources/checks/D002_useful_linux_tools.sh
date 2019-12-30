@@ -30,10 +30,12 @@ check_list() {
   IFS=","
   local cnt="0"
   local comma=""
-  for util in $list ; do
+  for util in $list; do
     [[ "$cnt" -eq "0" ]] && comma="" || comma=","
     IFS="$SAVE_IFS" # non-standart IFS ruins ${CHECK_HOST_CMD}
-    if $(${CHECK_HOST_CMD} "sudo which $util >/dev/null 2>&1"); then
+    local res=$(${CHECK_HOST_CMD} "sudo which $util 2>&1")
+    res=$(echo "$res" | grep -v "\[sudo\] password for ")
+    if [[ "$res" != "" ]]; then
       json="${json}${comma} \"$util\": \"yes\""
     else
       json="${json}${comma} \"$util\": \"\""
@@ -44,9 +46,17 @@ check_list() {
   echo "$json"
 }
 
+res1=$(${CHECK_HOST_CMD} "which sudo")
+res2=$(${CHECK_HOST_CMD} "sudo which sudo")
+res2=$(echo "$res2" | grep -v "\[sudo\] password for ")
+if [[ "$res1" != "$res2" ]]; then
+  errmsg "ERROR: Cannot execute 'which' on the target server."
+  exit 1
+fi
+
 # build json object to stdout
 echo "{"
-check_list "cpu" "$cpu_list" && echo -n ","
+check_list "cpu" "${cpu_list}" && echo -n ","
 check_list "free_space" "$disk_usage_list" && echo -n ","
 check_list "io" "$io_list" && echo -n ","
 check_list "memory" "$memory_list" && echo -n ","
