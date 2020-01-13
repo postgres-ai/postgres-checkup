@@ -27,10 +27,12 @@ with data as (
       coalesce(substring(array_to_string(tbl.reloptions, ' ') from '%fillfactor=#"__#"%' for '#')::int2, 100) as fillfactor,
       current_setting('block_size')::numeric as bs,
       case when version() ~ 'mingw32|64-bit|x86_64|ppc64|ia64|amd64' then 8 else 4 end as ma, -- NS: TODO: check it
+
       24 as page_hdr,
-      23 + case when max(coalesce(null_frac, 0)) > 0 then (7 + count(*)) / 8 else 0::int end
-        + case when tbl.relhasoids then 4 else 0 end as tpl_hdr_size,
-      sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) as tpl_data_size,
+      23 + case when max(coalesce(s.null_frac,0)) > 0 then (7 + count(s.attname)) / 8 else 0::int end
+        + case when bool_or(att.attname = 'oid' and att.attnum < 0) then 4 else 0 end as tpl_hdr_size,
+      sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 0) ) as tpl_data_size,
+
       bool_or(att.atttypid = 'pg_catalog.name'::regtype) or count(att.attname) <> count(s.attname) as is_na
     from pg_attribute as att
     join pg_class as tbl on att.attrelid = tbl.oid and tbl.relkind = 'r'
@@ -42,11 +44,10 @@ with data as (
       and s.attname = att.attname
     left join pg_class as toast on tbl.reltoastrelid = toast.oid
     where
-      att.attnum > 0
-      and not att.attisdropped
+      not att.attisdropped
       and (s.schemaname <> 'information_schema' or s.schemaname is null)
       and tbl.relpages > ${MIN_RELPAGES}
-    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, tbl.relhasoids
+    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     order by 2, 3
   ), step2 as (
     select
@@ -64,7 +65,7 @@ with data as (
       *,
       ceil(reltuples / ((bs - page_hdr) / tpl_size)) + ceil(toasttuples / 4) as est_tblpages,
       ceil(reltuples / ((bs - page_hdr) * fillfactor / (tpl_size * 100))) + ceil(toasttuples / 4) as est_tblpages_ff
-      -- , stattuple.pgstattuple(tblid) as pst
+      -- , tpl_hdr_size, tpl_data_size, pgstattuple(tblid) AS pst -- (DEBUG INFO)
     from step2
   ), step4 as (
     select
@@ -86,7 +87,7 @@ with data as (
           then 100 * (tblpages - est_tblpages_ff) / tblpages::float
         else 0
       end as bloat_ratio
-      -- , (pst).free_percent + (pst).dead_tuple_percent as real_frag
+      -- , tpl_hdr_size, tpl_data_size, (pst).free_percent + (pst).dead_tuple_percent AS real_frag -- (DEBUG INFO)
     from step3
     left join pg_stat_user_tables su on su.relid = tblid
     -- WHERE NOT is_na
