@@ -58,6 +58,7 @@ variables:
     - diff=$((f005_indexes_size - l001_indexes_size)) && diff=${diff#-} && echo $diff && ratio=$((diff * 100 / l001_indexes_size)) && echo $ratio && ([[ $ratio -gt "5" ]]) && exit 303
     - echo "F005/L001 Total indexes size passed"
     - ./checkup -c .ci/test.yml --file ./resources/checks/F004_heap_bloat.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && ([[ ! -f "./artifacts/test/json_reports/$data_dir/F004_heap_bloat.json" ]] || [[ ! -f "./artifacts/test/md_reports/$data_dir/F004.md" ]]) && exit 304
     - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && msg=$(grep "can be reduced 0.00 times" ./artifacts/test/md_reports/$data_dir/F004.md) && [[ ! -z "$msg" ]] && exit 304
     - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
     # Check small indexes
