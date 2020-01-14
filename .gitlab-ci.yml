@@ -165,6 +165,12 @@ test-check-11:
   services:
     - postgres:11
 
+test-check-12:
+  extends: ".test-check"
+  stage: "test"
+  services:
+    - postgres:12
+
 test-check-cli:
   services:
     - postgres:11
