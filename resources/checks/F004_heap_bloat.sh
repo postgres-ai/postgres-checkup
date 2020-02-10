@@ -33,7 +33,8 @@ with data as (
         + case when bool_or(att.attname = 'oid' and att.attnum < 0) then 4 else 0 end as tpl_hdr_size,
       sum((1 - coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 0) ) as tpl_data_size,
 
-      bool_or(att.atttypid = 'pg_catalog.name'::regtype) or count(att.attname) <> count(s.attname) as is_na
+      bool_or(att.atttypid = 'pg_catalog.name'::regtype) or
+        sum(case when att.attnum > 0 then 1 else 0 end) <> count(s.attname) as is_na
     from pg_attribute as att
     join pg_class as tbl on att.attrelid = tbl.oid and tbl.relkind = 'r'
     join pg_namespace as ns on ns.oid = tbl.relnamespace
