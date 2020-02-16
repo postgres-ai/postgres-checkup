@@ -5,6 +5,8 @@ stages:
   - docker_build
 
 variables:
+  DATABASE_HOST: postgres
+  POSTGRES_HOST: postgres
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: test_user # set username
   POSTGRES_PASSWORD: ""
@@ -155,7 +157,7 @@ test-check-9.6:
     - postgres:9.6
 
 test-check-10:
-  extends: ".test-check"
+  extends: ".test-check"  
   stage: "test"
   services:
     - postgres:10
