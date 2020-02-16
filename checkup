@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright © 2018-2019, Postgres.ai (https://postgres.ai), Nikolay Samokhvalov
+# Copyright © Postgres.ai (https://postgres.ai), Nikolay Samokhvalov
 #
 # Automated health-checks of PostgreSQL clusters
 #

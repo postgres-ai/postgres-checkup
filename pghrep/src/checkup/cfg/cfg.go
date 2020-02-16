@@ -1,7 +1,5 @@
 /*
-2019 © Anatoly Stansler anatoly@postgres.ai
-2019 © Dmitry Udalov dmius@postgres.ai
-2019 © Postgres.ai
+Copyright © Postgres.ai
 */
 
 package cfg

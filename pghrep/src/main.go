@@ -1,8 +1,7 @@
 /*
 Postgres Health Reporter
 
-2018-2019 © Dmitry Udalov dmius@postgres.ai
-2018-2019 © Postgres.ai
+Copyright © Postgres.ai
 
 Perform a generation of Markdown report based on JSON results of postgres-checkup
 Usage:

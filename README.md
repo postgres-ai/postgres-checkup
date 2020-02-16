@@ -9,7 +9,7 @@ at the upper right corner):
 To treat the data correctly, you need deep Postgres knowledge. Each report
 consists of 3 sections: Observations, Conclusions, and Recommendations.
 Observations are filled automatically. As for Conclusions and Recommendations
-sections, as of October 2019, only limited number of reports are auto-generated.*
+sections, not all reports are auto-generated.*
 
 
 # About
@@ -153,7 +153,7 @@ cd postgres-checkup
 Let's make a report for a project named `prod1`. Assume that we have two servers,
 `db1.vpn.local` and `db2.vpn.local`.
 
-Postgres-checkup automatically detects which one is a master:
+Postgres-checkup automatically detects which one is the master:
 
 ```bash
 ./checkup -h db1.vpn.local -p 5432 --username postgres --dbname postgres --project prod1 -e 1
@@ -168,7 +168,8 @@ project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sig
 For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.
-If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
+If SSH is not available the local 'psql' will be used (non-psql reports will be skipped) to establish
+Postgres connection. If you want to avoid "guessing", use `-ssh-hostname` or `--pg-hostname`.
 
 Also, you can define a specific way to connect: SSH or `psql`:
 
