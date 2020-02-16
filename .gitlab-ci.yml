@@ -5,11 +5,10 @@ stages:
   - docker_build
 
 variables:
-  DATABASE_HOST: postgres
-  POSTGRES_HOST: postgres
   POSTGRES_DB: dbname # set database
   POSTGRES_USER: test_user # set username
   POSTGRES_PASSWORD: ""
+  POSTGRES_HOST_AUTH_METHOD: "trust"
 
 .prepare:
   stage: test
