@@ -9,9 +9,9 @@ apt-get -y install postgresql-${PG_VER} postgresql-contrib-${PG_VER} postgresql-
 psql --version
 echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
 source ~/.profile
-echo "127.0.0.2 postgres.replica1.node" >> /etc/hosts # replica 1
-echo "127.0.0.3 postgres.replica2.node" >> /etc/hosts # replica 2
-echo "127.0.0.4 postgres.master.node" >> /etc/hosts # master
+echo "127.0.0.2 postgres.test1.node" >> /etc/hosts # replica 1
+echo "127.0.0.3 postgres.test2.node" >> /etc/hosts # replica 2
+echo "127.0.0.4 postgres.test3.node" >> /etc/hosts # master
 
 # Configure postgres
 
