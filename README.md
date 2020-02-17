@@ -1,4 +1,4 @@
-Please support the project giving a GitLab star (it's on [the main page](https://gitlab.com/postgres-ai/database-lab),
+Please support the project giving a GitLab star (it's on [the main page](https://gitlab.com/postgres-ai/postgres-checkup/),
 at the upper right corner):
 
 ![Add a star](./assets/star.gif)
