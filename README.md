@@ -147,6 +147,7 @@ git clone https://gitlab.com/postgres-ai/postgres-checkup.git
 #   git clone --branch 1.1 https://gitlab.com/postgres-ai/postgres-checkup.git
 cd postgres-checkup
 ```
+It is important: if you are updating to the new version using `git pull` you need to build pghrep binary module executing follow `cd ./pghrep/ && make all`.
 
 ## Example of Use
 
