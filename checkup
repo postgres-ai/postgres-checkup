@@ -803,12 +803,15 @@ is_large_database() {
 #   (text) stdout/stderr
 #######################################
 build_pghrep() {
+  export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
+  if [[ -f "${PGHREP_BIN}" ]]; then
+    return;
+  fi
   dbg "building pghrep..."
   local save_pwd="${PWD}"
   cd "${SCRIPT_DIR}/pghrep"
   make install main >/dev/null
   cd "${save_pwd}"
-  export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
   dbg "done building pghrep"
 }
 
