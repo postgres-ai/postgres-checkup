@@ -36,7 +36,7 @@ SQL
 ) || err_code="$?"
 
 if [[ "${err_code}" -ne "0" ]]; then
-  errmsg "ERROR: Cannot find extension \"pg_stat_stat_statements\". Install extension \"pg_stat_stat_statements\" using \"CREATE EXTENSION pg_stat_statements;\" or run postgres-checkup with CLI option \"--ss-dbname\" pointing to a database where this extension is already installed."
+  errmsg "ERROR: Cannot find extension \"pg_stat_statements\". Install extension \"pg_stat_statements\" using \"CREATE EXTENSION pg_stat_statements;\" or run postgres-checkup with CLI option \"--ss-dbname\" pointing to a database where this extension is already installed."
   exit 1
 fi
 
