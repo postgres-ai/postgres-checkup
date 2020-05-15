@@ -14,6 +14,7 @@ FULL_REPORT_FNAME="0_Full_report.md"
 : ${DEBUG:=false} # print debug output
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
+PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
@@ -794,25 +795,6 @@ is_large_database() {
 }
 
 #######################################
-# Build pghrep - a .md report generator
-# Globals:
-#   PGHREP_BIN
-# Arguments:
-#   None
-# Returns:
-#   (text) stdout/stderr
-#######################################
-build_pghrep() {
-  dbg "building pghrep..."
-  local save_pwd="${PWD}"
-  cd "${SCRIPT_DIR}/pghrep"
-  make install main >/dev/null
-  cd "${save_pwd}"
-  export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
-  dbg "done building pghrep"
-}
-
-#######################################
 # Check binary dependencies
 # Globals:
 #   KERNEL_NAME, OS_NAME, timeout()
@@ -866,34 +848,6 @@ check_bin_deps() {
       err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install gawk'"
     fi
     return 1
-  fi
-
-  # golang
-  if ! $(which go >/dev/null 2>&1); then
-    err "Can't find the 'go' executable. Please install it:"
-    if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
-      err "${OS_NAME}: 'brew install golang'"
-    elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
-      err "Debian/Ubuntu GNU/${OS_NAME}: 'sudo apt-get install golang'"
-      err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install golang'"
-    fi
-    return 1
-  fi
-  # go version check (>= 1.8)
-  re="go([0-9]+.[0-9]+).+"
-  local go_version_full=$(go version)
-  local version="" # short form (e.g. '1.11')
-  local go_version_num="" # get only first two numbers devided by '.'
-  if [[ "${go_version_full}" =~ $re ]]; then
-    version="${BASH_REMATCH[1]}"
-    local major=${version%.*}
-    local minor=${version#*.}
-    go_version_num="${major}${minor}"
-    if [[ $(( go_version_num % 1000 )) -lt "18" ]]; then
-      err "Unsupported golang version '${go_version_full}'"
-      err "Please install golang version >= '1.8'"
-      return 1
-    fi
   fi
 
   # jq
@@ -1496,7 +1450,11 @@ main() {
     mode="$1"
   fi
 
-  build_pghrep
+  if [[ ! -f "${PGHREP_BIN}" ]]; then
+    err "Cannot load '${PGHREP_BIN}'. The binary needs to be built."
+    exit 2
+  fi
+
   read_possible_args
   process_cli_args "$@"
   validate_args
