@@ -8,6 +8,11 @@ stages:
 #   rules:
 #     - if: $CI_MERGE_REQUEST_ID
 #       when: never
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: never
+    - when: always
 
 variables:
   POSTGRES_DB: dbname # set database
