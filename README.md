@@ -148,6 +148,14 @@ git clone https://gitlab.com/postgres-ai/postgres-checkup.git
 cd postgres-checkup
 ```
 
+#### 3. Build pghrep
+
+```bash
+cd ./pghrep
+make install main
+cd ..
+```
+
 ## Example of Use
 
 Let's make a report for a project named `prod1`. Assume that we have two servers,
@@ -257,16 +265,16 @@ There is an option to run postgres-checkup in a Docker container:
 ```bash
 docker run --rm \
   --name postgres-checkup \
-  -e PGPASSWORD="postgres" \
-  -v `pwd`/artifacts:/artifacts \
-  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
+  --env PGPASSWORD="postgres" \
+  --volume `pwd`/artifacts:/artifacts \
+  postgresai/postgres-checkup:latest \
     ./checkup \
-      -h hostname \
-      -p 5432 \
+      --hostname hostname \
+      --port 5432 \
       --username postgres \
       --dbname postgres \
       --project c \
-      -e "$(date +'%Y%m%d')001"
+      --epoch "$(date +'%Y%m%d')001"
 ```
 
 In this case some checks (those requiring SSH connection) will be skipped.
@@ -282,15 +290,15 @@ on Windows, but should work well on Linux and MacOS machines):
 ```bash
 docker run --rm \
   --name postgres-checkup \
-  -v "$(pwd)/artifacts:/artifacts" \
-  -v "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
-  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
+  --volume "$(pwd)/artifacts:/artifacts" \
+  --volume "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
+  postgresai/postgres-checkup:latest \
   ./checkup \
-    -h sshusername@hostname \
+    --hostname sshusername@hostname \
     --username my_postgres_user \
     --dbname my_postgres_database \
     --project docker_test_with_ssh \
-    -e "$(date +'%Y%m%d')001"
+    --epoch "$(date +'%Y%m%d')001"
 ```
 
 If you try to check the local instance of postgres on your host from a container,
