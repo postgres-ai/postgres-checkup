@@ -1479,7 +1479,7 @@ main() {
   fi
 
   if [[ ! -f "${PGHREP_BIN}" ]]; then
-    err "Can't load '${PGHREP_BIN}'. The binary needs to be built."
+    err "Cannot load '${PGHREP_BIN}'. The binary needs to be built."
     exit 2
   fi
 
