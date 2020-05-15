@@ -4,10 +4,10 @@ stages:
   - test
   - build-image
 
-workflow:
-  rules:
-    - if: $CI_MERGE_REQUEST_ID
-      when: never
+# workflow:
+#   rules:
+#     - if: $CI_MERGE_REQUEST_ID
+#       when: never
 
 variables:
   POSTGRES_DB: dbname # set database
