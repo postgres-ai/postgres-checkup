@@ -14,6 +14,7 @@ FULL_REPORT_FNAME="0_Full_report.md"
 : ${DEBUG:=false} # print debug output
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
+PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
@@ -794,25 +795,6 @@ is_large_database() {
 }
 
 #######################################
-# Build pghrep - a .md report generator
-# Globals:
-#   PGHREP_BIN
-# Arguments:
-#   None
-# Returns:
-#   (text) stdout/stderr
-#######################################
-build_pghrep() {
-  dbg "building pghrep..."
-  local save_pwd="${PWD}"
-  cd "${SCRIPT_DIR}/pghrep"
-  make install main >/dev/null
-  cd "${save_pwd}"
-  export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
-  dbg "done building pghrep"
-}
-
-#######################################
 # Check binary dependencies
 # Globals:
 #   KERNEL_NAME, OS_NAME, timeout()
@@ -1496,7 +1478,11 @@ main() {
     mode="$1"
   fi
 
-  build_pghrep
+  if [[ ! -f "${PGHREP_BIN}" ]]; then
+    err "Can't load '${PGHREP_BIN}'. The binary needs to be built."
+    exit 2
+  fi
+
   read_possible_args
   process_cli_args "$@"
   validate_args

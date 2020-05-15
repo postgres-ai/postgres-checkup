@@ -11,8 +11,8 @@ workflow:
     - when: always
 
 variables:
-  POSTGRES_DB: dbname # set database
-  POSTGRES_USER: test_user # set username
+  POSTGRES_DB: dbname # Set database.
+  POSTGRES_USER: test_user # Set username.
   POSTGRES_PASSWORD: ""
   POSTGRES_HOST_AUTH_METHOD: "trust"
 
@@ -162,7 +162,7 @@ test-check-9.6:
     - postgres:9.6
 
 test-check-10:
-  extends: ".test-check"  
+  extends: ".test-check"
   stage: "test"
   services:
     - postgres:10
@@ -226,9 +226,9 @@ test-check-cli:
 
 .only_var_template: &only_feature
   rules:
-    - if: $CI_COMMIT_REF_SLUG != "master" #$CI_COMMIT_REF_SLUG && 
+    - if: $CI_COMMIT_REF_SLUG && $CI_COMMIT_REF_SLUG != "master"
 
-build-image-feature-server:
+build-image-feature:
   <<: *build_image_definition
   <<: *only_feature
   variables:
@@ -238,14 +238,14 @@ build-image-feature-server:
     DOCKER_NAME: "registry.gitlab.com/postgres-ai/postgres-checkup"
     TAGS: "${DOCKER_NAME}:${CI_COMMIT_REF_SLUG}"
 
-build-image-master-server:
+build-image-master:
   <<: *build_image_definition
   <<: *only_master
   variables:
     DOCKER_NAME: "registry.gitlab.com/postgres-ai/postgres-checkup"
     TAGS: "${DOCKER_NAME}:master,${DOCKER_NAME}:master-${CI_COMMIT_SHORT_SHA}"
 
-build-image-latest-server:
+build-image-latest:
   <<: *build_image_definition
   <<: *only_tag_release
   variables:
@@ -255,7 +255,7 @@ build-image-latest-server:
     DOCKER_NAME: "postgresai/postgres-checkup"
     TAGS: "${DOCKER_NAME}:latest,${DOCKER_NAME}:${CI_COMMIT_TAG}"
 
-build-image-rc-server:
+build-image-rc:
   <<: *build_image_definition
   <<: *only_tag_rc
   variables:
