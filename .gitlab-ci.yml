@@ -4,10 +4,10 @@ stages:
   - test
   - build-image
 
-workflow:
-  rules:
-    - if: $CI_MERGE_REQUEST_ID
-      when: never
+#workflow:
+#  rules:
+#    - if: $CI_MERGE_REQUEST_ID
+#      when: never
 
 variables:
   POSTGRES_DB: dbname # set database
@@ -225,7 +225,7 @@ test-check-cli:
 
 .only_var_template: &only_feature
   rules:
-    - if: $CI_COMMIT_REF_SLUG && $CI_COMMIT_REF_SLUG != "master"
+    - if: '!$CI_MERGE_REQUEST_ID && $CI_COMMIT_REF_SLUG && $CI_COMMIT_REF_SLUG != "master"'
 
 build-image-feature-server:
   <<: *build_image_definition
