@@ -10,7 +10,7 @@ f_stderr=$(mktemp)
 (${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
 do \$$
 declare
-  MIN_RELPAGES int8 = ${MIN_RELPAGES}; -- skill tables with small number of pages
+  MIN_RELPAGES int8 = ${MIN_RELPAGES}; -- skip tables with small number of pages
   rec record;
   out text;
   out1 json;
