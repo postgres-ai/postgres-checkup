@@ -39,7 +39,7 @@ begin
     join pg_type t on t.oid = atttypid
     where
       i.indisprimary
-      and (c.relpages >  or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)
+      and (c.relpages > MIN_RELPAGES or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)
       and t.typname in ('int2', 'int4')
       and nspname <> 'pg_toast'
       group by 1, 2, 3, 4, 5, 6
