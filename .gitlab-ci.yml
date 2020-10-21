@@ -1,5 +1,8 @@
 image: ubuntu:16.04
 
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
 stages:
   - test
   - build-image
