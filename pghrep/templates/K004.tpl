@@ -1,4 +1,4 @@
-# {{ .checkId }} Top-{{.LISTLIMIT}} the most frequent transactions
+# {{ .checkId }} Top-{{.LISTLIMIT}} Query Groups by `calls`
 
 ## Observations ##
 Data collected: {{ DtFormat .timestamptz }}  
