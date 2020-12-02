@@ -56,7 +56,7 @@ func TestF005Success(t *testing.T) {
 		},
 	}
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
-	result := F005Process(report)
+	result := F005Process(report, []string{})
 	if result.P1 || result.P2 || result.P3 ||
 		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_LOW) {
 		t.Fatal("TestF005Success failed")
@@ -82,7 +82,7 @@ func TestF005TotalExcess(t *testing.T) {
 	}
 	hostResult.Data.IndexBloat = map[string]F005IndexBloat{}
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
-	result := F005Process(report)
+	result := F005Process(report, []string{})
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, F005_TOTAL_BLOAT_EXCESS) ||
 		!checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {
@@ -142,7 +142,7 @@ func TestF005Warnig(t *testing.T) {
 	}
 
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
-	result := F005Process(report)
+	result := F005Process(report, []string{})
 	if !result.P2 ||
 		!checkup.ResultInList(result.Conclusions, F005_BLOAT_WARNING) ||
 		!checkup.ResultInList(result.Recommendations, F005_BLOAT_WARNING) {
@@ -202,7 +202,7 @@ func TestF005Critical(t *testing.T) {
 	}
 
 	report.Results = F005ReportHostsResults{"test-host": hostResult}
-	result := F005Process(report)
+	result := F005Process(report, []string{})
 	if !result.P1 ||
 		!checkup.ResultInList(result.Conclusions, F005_BLOAT_CRITICAL) ||
 		!checkup.ResultInList(result.Recommendations, F005_BLOAT_CRITICAL_INFO) {

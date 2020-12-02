@@ -15,7 +15,7 @@ const MSG_BLOAT_WARNING_RECOMMENDATION string = "[P2] Consider the following:\n"
 	"    - to prevent a high level of bloat in the future, tune autovacuum: consider more aggressive autovacuum settings (see F001);\n" +
 	"    - eliminate or reduce the current index bloat using one of the approaches listed below.\n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_1 string = "If you want to get exact bloat numbers, clone the database, get index sizes, then apply " +
-	"database-wide `VACUUM FULL` (it eliminates all the bloat), and gets new table sizes. Then compare old and new numbers.\n"
+	"database-wide `VACUUM FULL` (it eliminates all the bloat), and get new table sizes. Then compare old and new numbers.\n"
 const MSG_BLOAT_GENERAL_RECOMMENDATION_2 string = "To reduce the index bloat, consider one of the following approaches:\n" +
 	"    - [`VACUUM FULL`](https://www.postgresql.org/docs/current/sql-vacuum.html) (:warning:  requires downtime / maintenance window),\n" +
 	"    - [`REINDEX`](https://www.postgresql.org/docs/current/sql-reindex.html) (`REINDEX INDEX`, `REINDEX TABLE`; :warning:  requires downtime / maintenance window),\n" +
@@ -37,3 +37,6 @@ const MSG_BLOAT_WARNING_CONCLUSION_N string = "[P2] There are %d indexes with si
 const MSG_BLOAT_CRITICAL_CONCLUSION_N string = "[P1] The following %d indexes have significant size (>1 MiB) and bloat estimate > %.2f%%:  \n%s  \n"
 
 const INDEX_DETAILS string = "    - `%s`: size %s, can be reduced %.2f times, by ~%s (~%.2f%%)\n"
+
+const MSG_BLOAT_WARNING_RECOMMENDATION_INDEXES string = "The following indexes have size > 1 MiB and index bloat estimate > %.2f%%. Use this list to reduce the bloat applying one of the approaches described below. Here are these indexes: %s."
+const MSG_BLOAT_WARNING_RECOMMENDATION_TABLE_INDEXES string = "And the following indexes also have size > 1 MiB and index bloat estimate > %.2f%%. However, they belong to the highly bloated tables (see F004), so if you plan to process those tables you may not need to use this additional list. Here are these indexes: %s."

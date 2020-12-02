@@ -38,7 +38,7 @@ with data as (
         AND pg_index.indisvalid
         AND tbl.relkind = 'r'
         AND idx.relpages > ${MIN_RELPAGES}
-        AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+        AND pg_namespace.nspname <> 'information_schema'
   ), step1 as (
     select
       i.tblid,
@@ -67,7 +67,7 @@ with data as (
       max(case when a.atttypid = 'pg_catalog.name'::regtype then 1 else 0 end) > 0 as is_na,
       i.table_size_bytes
     from pg_attribute as a
-    join step0 as i on a.attrelid = i.indexrelid AND a.attnum = i.attnum
+    join step0 as i on a.attrelid = i.indexrelid
     join pg_stats as s on
       s.schemaname = i.nspname
       and (
@@ -124,6 +124,7 @@ with data as (
   select
     case is_na when true then 'TRUE' else '' end as "is_na",
     index_name as "index_name",
+    coalesce(nullif(step4.schema_name, 'public'), '') as "schema_name",
     coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name as "table_name",
     left(index_name, 50) || case when length(index_name) > 50 then '…' else '' end  || '(' || coalesce(nullif(step4.schema_name, 'public') || '.', '') || step4.table_name || ')'as "index_table_name",
     real_size as "real_size_bytes",

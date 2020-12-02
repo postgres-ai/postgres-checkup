@@ -27,6 +27,18 @@ else
   change_db_cmd=""
 fi
 
+# check pg_stat_statements availability
+err_code="0"
+res=$(${CHECK_HOST_CMD} "${_PSQL} >/dev/null 2>&1 -f -" <<SQL
+  ${change_db_cmd}
+  select from pg_stat_statements limit 1 -- the fastest way
+SQL
+) || err_code="$?"
+
+if [[ "${err_code}" -ne "0" ]]; then
+  errmsg "ERROR: Cannot find extension \"pg_stat_statements\". Install extension \"pg_stat_statements\" using \"CREATE EXTENSION pg_stat_statements;\" or run postgres-checkup with CLI option \"--ss-dbname\" pointing to a database where this extension is already installed."
+  exit 1
+fi
 
 tmp_dir="${JSON_REPORTS_DIR}/tmp_K000"
 mkdir -p "${tmp_dir}"
@@ -166,7 +178,7 @@ jq -r . <<<${json_object} > "${cur_snapshot_fname}"
 res=""
 
 if [[ "${prev_fname_prefix}" -eq "0" ]]; then
-  echo "ERROR: need two checks to compare results. Please run whole check for this epoch again." >&2
+  echo "ERROR: To compare results, 2 runs are needed. Please run './checkup collect' once again for this epoch." >&2
   echo "NOTICE: ^^ this is not a real error. Just run check again." >&2
   exit 1
 fi

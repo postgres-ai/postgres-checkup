@@ -65,21 +65,21 @@ func prepareMessage(v ...interface{}) string {
 
 // Output message
 func Msg(v ...interface{}) {
-	log.Println(">>> INFO:  " + prepareMessage(v...))
+	log.Println("INFO:  " + prepareMessage(v...))
 }
 
 // Output debug message
 func Dbg(v ...interface{}) {
 	if DEBUG {
-		log.Println(">>> DEBUG: " + prepareMessage(v...))
+		log.Println("DEBUG: " + prepareMessage(v...))
 	}
 }
 
 // Output error message
 func Err(v ...interface{}) {
-	log.New(os.Stderr, "", 0).Println(">>> ERROR: " + prepareMessage(v...))
+	log.New(os.Stderr, "", 0).Println("ERROR: " + prepareMessage(v...))
 }
 
 func Fatal(v ...interface{}) {
-	log.Fatal(">>> ERROR: " + prepareMessage(v...))
+	log.Fatal("ERROR: " + prepareMessage(v...))
 }

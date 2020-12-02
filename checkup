@@ -1,28 +1,29 @@
 #!/bin/bash
 #
-# 2018 © Victor Yagofarov victor@postgres.ai
-# 2018 © Postgres.ai
+# Copyright © Postgres.ai (https://postgres.ai), Nikolay Samokhvalov
 #
-# Perform a PostgreSQL instance(s) health checks (checkups)
+# Automated health-checks of PostgreSQL clusters
 #
-# Usage: $0 --help
+# Usage: ./checkup --help
 #
 
 # GLOBALS (user-assigned variables)
-CMD_TIMEOUT="10" # timeout for command (ssh, psql, etc.)
-                 # TODO(vyagofarov): think about timing
-                 # out commands in macOS
 FULL_REPORT_FNAME="0_Full_report.md"
 
 # GLOBALS (autoload, do not change)
 : ${DEBUG:=false} # print debug output
 SCRIPT_NAME=$(basename $0)
 SCRIPT_DIR=$(dirname $0)
+PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
 SAFE_IFS="$IFS"
 ALL_ARGS="$@"
 OPTIONS_ERROR_EXIT="false"
 DEFAULT_LIST_LIMIT=50
+DEFAULT_CONNECTION_TIMEOUT=10
+DEFAULT_PG_PORT=5432
+DEFAULT_SSH_PORT=22
 LARGE_DB_ITEMS_COUNT=100000
+AVAILABLE_MODES=("collect" "process" "upload" "help" "run")
 
 # Output styles (only BOLD is supported by default GNU screen)
 BOLD=`tput md 2>/dev/null` || :
@@ -57,7 +58,7 @@ function dbg() {
 }
 
 #######################################
-# Print an error/warning/notice to STDERR with timestamp
+# Print an error/warning/notice to STDERR with timestamp and error location
 #   Please use 'exit' with code after usage
 #   of this function (if needed)
 # Globals:
@@ -69,6 +70,21 @@ function dbg() {
 #######################################
 function err() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] ERROR: ${FUNCNAME[1]}: $@" >&2
+}
+
+#######################################
+# Print an error/warning/notice to STDERR with timestamp only
+#   Please use 'exit' with code after usage
+#   of this function (if needed)
+# Globals:
+#   None
+# Arguments:
+#   (text) Error message
+# Returns:
+#   (text) STDERR
+#######################################
+function errmsg() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $@" >&2
 }
 
 #######################################
@@ -132,13 +148,12 @@ load_cli_res() {
 # Globals:
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
 #   FULL_NAME[], ARG_TYPE[], MANDATARY[], DESCRIPTION[],
-#   ARGS_ARE_READED
 # Arguments:
 #   None
 # Returns:
 #   None
 #######################################
-read_possible_args() { # TODO(Nik) I cannot find where this function is being called
+read_possible_args() {
   local iter_num=0
   local section short_name full_name arg_type mandatary description
 
@@ -147,7 +162,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
     exit 2
   fi
 
-  while IFS="|" read -r section short_name full_name internal_name arg_type mandatary description; do
+  while IFS="|" read -r section short_name full_name internal_name arg_type mandatary arg_mode description; do
     # cut last garbage symbol
     # TODO(vyagofarov): understand this 'cutting' behavior
     description=${description%?}
@@ -158,6 +173,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
     INTERNAL_NAME[$iter_num]="$internal_name"
     ARG_TYPE[$iter_num]="$arg_type"
     MANDATARY[$iter_num]="$mandatary"
+    ARG_MODE[$iter_num]="$arg_mode"
     DESCRIPTION[$iter_num]="$description"
 
     dbg "iteration number: $iter_num"
@@ -167,6 +183,7 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
     dbg "4: internal_name '${INTERNAL_NAME[$iter_num]}'"
     dbg "5: arg_type '${ARG_TYPE[$iter_num]}'"
     dbg "6: mandatary '${MANDATARY[$iter_num]}'"
+    dbg "6: mode '${ARG_MODE[$iter_num]}'"
     dbg "7: description '${DESCRIPTION[$iter_num]}'"
 
     iter_num=$(( iter_num + 1 ))
@@ -177,8 +194,50 @@ read_possible_args() { # TODO(Nik) I cannot find where this function is being ca
   # starting from zero (convenient for arrays)
   CLI_ARGS_POSSIBLE=$(( iter_num - 1 ))
 
-  ARGS_ARE_READED="true"
-  dbg "possible args are readed"
+  dbg "possible args are read"
+}
+
+#######################################
+# Load configuration from a file and save parameters in an indexed array
+# Globals:
+#   $1, CLI_ARGS_POSSIBLE, ARG_VALUE[],
+#   CLI_ARGS_CNT, ARG_IS_GIVEN[]
+# Arguments:
+#   (text) config file path
+# Returns:
+#   None
+#######################################
+load_config_params () {
+  dbg "Load params from config file"
+  config_filename=${1}
+  if [[ ! -f "$config_filename" ]]; then
+    err "Config filename ${config_filename} not found."
+    exit 1
+  fi
+
+  eval $(${PGHREP_BIN} --mode loadcfg --path $config_filename 2>/dev/null)
+
+  for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
+    var_name="CONFIG__"${FULL_NAME[$i]}
+    var_name=${var_name//-/_}
+    if [[ ! -z ${!var_name+x} ]]; then
+      value=$(eval echo "\$$var_name")
+      dbg "$var_name = $value"
+      if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
+        ARG_VALUE[$i]="true"
+        ARG_IS_GIVEN[$i]="true"
+      else
+        if [[ -z "${value+x}" ]] || [[ "${value}" =~ $re ]]; then
+          err "Empty value is not allowed for variable '--${FULL_NAME[$i]}' in config file '${config_filename}'."
+          exit 1
+        fi
+        ARG_VALUE[$i]=$value
+        ARG_IS_GIVEN[$i]="true"
+      fi
+    fi
+    CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
+  done
+  return
 }
 
 #######################################
@@ -198,12 +257,20 @@ process_cli_args() {
   local argvalue
   dbg "Valid CLI args possible count: ${CLI_ARGS_POSSIBLE}+1"
   CLI_ARGS_CNT=0
+
   while [[ ! -z "${1+x}" ]]; do
     # print help if first argument matches regular expression
-    local help_re="-+(help|usage|\?)"
+    local help_re="(-+(help|usage|\?))|(help|usage|\?)"
     if [[ "${1}" =~ $help_re ]]; then
        usage "Help" "0"
        exit 0
+    fi
+
+    if [[ "${AVAILABLE_MODES[@]}" =~ "${1}" ]]; then
+      ARG_VALUE[0]="${1}"
+      ARG_IS_GIVEN[0]="true"
+      shift 1
+      continue
     fi
 
     # avoid infinite loop if argument is unknown
@@ -218,48 +285,25 @@ process_cli_args() {
         break
       fi
     done
+
     if [[ "${arg_is_valid}" == "false" ]]; then
       err "invalid argument '${1}'"
       exit 1
     fi
 
-    # parse yml config file and load params
-    if [[ "${1}" = "-c" ]] || [[ "${1}" = "--config" ]]; then
-      config_filename=${2}
-      if [[ ! -f "$config_filename" ]]; then
-        msg "Config filename ${config_filename} not found."
-        exit 1
-      fi
-      source ${BASH_SOURCE%/*}/resources/parse_yaml.sh $config_filename "CONFIG_"
-      for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
-        var_name="CONFIG__"${FULL_NAME[$i]}
-        var_name=${var_name//-/_}
-        if [[ ! -z ${!var_name+x} ]]; then
-          value=$(eval echo "\$$var_name")
-          dbg "$var_name = $value"
-          if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
-            ARG_VALUE[$i]="true"
-            ARG_IS_GIVEN[$i]="true"
-          else
-            if [[ -z "${value+x}" ]] || [[ "${value}" =~ $re ]]; then
-              err "empty value for variable '--${FULL_NAME[$i]}' config file"
-              exit 1
-            fi
-            ARG_VALUE[$i]=$value
-            ARG_IS_GIVEN[$i]="true"
-          fi
-        fi
-      done
-      CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
-      return
-    fi
-
-    # compare given argument with all possible arguments from cli.conf
+    # compare given argument to all possible arguments from cli.conf
     for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
       if [[ ! -z "${1+x}" ]]; then
         case $1 in
           "-${SHORT_NAME[$i]}" | "--${FULL_NAME[$i]}" )
             # argument without value (like '--force', ARG_TYPE is 'None')
+            if [[ "${1}" = "-c" ]] || [[ "${1}" = "--config" ]]; then
+              # parse yaml config file and load params
+              load_config_params ${2}
+              shift 2
+              continue
+            fi
+
             if [[ "${ARG_TYPE[$i]}" = "None" ]]; then
               ARG_VALUE[$i]="true"
               ARG_IS_GIVEN[$i]="true"
@@ -276,8 +320,10 @@ process_cli_args() {
               fi
               ARG_VALUE[$i]="${2}"
               ARG_IS_GIVEN[$i]="true"
+              dbg "${SHORT_NAME[$i]} 45 ${ARG_VALUE[$i]}"
               shift 2
             fi
+
             CLI_ARGS_CNT=$(( CLI_ARGS_CNT + 1 ))
         esac
       fi
@@ -350,6 +396,58 @@ validate_arg_type() {
 }
 
 #######################################
+# Generate psql command
+# Globals:
+#   PSQL_CONN_OPTIONS, HOST, OPTIONS_ERROR_EXIT
+#   USERNAME, PGPASSWORD, DBNAME, STIMEOUT
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+generate_psql_cmd() {
+  local pg_port=$DEFAULT_PG_PORT
+  if [[ "$PGPORT" != "None" ]]; then
+    pg_port=$PGPORT
+  fi
+
+  # custom UNIX domain socket directory for PostgreSQL
+  local psql_unix_socket_option=""
+  if [[ "${PGSOCKET}" != "None" ]]; then
+    psql_unix_socket_option=" --host '${PGSOCKET}' "
+  fi
+
+  # custom psql binary path support
+  local psql_bin="psql"
+  if [[ "${PSQLBINARY}" != "None" ]]; then
+    psql_bin="${PSQLBINARY}"
+  fi
+
+  # generate or not PGPASSWORD string (for substitution)
+  if [[ ! -z ${PGPASSWORD+x} ]]; then
+    local pgpas_subst="PGPASSWORD=\"${PGPASSWORD}\" " # whitespace in the end of the string
+  else
+    local pgpas_subst=""
+  fi
+
+  # use default Postgres username or not
+  local user_substr=""
+  if [[ ! -z ${USERNAME+x} ]]; then
+    user_substr=" -U \"${USERNAME}\" "
+  fi
+
+  # Construct _PSQL macro for usage inside the check scripts
+  export PSQL_CONN_OPTIONS="--port=${pg_port} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
+  psql_command="${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
+  export _PSQL_NO_TIMEOUT="PGAPPNAME=checkup ${psql_command}"
+  export _PSQL="PGAPPNAME=checkup PGOPTIONS=\"-c statement_timeout=${STIMEOUT}s\" ${psql_command}"
+
+  dbg ""
+  dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
+  dbg ""
+}
+
+#######################################
 # Validate arguments and and save input variables
 # Globals:
 #   CLI_ARGS_POSSIBLE, SECTION[], SHORT_NAME[],
@@ -382,11 +480,19 @@ validate_args() {
   done
 
   # fill default (not given) psql connection related variables
-  [[ "${PGPORT}" = "None" ]] && export PGPORT=5432
   [[ "${DBNAME}" = "None" ]] && export DBNAME=postgres
   [[ "${STIMEOUT}" = "None" ]] && export STIMEOUT=30 # statement timeout
   [[ "${USERNAME}" = "None" ]] && export USERNAME=""
   [[ "${LISTLIMIT}" = "None" ]] && export LISTLIMIT=${DEFAULT_LIST_LIMIT}
+  [[ "${CONNTIMEOUT}" = "None" ]] && export CONNTIMEOUT=${DEFAULT_CONNECTION_TIMEOUT} # connection timeout
+
+  if [[ "${MODE}" = "None" ]]; then
+    export MODE="run"
+    ARG_VALUE[0]="run"
+    ARG_IS_GIVEN[0]="true"
+  fi
+
+  generate_psql_cmd
 
   if ([[ "$HTML" == "true" ]] || [[ "$PDF" == "true" ]]); then
     PANDOC=$(which pandoc || echo -n "0");
@@ -414,52 +520,47 @@ validate_args() {
     fi
   fi
 
-  # custom UNIX domain socket directory for PostgreSQL
-  local psql_unix_socket_option=""
-  if [[ "${PGSOCKET}" != "None" ]]; then
-    psql_unix_socket_option=" --host '${PGSOCKET}' "
-  fi
-
-  # custom psql binary path support
-  local psql_bin="psql"
-  if [[ "${PSQLBINARY}" != "None" ]]; then
-    psql_bin="${PSQLBINARY}"
-  fi
-
-  # generate or not PGPASSWORD string (for substitution)
-  if [[ ! -z ${PGPASSWORD+x} ]]; then
-    local pgpas_subst="PGPASSWORD=\"${PGPASSWORD}\" " # whitespace in the end of the string
-  else
-    local pgpas_subst=""
-  fi
-
-  # use default Postgres username or not
-  local user_substr=""
-  if [[ ! -z ${USERNAME+x} ]]; then
-    user_substr=" -U \"${USERNAME}\" "
-  fi
-
-  # Construct _PSQL macro for usage inside the check scripts
-  export PSQL_CONN_OPTIONS="--port=${PGPORT} --dbname=${DBNAME} ${user_substr} ${psql_unix_socket_option}"
-  psql_command="${pgpas_subst}${psql_bin} -1 -X -At -q -v ON_ERROR_STOP=1 -P pager=off ${PSQL_CONN_OPTIONS}"
-  export _PSQL_NO_TIMEOUT="PGAPPNAME=checkup ${psql_command}"
-  export _PSQL="PGAPPNAME=checkup PGOPTIONS=\"-c statement_timeout=${STIMEOUT}s\" ${psql_command}"
-
-  dbg ""
-  dbg "PSQL_CONN_OPTIONS: $PSQL_CONN_OPTIONS"
-  dbg ""
-
   # error if mandatory options are not set (print as a stack)
   local buf=""
   for i in $(seq 0 ${CLI_ARGS_POSSIBLE}); do
     if [[ "${MANDATARY[$i]}" == "mandatory" ]] && [[ -z "${ARG_IS_GIVEN[$i]+x}" ]] ; then
-      # please do not change align for 'buf' variable text
-      buf="$buf
+      if ([[ "${ARG_MODE[$i]}" == "all" ]] || ( [[ "${ARG_MODE[$i]}" != "all" ]] && [[ "${ARG_MODE[$i]}" =~ "${MODE}" ]])); then
+        # please do not change align for 'buf' variable text
+        buf="$buf
   mandatory option '--${FULL_NAME[$i]}' is not set"
-      need_fail_exit=true
-      OPTIONS_ERROR_EXIT=true
+        need_fail_exit=true
+        OPTIONS_ERROR_EXIT=true
+      fi
     fi
   done
+  if [[ "$HOST" == "None" ]] && [[ "$SSHHOST" == "None" ]] &&
+    [[ "$PGHOST" == "None" ]] && ([[ "$MODE" == "collect" ]] || [[ "$MODE" == "run" ]]) ; then
+        buf="$buf
+  at least one of options '--hostname', '--ssh-hostname' or '--pg-hostname' must be set"
+#  mandatory option '--hostname' is not set"
+        need_fail_exit=true
+        OPTIONS_ERROR_EXIT=true
+  fi
+
+  local hosts=0
+  [[ "$SSHHOST" != "None" ]] && hosts=$((hosts + 1))
+  [[ "$PGHOST" != "None" ]] && hosts=$((hosts + 1))
+  [[ "$HOST" != "None" ]] && hosts=$((hosts + 1))
+
+  if [[ $hosts -gt 1 ]]; then
+    buf="$buf
+  only one of options '--hostname', '--ssh-hostname' or '--pg-hostname' may be used"
+    need_fail_exit=true
+    OPTIONS_ERROR_EXIT=true
+  fi
+
+  if [[ "$SSHPORT" != "None" ]] && ([[ "$PGHOST" != "None" ]] || [[ "$HOST" != "None" ]]) ; then
+    buf="$buf
+  '--ssh-port' may be used only with '--ssh-hostname'"
+    need_fail_exit=true
+    OPTIONS_ERROR_EXIT=true
+  fi
+
   if [[ "$need_fail_exit" = "true" ]]; then
     usage "$buf" "1"
   fi
@@ -503,11 +604,17 @@ usage() {
 
   echo "Usage:" >&${out_descriptor}
   echo "  ${SCRIPT_NAME} OPTION [OPTION] ..." >&${out_descriptor}
-  echo "  ${SCRIPT_NAME} --help" >&${out_descriptor}
+  echo "  ${SCRIPT_NAME} help" >&${out_descriptor}
 
   if [[ "$exit_code" -ne "0" ]]; then
     exit "$exit_code"
   fi
+
+  echo >&${out_descriptor}
+  echo "postgres-checkup can separately collect, process and upload data to server. " >&${out_descriptor}
+  echo "You can set the working mode with --mode option." >&${out_descriptor}
+  echo "Available values for mode: 'collect', 'process', 'upload', 'run'." >&${out_descriptor}
+  echo "Mode 'run' executes collecting and processing at once, it is a default mode." >&${out_descriptor}
 
   # Printing CLI options starts here
 
@@ -557,13 +664,11 @@ usage() {
   # Print example
   echo >&${out_descriptor}
   echo "Example:" >&${out_descriptor}
-  echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} -h [ssh_user]@host_to_connect_via_ssh \\"
+  echo "  PGPASSWORD=mypasswd ./${SCRIPT_NAME} collect -h [ssh_user]@host_to_connect_via_ssh \\"
   echo "    --username ${USER} --dbname postgres \\"
   echo "    --project dummy ${BOLD}-e %EPOCH_NUMBER%${RESET}" >&${out_descriptor}
   echo >&${out_descriptor}
-  echo "You can add more checks into './resources/checks/' directory." >&${out_descriptor}
-  echo >&${out_descriptor}
-  echo "Report bugs to https://gitlab.com/postgres-ai-team/postgres-checkup." >&${out_descriptor}
+  echo "Comments, ideas, bug reports? https://gitlab.com/postgres-ai/postgres-checkup" >&${out_descriptor}
 
   exit $exit_code
 }
@@ -656,9 +761,12 @@ is_in_recovery() {
   if [[ "$res" = "f" ]]; then
     dbg "host $HOST is 'master'"
     return 12
-  else
+  elif [[ "$res" = "t" ]]; then
     dbg "host $HOST is 'standby'"
     return 0
+  else
+    msg "ERROR: Cannot connect to the host: ${HOST}"
+    exit 1
   fi
   return 13
 }
@@ -684,25 +792,6 @@ is_large_database() {
   else
     return 1
   fi
-}
-
-#######################################
-# Build pghrep - a .md report generator
-# Globals:
-#   PGHREP_BIN
-# Arguments:
-#   None
-# Returns:
-#   (text) stdout/stderr
-#######################################
-build_pghrep() {
-  dbg "building pghrep..."
-  local save_pwd="${PWD}"
-  cd "${SCRIPT_DIR}/pghrep"
-  make install buildplugins main >/dev/null
-  cd "${save_pwd}"
-  export PGHREP_BIN="${SCRIPT_DIR}/pghrep/bin/pghrep"
-  dbg "done building pghrep"
 }
 
 #######################################
@@ -761,34 +850,6 @@ check_bin_deps() {
     return 1
   fi
 
-  # golang
-  if ! $(which go >/dev/null 2>&1); then
-    err "Can't find the 'go' executable. Please install it:"
-    if [[ "${KERNEL_NAME}" = "Darwin" ]]; then
-      err "${OS_NAME}: 'brew install golang'"
-    elif [[ "${KERNEL_NAME}" = "Linux" ]]; then
-      err "Debian/Ubuntu GNU/${OS_NAME}: 'sudo apt-get install golang'"
-      err "RHEL/CentOS GNU/${OS_NAME}: 'sudo yum install golang'"
-    fi
-    return 1
-  fi
-  # go version check (>= 1.8)
-  re="go([0-9]+.[0-9]+).+"
-  local go_version_full=$(go version)
-  local version="" # short form (e.g. '1.11')
-  local go_version_num="" # get only first two numbers devided by '.'
-  if [[ "${go_version_full}" =~ $re ]]; then
-    version="${BASH_REMATCH[1]}"
-    local major=${version%.*}
-    local minor=${version#*.}
-    go_version_num="${major}${minor}"
-    if [[ $(( go_version_num % 1000 )) -lt "18" ]]; then
-      err "Unsupported golang version '${go_version_full}'"
-      err "Please install golang version >= '1.8'"
-      return 1
-    fi
-  fi
-
   # jq
   if ! $(which jq >/dev/null 2>&1); then
     err "Can't find the 'jq' executable. Please install it:"
@@ -832,13 +893,15 @@ check_bin_deps() {
 glue_md_reports() {
   # final report path and name
   local out_fname="${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}"
+  local epoch=$(jq -r '.last_check.epoch' ${PROJECT_DIR}/nodes.json)
+  local database=$(jq -r '.last_check.database' ${PROJECT_DIR}/nodes.json)
 
   # do not re-generate full report if '--file' is given
   [[ "${FILE}" != "None" ]] && return 0
 
   # make header
-  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${DBNAME}'" > "${out_fname}"
-  echo "## Epoch number: '${EPOCH}'" >> "${out_fname}"
+  echo "# PostgreSQL Checkup. Project: '${PROJECT}'. Database: '${database}'" > "${out_fname}"
+  echo "## Epoch number: '${epoch}'" >> "${out_fname}"
   echo "NOTICE: while most reports describe the “current database”, some of them may contain cluster-wide information describing all databases in the cluster." >> "${out_fname}"
   echo >> "${out_fname}"
   echo "Last modified at: " $(date +'%Y-%m-%d %H:%M:%S %z') >> "${out_fname}"
@@ -846,6 +909,7 @@ glue_md_reports() {
 
   tableOfContents=""
   content=""
+  summaryTable="\n---\n### Issues found ###\n\nThe empty lines represent reports for which Conclusions and Recommendations are not yet implemented.\n\n|Report|P1|P2|P3|\n|-----|---|---|---|"
   echo "" >> "${out_fname}"
   echo "<a name=\"postgres-checkup_top\">&nbsp;</a>" >> "${out_fname}"
   echo "### Table of contents ###" >> "${out_fname}"
@@ -863,9 +927,93 @@ glue_md_reports() {
     content="$content\n\n\n---\n<a name=\"postgres-checkup_$checkId\">&nbsp;</a>\n[Table of contents](#postgres-checkup_top)"
     report=$(cat "${cur_report}")
     content="$content\n$report"
+    fileCheckId=$checkId
+    if [[ "$fileCheckId" =~ "K" ]]; then
+      if [[ "$fileCheckId" != "K003" ]]; then
+        summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)||||"
+        continue
+      fi
+      fileCheckId="K000";
+    fi
+    jsonFile=$(ls ${JSON_REPORTS_DIR}/${fileCheckId}*.json)
+    p1=$(jq '.recommendations | [.[]|.Message|startswith("[P1]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p1 == false then 0 elif .p1 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    p2=$(jq '.recommendations | [.[]|.Message|startswith("[P2]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p2 == false then 0 elif .p2 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    p3=$(jq '.recommendations | [.[]|.Message|startswith("[P3]")] | map(select(. == true)) | length' ${jsonFile} 2>/dev/null \
+      || jq 'if .p3 == false then 0 elif .p3 == true then "!" else "" end' ${jsonFile} 2>/dev/null || echo "")
+    summaryTable="${summaryTable}\n|[$title](#postgres-checkup_$checkId)|${p1//\"/}|${p2//\"/}|${p3//\"/}|"
   done
   echo -e "$tableOfContents" >> "${out_fname}"
+  echo -e "$summaryTable\n\n" >> "${out_fname}"
   echo -e "$content" >> "${out_fname}"
+}
+
+#######################################
+# Configure SSH connection
+# Globals:
+#   CHECK_HOST_CMD, SSH_SUPPORT, SSHPORT, PORT
+# Arguments:
+#   (text) host name
+# Returns:
+#   Integer
+#######################################
+configure_ssh_connection() {
+  hostname=$1
+
+  if [[ "$SSHPORT" == "None" ]]; then
+    if [[ "$PORT" != "None" ]]; then
+      SSHPORT=$PORT
+    else
+      SSHPORT=$DEFAULT_SSH_PORT
+    fi
+  fi
+
+  if native_hostname=$(ssh -p ${SSHPORT} -o ConnectTimeout=10 ${hostname} "hostname" 2>/dev/null); then
+    # ssh to remote host and use local psql (default)
+    export CHECK_HOST_CMD="ssh ${hostname}"
+    export SSH_SUPPORT="true"
+    return 0
+  else
+    return 1
+  fi
+}
+
+#######################################
+# Configure psql connection
+# Globals:
+#   CHECK_HOST_CMD, SSH_SUPPORT, PGPORT, PORT
+# Arguments:
+#   (text) host name
+# Returns:
+#   Integer
+#######################################
+configure_psql_connection() {
+  hostname=$1
+
+  if [[ "$PGPORT" == "None" ]]; then
+    if [[ "$PORT" != "None" ]]; then
+      PGPORT=$PORT
+    else
+      PGPORT=$DEFAULT_PG_PORT
+    fi
+    generate_psql_cmd
+  fi
+
+  export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
+
+  # use local psql and connect to remote postgres without ssh
+  local re="127\.0"
+  if [[ "${hostname}" =~ $re || "${hostname}" = "localhost" ]]; then
+    # keep _PSQL and _PSQL_NO_TIMEOUT as is, use UNIX domain socket for psql
+    true
+  else
+    # use TCP for psql
+    export _PSQL="PGCONNECT_TIMEOUT=${CONNTIMEOUT} ${_PSQL} -h ${hostname}"
+    export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${hostname}"
+  fi
+
+  export SSH_SUPPORT="false"
 }
 
 #######################################
@@ -879,31 +1027,34 @@ glue_md_reports() {
 #   Integer
 #######################################
 host_pre_start_checks() {
-  # choise host connection command
-  # while checking ssh support
-  if native_hostname=$(ssh $HOST "hostname" 2>/dev/null); then
-    # ssh to remote host and use local psql (default)
-    export CHECK_HOST_CMD="ssh ${HOST}"
-    export SSH_SUPPORT="true"
-  else
-    # swap ssh with bash
-    export CHECK_HOST_CMD="bash -e -u -o pipefail -c"
-
-    # use local psql and connect to remote postgres without ssh
-    local re="127\.0"
-    if [[ "${HOST}" =~ $re || "${HOST}" = "localhost" ]]; then
-      # keep _PSQL and _PSQL_NO_TIMEOUT as is, use UNIX domain socket for psql
-      true
+  if [[ "$SSHHOST" != "None" ]]; then
+    # ssh mode
+    if configure_ssh_connection $SSHHOST; then
+      msg "Connection type (specified): SSH ($SSHHOST:$SSHPORT)"
+      export HOST=$SSHHOST
     else
-      # use TCP for psql
-      export _PSQL="${_PSQL} -h ${HOST}"
-      export _PSQL_NO_TIMEOUT="${_PSQL_NO_TIMEOUT} -h ${HOST}"
+      msg "Connection type (specified): SSH ($SSHHOST:$SSHPORT)"
+      msg "ERROR: Cannot connect to the host: ${SSHHOST}:${SSHPORT} via SSH"
+      exit 1
     fi
-
-    export SSH_SUPPORT="false"
+  elif [[ "$PGHOST" != "None" ]]; then
+    # psql mode
+    if configure_psql_connection $PGHOST; then
+      msg "Сonnection type (specified): PostgreSQL ($PGHOST:$PGPORT)"
+      export HOST=$PGHOST
+    fi
+  else
+    # auto detect connection command
+    if configure_ssh_connection $HOST; then
+      msg "Connection type (auto-detected): SSH ($HOST:$SSHPORT)"
+    else
+      msg "Cannot connect to the host: ${HOST}:${SSHPORT} via SSH"
+      configure_psql_connection $HOST;
+      msg "Connection type (auto-detected): PostgreSQL ($HOST:$PGPORT)"
+    fi
+    export HOST
   fi
 
-  export HOST
   dbg "CHECK_HOST_CMD: '${CHECK_HOST_CMD}'"
   dbg "HOST: '${HOST}'"
   dbg "_PSQL: '${_PSQL}'"
@@ -996,7 +1147,6 @@ update_nodes_json() {
   export JSON_REPORTS_DIR MD_REPORTS_DIR SHORT_DIR_NAME
 
   mkdir -p "${JSON_REPORTS_DIR}"
-  mkdir -p "${MD_REPORTS_DIR}"
 
   local role_changed_at="never"
   if [[ "${prev_role}" != "${ROLE}" ]] && [[ "$prev_role" != "null" ]]; then
@@ -1008,7 +1158,7 @@ update_nodes_json() {
   # generate new ALIAS_INDEX and ALIAS_NAME for a new host
   if [[ "$host_is_new" = "true" ]]; then
     # get maximum index
-    local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)"] | max' "${PROJECT_DIR}/nodes.json")
+    local prev_index=$(jq -r '["\(.hosts | to_entries[] | .value | .index)" | tonumber] | max' "${PROJECT_DIR}/nodes.json")
     local new_alias_index=$(( prev_index + 1 ))
     local new_alias_name="node${new_alias_index}"
     ALIAS_INDEX="${new_alias_index}"
@@ -1030,8 +1180,9 @@ update_nodes_json() {
      --arg TimestampTz "${TIMESTAMPTZ}" \
      --arg dir "${SHORT_DIR_NAME}" \
      --arg epoch "${EPOCH}" \
+     --arg database "${DBNAME}" \
      --arg role_change_detected_at "${role_changed_at}" \
-     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir }' \
+     '.hosts += { ($Hostname): { $internal_alias, $index, $role, $role_change_detected_at } } | .last_check = { epoch: $epoch, timestamptz: $TimestampTz, dir: $dir, database: $database }' \
      "${input_json_fname}" \
      > "${result_fname_tmp}"
   mv "${result_fname_tmp}" "${result_fname}"
@@ -1062,8 +1213,6 @@ run_checks() {
   test -d "${PROJECT_DIR}" || mkdir -p "${PROJECT_DIR}"
 
   # perform all checks from './resources/checks/' directory
-  msg
-  msg "########## Perform checks for host '${HOST}':"
   if is_in_recovery; then
     ROLE="standby"
   else
@@ -1081,6 +1230,8 @@ run_checks() {
     export IS_LARGE_DB=0
   fi
 
+  msg
+  msg "########## Perform checks for host '${HOST}':"
   local output
   for CURRENT_CHECK_FNAME in "${SCRIPT_DIR}"/resources/checks/*_*.sh; do
     [[ -e "${CURRENT_CHECK_FNAME}" ]] || continue
@@ -1145,25 +1296,6 @@ run_checks() {
 
     # generate/extend report
     generate_report_json "$output" "$check_id" "$check_name"
-    # generate .md report with help of pghrep (go utility)
-    # ${JSON_REPORTS_DIR}/${check_id}_${check_name}.json
-    mkdir -p "${MD_REPORTS_DIR}"
-    local pghrep_output
-    if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${JSON_REPORTS_DIR}/${check_id}_${check_name}.json" \
-      --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
-      msg "WARNING: ${pghrep_output}"
-      pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}_${check_name}.md"
-    else
-      if [[ "${check_id}" == "K000" ]]; then
-        msg "Markdown reports saved at:"
-        msg "'${MD_REPORTS_DIR}/K001.md'"
-        msg "'${MD_REPORTS_DIR}/K002.md'"
-        msg "'${MD_REPORTS_DIR}/K003.md'"
-        msg "'${MD_REPORTS_DIR}/K004.md'"
-      else
-        msg "Markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
-      fi
-    fi
 
     # if check name file given by CLI run only single check
     if [[ "${FILE}" != "None" ]]; then
@@ -1182,8 +1314,54 @@ run_checks() {
     for i in ${check_failed_json_stack}; do
       echo "        '${i}'"
     done
-    msg "Markdown reports are also not created for these checks ^^"
   fi
+}
+
+#######################################
+# Generate .md (markdown) reports.
+# Additionally, if requested, using .md files, generate HTML and PDF reports.
+# Globals:
+#   SCRIPT_DIR, PGHREP_BIN
+# Arguments:
+#   None
+# Returns:
+#   (text) stdout/stderr
+#######################################
+run_process() {
+  local pghrep_failed_md_stack=""
+  PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+  local timestamp_dir=$(cat ${SCRIPT_DIR}/artifacts/${PROJECT}/nodes.json | jq -r '.last_check | .dir')
+  local epoch=$(cat ${SCRIPT_DIR}/artifacts/${PROJECT}/nodes.json | jq -r '.last_check | .epoch')
+  JSON_REPORTS_DIR="${PROJECT_DIR}/json_reports/${timestamp_dir}"
+  MD_REPORTS_DIR="${PROJECT_DIR}/md_reports/${timestamp_dir}"
+
+  mkdir -p "${MD_REPORTS_DIR}"
+
+  for json_file in `ls ${JSON_REPORTS_DIR}/*.json`; do
+    check_id=$(cat ${json_file} | jq -r '.checkId')
+
+    # if check name file given by CLI run only single generation
+    if [[ "${FILE}" != "None" ]] && ! [[ "${FILE}" =~ "/${check_id}" ]]; then
+      continue
+    fi
+
+    local pghrep_output
+    if ! pghrep_output=$(${PGHREP_BIN} --checkdata="${json_file}" \
+      --outdir="${MD_REPORTS_DIR}" 2>&1) ; then
+      msg "WARNING: ${pghrep_output}"
+      pghrep_failed_md_stack="${pghrep_failed_md_stack} ${check_id}.md"
+    else
+      if [[ "${check_id}" == "K000" ]]; then
+        msg "${check_id}: markdown reports saved at:"
+        msg "'${MD_REPORTS_DIR}/K001.md'"
+        msg "'${MD_REPORTS_DIR}/K002.md'"
+        msg "'${MD_REPORTS_DIR}/K003.md'"
+      else
+        msg "${check_id}: markdown report saved at: '${MD_REPORTS_DIR}/${check_id}.md'"
+      fi
+    fi
+  done
+
   if ! [[ -z "${pghrep_failed_md_stack}" ]]; then
     msg
     msg "WARNING: Can't generate Markdown reports (see errors above):"
@@ -1202,19 +1380,46 @@ run_checks() {
     echo "        '${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}'"
     msg
   fi
-
-  if [[ "$PDF" == "true" ]]; then
+  
+  if [[ "$PDF" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
     ./resources/md2pdf.sh --pdf ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
   fi
-  if [[ "$HTML" == "true" ]]; then
+  
+  if [[ "$HTML" == "true" ]] && [[ -f "${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}" ]]; then
     ./resources/md2pdf.sh --html ${MD_REPORTS_DIR}/${FULL_REPORT_FNAME}
+  fi
+}
+
+#######################################
+# Upload reports to a remote server (Postgres.ai Platform API compatible).
+# Globals:
+#   SCRIPT_DIR, UPLOADAPITOKEN, UPLOADAPIURL
+# Arguments:
+#   None
+# Returns:
+#   (text) stdout/stderr
+#######################################
+run_upload() {
+  PROJECT_DIR="${SCRIPT_DIR}/artifacts/${PROJECT}"
+  if [[ ! -z ${UPLOADAPITOKEN+x} ]] && [[ "${UPLOADAPITOKEN}" != "None" ]]; then
+    msg "Uploading the report to '${UPLOADAPIURL}' using Postgres.ai Platform API..."
+    if [[ $DEBUG == "true" ]] ; then
+      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=1)
+    else
+      $(${PGHREP_BIN} --mode=upload --project=${PROJECT} --path="${PROJECT_DIR}" --token="${UPLOADAPITOKEN}" --apiurl="${UPLOADAPIURL}" --debug=0)
+    fi
   fi
 }
 
 ######### COMMANDS WRAPPERS ###########
 ssh() {
-  local ssh_timeout_options="-o ConnectTimeout=10 -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
-  local ssh_options="-o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
+  local ssh_port=$DEFAULT_SSH_PORT
+  if [[ "$SSHPORT" != "None" ]]; then
+    ssh_port=$SSHPORT
+  fi
+
+  local ssh_timeout_options="-o ConnectTimeout=${CONNTIMEOUT} -o ServerAliveInterval=6 -o ServerAliveCountMax=5"
+  local ssh_options="-p ${ssh_port} -o StrictHostKeyChecking=no -o Compression=no -o BatchMode=yes ${ssh_timeout_options}"
 
   local ssh_master_socket='/tmp/ssh_pg_check_%h_%p_%r'
   local ssh_master_options="-o ControlMaster=auto -o ControlPersist=yes"
@@ -1224,7 +1429,11 @@ ssh() {
       ssh_options="$ssh_options -S $ssh_master_socket $ssh_master_options"
   fi
 
-  command ssh $ssh_options "$@"
+  if [[ "$@" == *" sudo "* ]] && [[ ! -z ${SSHSUDOPASSWORD+x} ]] ; then
+    command echo "$SSHSUDOPASSWORD" | command ssh -q -tt $ssh_options "$@"
+  else
+    command ssh $ssh_options "$@"
+  fi
 }
 
 #######################################
@@ -1234,13 +1443,43 @@ main() {
   trap cleanup_and_exit 1 2 13 15 EXIT
   unset LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES LC_TIME LC_NUMERIC >/dev/null 2>&1 || true
   export LC_ALL=C
+  local mode=""
+  declare -a newparams=()
+
+  if [[ ! -z ${1+x} ]]; then
+    mode="$1"
+  fi
+
+  if [[ ! -f "${PGHREP_BIN}" ]]; then
+    err "Cannot load '${PGHREP_BIN}'. The binary needs to be built."
+    exit 2
+  fi
+
   read_possible_args
   process_cli_args "$@"
-  check_bin_deps
   validate_args
-  build_pghrep
-  host_pre_start_checks
-  run_checks
+
+  case $MODE in
+    "collect" )
+      host_pre_start_checks
+      run_checks
+      ;;
+    "process" )
+      check_bin_deps
+      run_process
+      ;;
+    "upload" )
+      check_bin_deps
+      run_upload
+      ;;
+    "run" )
+      host_pre_start_checks
+      run_checks
+      check_bin_deps
+      run_process
+      ;;
+  esac
+
   msg "ALL DONE!"
   exit 0
 }

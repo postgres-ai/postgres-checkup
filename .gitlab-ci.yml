@@ -2,69 +2,19 @@ image: ubuntu:16.04
 
 stages:
   - test
-  - docker_build
+  - build-image
+
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: never
+    - when: always
 
 variables:
-  POSTGRES_DB: dbname # set database
-  POSTGRES_USER: test_user # set username
+  POSTGRES_DB: dbname # Set database.
+  POSTGRES_USER: test_user # Set username.
   POSTGRES_PASSWORD: ""
-
-.prepare:
-  stage: test
-  before_script:
-    - apt-get update
-    - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go git
-    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-    - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
-    - apt-get update
-    - apt-get -y upgrade
-    - apt-get -y install postgresql-client-11
-    - psql --version
-    - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
-    - source ~/.profile
-
-.test-check:
-  stage: test
-  extends: ".prepare"
-  script:
-    - psql -h postgres -d dbname -U test_user -c "SELECT version();"
-    - echo "Test H003 Non indexed FKs"
-    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_1.sql
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
-    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_2.sql
-    - rm -Rf ./artifacts/
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H003_non_indexed_fks.sh
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 302
-    - echo "H003 passed"
-    - echo "Test H002 redundant indexes"
-    - psql -h postgres -d dbname -U test_user -f .ci/test_db_dump.sql
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_pkey"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 204
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 205
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 206
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
-    - echo "H002 passed"
-    - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
-    # Check small indexes
-    - .ci/prepare_test_db.sh postgres
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
-    ## unused
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 209
-    ## redundant
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 210
-    - echo "Check small indexes in small db mode passed"
-    - .ci/prepare_large_db.sh postgres
-    - ./checkup -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H002_unused_indexes.sh
-    ## unused
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 211
-    ## redundant
-    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 212
-    - echo "Check small indexes in large db mode passed"
+  POSTGRES_HOST_AUTH_METHOD: "trust"
 
 test-general:
   stage: test
@@ -73,6 +23,7 @@ test-general:
     - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go git
     - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
     - source ~/.profile
+    - cd ./pghrep && make install main && cd ..
     - sudo .ci/prepare_cluster.sh "11"
     - ps ax | grep postgres
     - psql -U postgres -p 5432 -c 'show data_directory;'
@@ -81,10 +32,10 @@ test-general:
     # Configure ssh keys
     - mkdir -p ~/.ssh && echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa && echo "${PUBLIC_KEY}" > ~/.ssh/authorized_keys && echo "${PUBLIC_KEY}" > ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/authorized_keys && chmod 644 ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa
     - echo "${PRIVATE_KEY}" > ~/.ssh/gitlab_key && chmod 600 ~/.ssh/gitlab_key
-    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config  
+    - echo "Host gitlab.com" > ~/.ssh/config && echo "  Preferredauthentications publickey" >> ~/.ssh/config && echo "  IdentityFile ~/.ssh/gitlab_key" >> ~/.ssh/config
     - apt-get -y install openssh-server
     - service ssh restart
-    
+
   script:
     - bash -version
     - psql -d dbname -U test_user -c "SELECT version();"
@@ -95,16 +46,17 @@ test-general:
     - vacuumdb -U test_user dbname --analyze
     - export ARTIFACTS_PATH=$(pwd)/artifacts && echo $ARTIFACTS_PATH
     # First run only for K00X reports
-    - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect -h postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 --file resources/checks/K000_query_analysis.sh > >(tee -a std.log) 2> >(tee -a err.log >&2)
     # Last run of checkup
-    - ./checkup -h postgres.test1.node -p 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test2.node -p 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
-    - ./checkup -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test1.node --pg-port 5433 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test2.node --pg-port 5434 --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup collect  -h postgres.test3.node --username test_user --project test --dbname dbname -e 1 > >(tee -a std.log) 2> >(tee -a err.log >&2)
+    - ./checkup process --project test
     # Check results
     - cat err.log
-    - grep -v "need two checks to compare results. Please run whole check for this epoch again" err.log > err1.log || true
+    - grep -v "To compare results, 2 runs are needed. Please run './checkup collect' once again for this epoch." err.log > err1.log || true
     - grep -v "this is not a real error. Just run check again." err1.log > err.log || true
     - grep -v "Failed to create bus connection" err.log > err1.log || true
     - cat err1.log
@@ -127,6 +79,77 @@ test-general:
       - ./std.log
       - ./err.log
     expire_in: 1 week
+
+.prepare:
+  stage: test
+  before_script:
+    - apt-get update
+    - apt-get install -y jq curl wget git s3cmd sudo golang-1.9-go git
+    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+    - echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update
+    - apt-get -y upgrade
+    - apt-get -y install postgresql-client-11
+    - psql --version
+    - echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
+    - source ~/.profile
+    - cd ./pghrep && make install main && cd ..
+
+.test-check:
+  stage: test
+  extends: ".prepare"
+  script:
+    - psql -h postgres -d dbname -U test_user -c "SELECT version();"
+    - echo "Test H003 Non indexed FKs"
+    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_1.sql
+    - ./checkup collect -c .ci/test.yml --file ./resources/checks/H003_non_indexed_fks.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && ([[ "$result" == "[]" ]] || [[ "$result" == "null" ]]) && exit 301
+    - psql -h postgres -d dbname -U test_user -f .ci/h003_step_2.sql
+    - rm -Rf ./artifacts/
+    - ./checkup collect -c .ci/test.yml --file ./resources/checks/H003_non_indexed_fks.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json | jq '.results .postgres .data .indexes') && echo "$result" && cat ./artifacts/test/json_reports/$data_dir/H003_non_indexed_fks.json && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 302
+    - echo "H003 passed"
+    - echo "Test H004 redundant indexes"
+    - psql -h postgres -d dbname -U test_user -f .ci/test_db_dump.sql
+    - ./checkup collect -h postgres --username test_user --project test --dbname dbname -e 1 --file ./resources/checks/H004_redundant_indexes.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_id"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 201
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 202
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_f1_uniq"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 203
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_idx_pkey"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 204
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 205
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 206
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_1"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 207
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."exp_redundant.t_with_redundant_ref_idx_2"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 208
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat ./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json | jq '.results .postgres .data .redundant_indexes ."public.ctnr_idx01"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 209
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.ctnr_idx04"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 210
+    - echo "H002 passed"
+    - ./checkup -c .ci/test.yml --file ./resources/checks/F005_index_bloat.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/L001_table_sizes.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && f005_indexes_size=$(cat ./artifacts/test/json_reports/$data_dir/F005_index_bloat.json | jq '.results .postgres .data .index_bloat_total .real_size_bytes_sum') && echo $f005_indexes_size
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && l001_indexes_size=$(cat ./artifacts/test/json_reports/$data_dir/L001_table_sizes.json | jq '.results .postgres .data .tables_data_total .indexes_size_bytes_sum') && echo $l001_indexes_size
+    - diff=$((f005_indexes_size - l001_indexes_size)) && diff=${diff#-} && echo $diff && ratio=$((diff * 100 / l001_indexes_size)) && echo $ratio && ([[ $ratio -gt "5" ]]) && exit 303
+    - echo "F005/L001 Total indexes size passed"
+    - ./checkup -c .ci/test.yml --file ./resources/checks/F004_heap_bloat.sh
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && ([[ ! -f "./artifacts/test/json_reports/$data_dir/F004_heap_bloat.json" ]] || [[ ! -f "./artifacts/test/md_reports/$data_dir/F004.md" ]]) && exit 304
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && msg=$(grep "can be reduced 0.00 times" ./artifacts/test/md_reports/$data_dir/F004.md) && [[ ! -z "$msg" ]] && exit 304
+    - ([[ "$CI_COMMIT_REF_NAME" != "master" ]]) && exit 0
+    # Check small indexes
+    - .ci/prepare_test_db.sh postgres
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H004_redundant_indexes.sh
+    ## unused
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 210
+    ## redundant
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ( [[ "$result" == "" ]] || [[ "$result" == "null" ]]) && exit 211
+    - echo "Check small indexes in small db mode passed"
+    - .ci/prepare_large_db.sh postgres
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H002_unused_indexes.sh
+    - ./checkup -c .ci/test.yml --file ./resources/checks/H004_redundant_indexes.sh
+    ## unused
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H002_unused_indexes.json" | jq '.results .postgres .data .never_used_indexes ."public.i_u_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 212
+    ## redundant
+    - data_dir=$(cat ./artifacts/test/nodes.json | jq -r '.last_check | .dir') && result=$(cat "./artifacts/test/json_reports/$data_dir/H004_redundant_indexes.json" | jq '.results .postgres .data .redundant_indexes ."public.i_r_12"') && ([[ ! "$result" == "[]" ]] && [[ ! "$result" == "null" ]]) && exit 213
+    - echo "Check small indexes in large db mode passed"
 
 test-pghrep:
   stage: test
@@ -152,6 +175,12 @@ test-check-11:
   services:
     - postgres:11
 
+test-check-12:
+  extends: ".test-check"
+  stage: "test"
+  services:
+    - postgres:12
+
 test-check-cli:
   services:
     - postgres:11
@@ -173,43 +202,67 @@ test-check-cli:
       exit 1
     fi
 
-
-Docker build master:
-  image: docker:stable
-  stage: docker_build
-  when: on_success
-  variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_HOST: tcp://docker:2375
-  only:
-    - master
-    - docker_build
+.job_template: &build_image_definition
+  image: docker:19
+  stage: build-image
+  artifacts:
+    paths:
+      - bin
   services:
     - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
   script:
-    - docker build -t registry.gitlab.com/postgres-ai/postgres-checkup:latest --no-cache=true .
-    - docker push registry.gitlab.com/postgres-ai/postgres-checkup:latest
-  after_script:
-    - docker logout registry.gitlab.com
+    - apk update && apk upgrade && apk add --no-cache bash # TODO(anatoly): Remove dependency.
+    - bash ./.ci/docker_build_push.sh
 
-Docker build for tag:
-  image: docker:stable
-  stage: docker_build
-  when: on_success
+.only_var_template: &only_tag_release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^[0-9.]+$/
+
+.only_var_template: &only_tag_rc
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^[0-9.]+[\-_]*[a-zA-Z]+[a-zA-Z0-9.\-_]*[a-zA-Z0-9]+$/
+
+.only_var_template: &only_master
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+.only_var_template: &only_feature
+  rules:
+    - if: $CI_COMMIT_REF_SLUG && $CI_COMMIT_REF_SLUG != "master"
+
+build-image-feature:
+  <<: *build_image_definition
+  <<: *only_feature
   variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_HOST: tcp://docker:2375
-  only:
-    variables:
-      - $CI_COMMIT_TAG != null
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" registry.gitlab.com
-  script:
-    - docker build -t registry.gitlab.com/postgres-ai/postgres-checkup:$CI_COMMIT_TAG --no-cache=true .
-    - docker push registry.gitlab.com/postgres-ai/postgres-checkup:$CI_COMMIT_TAG
-  after_script:
-    - docker logout registry.gitlab.com
+    REGISTRY_USER: "${CI_REGISTRY_USER}"
+    REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
+    REGISTRY: "${CI_REGISTRY}"
+    DOCKER_NAME: "registry.gitlab.com/postgres-ai/postgres-checkup"
+    TAGS: "${DOCKER_NAME}:${CI_COMMIT_REF_SLUG}"
+
+build-image-master:
+  <<: *build_image_definition
+  <<: *only_master
+  variables:
+    DOCKER_NAME: "registry.gitlab.com/postgres-ai/postgres-checkup"
+    TAGS: "${DOCKER_NAME}:master,${DOCKER_NAME}:master-${CI_COMMIT_SHORT_SHA}"
+
+build-image-latest:
+  <<: *build_image_definition
+  <<: *only_tag_release
+  variables:
+    REGISTRY_USER: "${DH_CI_REGISTRY_USER}"
+    REGISTRY_PASSWORD: "${DH_CI_REGISTRY_PASSWORD}"
+    REGISTRY: "${DH_CI_REGISTRY}"
+    DOCKER_NAME: "postgresai/postgres-checkup"
+    TAGS: "${DOCKER_NAME}:latest,${DOCKER_NAME}:${CI_COMMIT_TAG}"
+
+build-image-rc:
+  <<: *build_image_definition
+  <<: *only_tag_rc
+  variables:
+    REGISTRY_USER: "${DH_CI_REGISTRY_USER}"
+    REGISTRY_PASSWORD: "${DH_CI_REGISTRY_PASSWORD}"
+    REGISTRY: "${DH_CI_REGISTRY}"
+    DOCKER_NAME: "postgresai/postgres-checkup"
+    TAGS: "${DOCKER_NAME}:${CI_COMMIT_TAG}"

@@ -1,10 +1,15 @@
-### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/blob/master/1.2/) (based on CI, single node).
+Please support the project giving a GitLab star (it's on [the main page](https://gitlab.com/postgres-ai/postgres-checkup/),
+at the upper right corner):
+
+![Add a star](./assets/star.gif)
+
+### Demo: [an example of postgres-checkup report](https://gitlab.com/postgres-ai/postgres-checkup-tests/tree/master/1.3.0) (based on CI, multi node).
 
 ***Disclaimer: Conclusions, Recommendations – work in progress.**
 To treat the data correctly, you need deep Postgres knowledge. Each report
 consists of 3 sections: Observations, Conclusions, and Recommendations.
 Observations are filled automatically. As for Conclusions and Recommendations
-sections, as of June 2019, only several reports have autogeneration for them.*
+sections, not all reports are auto-generated.*
 
 
 # About
@@ -143,12 +148,20 @@ git clone https://gitlab.com/postgres-ai/postgres-checkup.git
 cd postgres-checkup
 ```
 
+#### 3. Build pghrep
+
+```bash
+cd ./pghrep
+make install main
+cd ..
+```
+
 ## Example of Use
 
 Let's make a report for a project named `prod1`. Assume that we have two servers,
-`db1.vpn.local` and `db1.vpn.local`.
+`db1.vpn.local` and `db2.vpn.local`.
 
-Postgres-checkup automatically detects which one is a master:
+Postgres-checkup automatically detects which one is the master:
 
 ```bash
 ./checkup -h db1.vpn.local -p 5432 --username postgres --dbname postgres --project prod1 -e 1
@@ -163,8 +176,19 @@ project directory, as epoch of check `1`. Epoch is a numerical (**integer**) sig
 For example: in half a year we can switch to "epoch number `2`".
 
 `-h db2.vpn.local` means: try to connect to host via SSH and then use remote `psql` command to perform checks.
+If SSH is not available the local 'psql' will be used (non-psql reports will be skipped) to establish
+Postgres connection. If you want to avoid "guessing", use `-ssh-hostname` or `--pg-hostname`.
 
-If SSH is not available the local 'psql' will be used (non-psql reports will be skipped).
+Also, you can define a specific way to connect: SSH or `psql`:
+
+`--ssh-hostname db2.vpn.local` - SSH will be used for the connection. SSH port can be defined as well
+with option `--ssh-port`.
+
+`--pg-hostname db2.vpn.local` - `psql` will be used for the connection. The port where PostgreSQL
+accepts connections can be defined with the option `--pg-port`.
+
+In case when `--pg-port` or `--ssh-port` are not defined but `--port` is defined, value of `--port` option
+will be used instead of `--pg-port` or `--ssh-port` depending on the current connection type.
 
 For comprehensive analysis, it is recommended to run the tool on the master and
 all its replicas – postgres-checkup is able to combine all the information from
@@ -221,6 +245,13 @@ A human-readable report can be found at:
 
 Open it with your favorite Markdown files viewer or just upload to a service such as gist.github.com.
 
+You can collect and process data separately by specifying working mode name in CLI option `--mode %mode%` or using it as a "command" (`checkup %mode%`).  
+Available working modes:  
+    `collect` - collect data;
+    `process` - generate MD (and, optionally, HTML, PDF) reports with conclusions and recommendations;
+    `upload` - upload generated reports to Postgres.ai platform;
+    `run` - collect and process data at once. This is the default mode, it is used when no other mode is specified. Note, that upload is not included.
+
 ## Docker 🐳
 
 It's possible to use the `postgres-checkup` from a docker container.
@@ -234,16 +265,16 @@ There is an option to run postgres-checkup in a Docker container:
 ```bash
 docker run --rm \
   --name postgres-checkup \
-  -e PGPASSWORD="postgres" \
-  -v `pwd`/artifacts:/artifacts \
-  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
+  --env PGPASSWORD="postgres" \
+  --volume `pwd`/artifacts:/artifacts \
+  postgresai/postgres-checkup:latest \
     ./checkup \
-      -h hostname \
-      -p 5432 \
+      --hostname hostname \
+      --port 5432 \
       --username postgres \
       --dbname postgres \
       --project c \
-      -e "$(date +'%Y%m%d')001"
+      --epoch "$(date +'%Y%m%d')001"
 ```
 
 In this case some checks (those requiring SSH connection) will be skipped.
@@ -259,21 +290,24 @@ on Windows, but should work well on Linux and MacOS machines):
 ```bash
 docker run --rm \
   --name postgres-checkup \
-  -v "$(pwd)/artifacts:/artifacts" \
-  -v "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
-  registry.gitlab.com/postgres-ai/postgres-checkup:latest \
+  --volume "$(pwd)/artifacts:/artifacts" \
+  --volume "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
+  postgresai/postgres-checkup:latest \
   ./checkup \
-    -h sshusername@hostname \
+    --hostname sshusername@hostname \
     --username my_postgres_user \
     --dbname my_postgres_database \
     --project docker_test_with_ssh \
-    -e "$(date +'%Y%m%d')001"
+    --epoch "$(date +'%Y%m%d')001"
 ```
 
 If you try to check the local instance of postgres on your host from a container,
 you cannot use `localhost` in `-h` parameter. You have to use a bridge between
 host OS and Docker Engine. By default, host IP is `172.17.0.1` in `docker0`
 network, but it vary depending on configuration. More information [here](https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container).
+
+If you use SSH connection and `sudo` on the remote server requires a password,
+you can provide this password using the `SSHSUDOPASSWORD` environment variable.
 
 ## Credits
 
@@ -357,8 +391,9 @@ Docker support implemented by [Ivan Muratov](https://gitlab.com/binakot).
 ## H. Index Analysis
 
 - [x] H001 Invalid indexes #192, #51
-- [x] H002 Unused and redundant indexes #51, #180, #170, #168, #322
+- [x] H002 Unused indexes #51, #180, #170, #168, #322
 - [x] H003 Non-indexed foreign keys #52, #142, #173
+- [x] H004 Redundant indexes
 
 ## J.  Capacity Planning
 

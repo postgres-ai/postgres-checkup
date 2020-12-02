@@ -1,8 +1,7 @@
 /*
 Postgres Health Reporter
 
-2018-2019 © Dmitry Udalov dmius@postgres.ai
-2018-2019 © Postgres.ai
+Copyright © Postgres.ai
 
 Perform a generation of Markdown report based on JSON results of postgres-checkup
 Usage:
@@ -34,12 +33,15 @@ import (
 	"./checkup/g001"
 	"./checkup/g002"
 	"./checkup/h001"
-    "./checkup/k000"
-    "./checkup/l003"
+	"./checkup/h002"
+	"./checkup/h004"
+	"./checkup/k000"
+	"./checkup/l003"
 
 	"./log"
 	"./orderedmap"
 	"./pyraconv"
+	"./upload"
 )
 
 var DEBUG bool = false
@@ -108,7 +110,7 @@ func LoadJsonFile(filePath string) map[string]interface{} {
 	if FileExists(filePath) {
 		fileContent, err := ioutil.ReadFile(GetFilePath(filePath)) // just pass the file name
 		if err != nil {
-			log.Err("Can't read file: ", filePath, err)
+			log.Err("Can't read file:", filePath, err)
 			return nil
 		}
 
@@ -190,7 +192,7 @@ func getRawData(data map[string]interface{}) {
 	// for every host get data
 	var rawData []interface{}
 	hosts := pyraconv.ToInterfaceMap(data["hosts"])
-	log.Dbg("Data hosts: ", hosts)
+	log.Dbg("Data hosts:", hosts)
 	results := pyraconv.ToInterfaceMap(data["results"])
 	masterName := pyraconv.ToString(hosts["master"])
 	masterResults := pyraconv.ToInterfaceMap(results[masterName])
@@ -227,7 +229,7 @@ CheckId can be either ID of concrete check (e.g. H003) or represent the whole ca
 func generateMdReports(checkId string, reportData map[string]interface{}, outputDir string) bool {
 	category := checkId[0:1]
 	reportPrefix := ""
-	
+
 	checkNum, err := strconv.ParseInt(checkId[1:4], 10, 64)
 	if checkNum != 0 {
 		reportPrefix = checkId // specified check given
@@ -253,7 +255,7 @@ func generateMdReports(checkId string, reportData map[string]interface{}, output
 			curCheckId := fileName[0:4]
 			outputFileName := strings.Replace(fileName, ".tpl", ".md", -1)
 			reportData["checkId"] = curCheckId
-			
+
 			if !generateMdReport(curCheckId, outputFileName, reportData, outputDir) {
 				log.Err("Can't generate report " + outputFileName + " based on " + checkId + " json data")
 				return false
@@ -299,7 +301,7 @@ func generateMdReport(checkId string, reportFilename string, reportData map[stri
 	reporTpl := templates.Lookup(reportFileName)
 	data := reportData
 	if reporTpl == nil {
-		log.Err("Template " + checkId + ".tpl not found.")
+		log.Err("Template " + checkId + ".tpl not found")
 		getRawData(data)
 		reportFileName = "raw.tpl"
 		reporTpl = templates.Lookup(reportFileName)
@@ -409,6 +411,12 @@ func main() {
 	checkDataPtr := flag.String("checkdata", "", "an filepath to json report")
 	outDirPtr := flag.String("outdir", "", "an directory where report need save")
 	debugPtr := flag.Int("debug", 0, "enable debug mode (must be defined 1 or 0 (default))")
+	modeDataPtr := flag.String("mode", "", "working mode: 'generate' (default), 'upload'")
+	tokenDataPtr := flag.String("token", "", "API token to upload reports to remove server")
+	projectDataPtr := flag.String("project", "", "target project used during uploading")
+	pathDataPtr := flag.String("path", "", "path to artifacts directory used during uploading")
+	apiUrlDataPtr := flag.String("apiurl", "", "API URL for reports uploading")
+
 	flag.Parse()
 	checkData = *checkDataPtr
 
@@ -419,27 +427,79 @@ func main() {
 
 	if *debugPtr == 1 {
 		DEBUG = true
+		log.DEBUG = true
+	} else {
+		DEBUG = false
+		log.DEBUG = false
+	}
+
+	switch *modeDataPtr {
+	case "upload":
+		token := *tokenDataPtr
+		project := *projectDataPtr
+		path := *pathDataPtr
+		apiUrl := *apiUrlDataPtr
+
+		if len(token) == 0 {
+			log.Fatal("Token is not defined")
+		}
+		if len(apiUrl) == 0 {
+			log.Fatal("API URL is not defined")
+		}
+		if len(project) == 0 {
+			log.Fatal("Project (for reports uploading) is not defined")
+		}
+		if len(path) == 0 {
+			log.Fatal("Artifacts directory is not defined")
+		}
+
+		err := upload.UploadReport(apiUrl, token, project, path)
+		if err != nil {
+			log.Err(err)
+			os.Exit(1)
+		}
+
+		return
+	case "loadcfg":
+		path := *pathDataPtr
+		if len(path) == 0 {
+			log.Fatal("Config path is not defined")
+		}
+
+		config, err := loadConfig(path)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Cannot load config. %s", err))
+			os.Exit(1)
+		}
+
+		if len(config) == 0 {
+			log.Fatal(fmt.Sprintf("Config '%s' is empty", path))
+		}
+
+		outputConfig(config)
+
+		return
 	}
 
 	if FileExists(checkData) {
 		resultData = LoadJsonFile(checkData)
 
 		if resultData == nil {
-			log.Fatal("ERROR: File given by --checkdata content wrong json data.")
+			log.Fatal("File given by --checkdata content wrong json data")
 			return
 		}
 
 		resultData["source_path_full"] = checkData
 		resultData["source_path_parts"] = strings.Split(checkData, string(os.PathSeparator))
 	} else {
-		log.Err("ERROR: File given by --checkdata not found")
+		log.Err("File given by --checkdata not found")
 		return
 	}
 
 	if resultData != nil {
 		checkId = pyraconv.ToString(resultData["checkId"])
 	} else {
-		log.Fatal("ERROR: Content given by --checkdata is wrong json content.")
+		log.Fatal("Content defined by '--checkdata' is invalid JSON")
 	}
 
 	checkId = strings.ToUpper(checkId)
@@ -448,7 +508,7 @@ func main() {
 
 	err := reorderHosts(resultData)
 	if err != nil {
-		log.Err("There is no data to generate the report.")
+		log.Err("There is no data to generate the report")
 	}
 
 	config := cfg.NewConfig()
@@ -469,13 +529,13 @@ func main() {
 
 	reportDone := generateMdReports(checkId, resultData, outputDir)
 	if !reportDone {
-		log.Fatal("Cannot generate report. Data file or template is wrong.")
+		log.Fatal("Cannot generate report. Data file or template is wrong")
 	}
 }
 
 func preprocessReportData(checkId string, config cfg.Config,
 	data map[string]interface{}) error {
-	switch checkId {
+	switch strings.ToUpper(checkId) {
 	case "A002":
 		// Try to load actual Postgres versions.
 		err := config.LoadVersions()
@@ -491,6 +551,10 @@ func preprocessReportData(checkId string, config cfg.Config,
 		a008.A008PreprocessReportData(data)
 	case "H001":
 		h001.H001PreprocessReportData(data)
+	case "H002":
+		h002.H002PreprocessReportData(data)
+	case "H004":
+		h004.H004PreprocessReportData(data)
 	case "F001":
 		f001.F001PreprocessReportData(data)
 	case "F002":

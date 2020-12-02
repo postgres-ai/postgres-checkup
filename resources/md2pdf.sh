@@ -42,8 +42,10 @@ if PANDOC=$(which pandoc); then
     --output=$tmp2_html_filename $tmp1_md_filename
 
   # replace :warninig: image
-  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename > $html_filename
-  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename > $tmp3_html_filename
+  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp1_html_filename | \
+    awk '{ gsub(/:information_source:/, "<span class=\"warn info_src\"></span>"); print }' > $html_filename
+  awk '{ gsub(/:warning:/, "<span class=\"warn warning\"></span>"); print }' $tmp2_html_filename | \
+    awk '{ gsub(/:information_source:/, "<span class=\"warn info_src\"></span>"); print }' > $tmp3_html_filename
   if [[ -f $html_filename ]]; then
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] Final .html report is ready at:"
     echo "        '$html_filename'"
@@ -53,7 +55,7 @@ if PANDOC=$(which pandoc); then
   rm $tmp1_html_filename
   rm $tmp2_html_filename
   rm $tmp1_md_filename
-  
+
   if $PDF ; then
     if WKHTMLTOPDF=$(which wkhtmltopdf); then
       wkhtmltopdf --orientation landscape -q -s A4 --dpi 300 $tmp3_html_filename $pdf_filename
