@@ -15,6 +15,7 @@ Period age: {{ (index (index (index .results .hosts.master) "data") "period_age"
 Error (calls): {{ NumFormat (index (index (index .results .hosts.master) "data") "absolute_error_calls") 2 }} ({{ NumFormat (index (index (index .results .hosts.master) "data") "relative_error_calls") 2 }}%)  
 Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "data") "absolute_error_total_time") 2 }} ({{ NumFormat (index (index (index .results .hosts.master) "data") "relative_error_total_time") 2 }}%)
 
+{{ if (index (index (index .results .hosts.master) "data") "top_frequent") }}
 {{ if gt (len (index (index (index .results .hosts.master) "data") "top_frequent")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items.{{ end }}  
 
 | \# | Query | &#9660;&nbsp;per_sec_calls | ratio_calls | per_call_total_time | ratio_total_time | per_call_rows | ratio_rows |
@@ -33,6 +34,10 @@ Error (total time): {{ NumFormat (index (index (index .results .hosts.master) "d
 {{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
 
+{{ else }}
+Nothing found
+{{ end }}{{/* top_frequernt exists*/}}
+
 {{- end }}{{/*Master data*/}}
 {{- end }}{{/*Master data*/}}
 {{ end }}{{/*Master*/}}
@@ -47,6 +52,7 @@ End: {{ (index (index (index $.results $host) "data") "end_timestamptz") }}
 Period seconds: {{ (index (index (index $.results $host) "data") "period_seconds") }}  
 Period age: {{ (index (index (index $.results $host) "data") "period_age") }}  
 
+{{ if (index (index (index $.results $host) "data") "top_frequent") }}
 {{ if gt (len (index (index (index $.results $host) "data") "top_frequent")) 50 }}Top 50 rows{{ end }}  
 
 | \# | Query | &#9660;&nbsp;per_sec_calls | ratio_calls | per_call_total_time | ratio_total_time | per_call_rows | ratio_rows |
@@ -65,6 +71,10 @@ Period age: {{ (index (index (index $.results $host) "data") "period_age") }}
 {{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
   
+{{ else }}
+Nothing found
+{{ end }}{{/* top_frequernt exists*/}}
+
 {{- else -}}{{/* if host data */}}
 Nothing found
 {{- end -}}{{/* if host data */}}
