@@ -14,12 +14,12 @@ Current database: {{ .database }}
 
 | Table | PK | Type | Current max value | &#9660;&nbsp;Capacity used, % |
 |------|----|------|-------------------|-------------------------------|
-{{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "tables") "_keys") }}
+{{ range $i, $table := (index (index (index .results .hosts.master) "data") "sortedTables") }}
 {{- if lt $i $.LISTLIMIT -}}
-{{- $value := (index (index (index (index $.results $.hosts.master) "data") "tables") $key) -}}
+{{- $value := (index (index (index (index $.results $.hosts.master) "data") "tables") $table) -}}
 |`{{ index $value "table"}}` | `{{ index $value "pk"}}` | {{ index $value "type"}} | {{- RawIntFormat (index $value "current_max_value")}} | {{ index $value "capacity_used_percent"}}|
-{{ end }}
 {{- end }}
+{{ end }}
 {{- else -}}{{/*Tables data*/}}
 Nothing found
 {{- end }}{{/*Tables data*/}}
