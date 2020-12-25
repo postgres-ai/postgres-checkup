@@ -8,7 +8,7 @@ Current database: {{ .database }}
 {{- if (index (index .results .hosts.master) "data") }}
 {{ if gt (Int (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes")) 0 }}NOTICE: only tables larger than {{ ByteFormat (index (index (index .results .reorderedHosts.master) "data") "min_table_size_bytes") 0 }} are analyzed.  
   {{end}}
-{{- if (index (index (index .results .hosts.master) "data") "tables") }}
+{{- if (index (index (index .results .hosts.master) "data") "sortedTables") }}
 ### Master (`{{.hosts.master}}`) ###
 {{ if ge (len (index (index .results .hosts.master) "data")) .LISTLIMIT }}The list is limited to {{.LISTLIMIT}} items. Total: {{ Sub (len (index (index .results .hosts.master) "data")) 1 }}.{{ end }}  
 
