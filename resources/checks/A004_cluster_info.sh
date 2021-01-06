@@ -106,7 +106,7 @@ with data as (
   select 'Temp Files: total number of files', temp_files::text from data
   union all
   select
-    'Temp Files: total number of files per day',
+    'Temp Files: average number of files per day',
     case
       when (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int) <> 0 then
         (temp_files / (((extract(epoch from now()) - extract(epoch from data.stats_reset))/86400)::int))::text
