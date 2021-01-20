@@ -104,7 +104,7 @@ if [[ "${err_code}" -ne "0" ]]; then
       temp_blks_written,
       blk_read_time,
       blk_write_time,
-      queryid,
+      queryid::text,
       /*
       save hash
       */
@@ -142,7 +142,7 @@ else
       temp_blks_written,
       blk_read_time,
       blk_write_time,
-      queryid,
+      queryid::text,
       /* kcache part */
       k.reads as kcache_reads,
       k.writes as kcache_writes,
