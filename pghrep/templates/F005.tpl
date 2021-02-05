@@ -27,7 +27,7 @@ Current database: {{ .database }}
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "index_bloat") "_keys") }}
 {{- if lt $i $.LISTLIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "index_bloat") $key) -}}
-|{{ $value.num }} | `{{ $value.index_name }}` (`{{ $value.table_name }}`{{if $value.overrided_settings}}\*{{ end }}) |
+|{{ $value.num }} | `{{ $value.index_name }}` (`{{ $value.table_name }}`{{if $value.overridden_settings}}\*{{ end }}) |
 {{- ByteFormat ( index $value "real_size_bytes") 2 }} |
 {{- ByteFormat ( index $value "table_size_bytes") 2 }} |
 {{- if ( index $value "bloat_size_bytes")}}{{ ByteFormat ( index $value "bloat_size_bytes") 2 }}{{end}} |
@@ -38,7 +38,7 @@ Current database: {{ .database }}
 {{- ( index $value "fillfactor") }} |
 {{/* if limit list */}}{{ end -}}
 {{ end }}
-{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overridden_settings_count")) 0 }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/*Index bloat*/}}
