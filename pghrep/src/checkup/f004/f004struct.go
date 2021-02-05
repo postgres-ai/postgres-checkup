@@ -16,7 +16,7 @@ type F004HeapBloat struct {
 	LiveDataSizeBytes int64   `json:"live_data_size_bytes"`
 	LastVaccuum       string  `json:"last_vaccuum"`
 	Fillfactor        float32 `json:"fillfactor"`
-	OverridedSettings bool    `json:"overrided_settings"`
+	OverriddenSettings bool    `json:"overridden_settings"`
 	BloatRatioFactor  float32 `json:"bloat_ratio_factor"`
 }
 
@@ -34,7 +34,7 @@ type F004HeapBloatTotal struct {
 type F004ReportHostResultData struct {
 	HeapBloat              map[string]F004HeapBloat `json:"heap_bloat"`
 	HeapBloatTotal         F004HeapBloatTotal       `json:"heap_bloat_total"`
-	OverridedSettingsCount int                      `json:"overrided_settings_count"`
+	OverriddenSettingsCount int                      `json:"overridden_settings_count"`
 	DatabaseSizeBytes      int64                    `json:"database_size_bytes"`
 }
 
