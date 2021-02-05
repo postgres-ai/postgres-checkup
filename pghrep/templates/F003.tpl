@@ -16,7 +16,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "dead_tuples") "_keys") }}
 {{- if lt $i $.LISTLIMIT }}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "dead_tuples") $key) -}}
-| {{ $value.num }} |`{{ index $value "relation"}}`{{if $value.overrided_settings}}\*{{ end }} |
+| {{ $value.num }} |`{{ index $value "relation"}}`{{if $value.overridden_settings}}\*{{ end }} |
 {{- index $value "relkind"}} | 
 {{- index $value "since_last_autovacuum"}} |
 {{- index $value "since_last_vacuum"}} |
@@ -31,7 +31,7 @@ Stats reset: {{ (index (index (index .results .hosts.master) "data") "database_s
 {{- if ge (Int (index $value "dead_ratio")) 10 }} **{{ (index $value "dead_ratio")}}** {{else}} {{ (index $value "dead_ratio")}} {{end}} |
 {{/* if limit list */}}{{ end -}}
 {{ end }}
-{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overridden_settings_count")) 0 }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/* dead_tuples */}}
