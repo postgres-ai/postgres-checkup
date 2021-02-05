@@ -106,7 +106,7 @@ func TestF002CheckTables(t *testing.T) {
 			RelRelfrozenxid:   "",
 			ToastRelfrozenxid: "",
 			Warning:           0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 		},
 		"table_2": F002Table{
 			Num:               1,
@@ -116,7 +116,7 @@ func TestF002CheckTables(t *testing.T) {
 			RelRelfrozenxid:   "",
 			ToastRelfrozenxid: "",
 			Warning:           0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 		},
 	}
 	report.Results = F002ReportHostsResults{"test-host": hostResult}
@@ -161,7 +161,7 @@ func TestF002CheckDatabaseTables(t *testing.T) {
 			RelRelfrozenxid:   "",
 			ToastRelfrozenxid: "",
 			Warning:           0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 		},
 		"table_2": F002Table{
 			Num:               1,
@@ -171,7 +171,7 @@ func TestF002CheckDatabaseTables(t *testing.T) {
 			RelRelfrozenxid:   "",
 			ToastRelfrozenxid: "",
 			Warning:           0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 		},
 	}
 
