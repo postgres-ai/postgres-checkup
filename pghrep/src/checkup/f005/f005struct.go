@@ -21,7 +21,7 @@ type F005IndexBloat struct {
 	LiveDataSizeBytes int64   `json:"live_data_size_bytes"`
 	LastVaccuum       string  `json:"last_vaccuum"`
 	Fillfactor        float32 `json:"fillfactor"`
-	OverridedSettings bool    `json:"overrided_settings"`
+	OverriddenSettings bool    `json:"overridden_settings"`
 	TableSizeBytes    int64   `json:"table_size_bytes"`
 }
 
@@ -40,7 +40,7 @@ type F005IndexBloatTotal struct {
 type F005ReportHostResultData struct {
 	IndexBloat             map[string]F005IndexBloat `json:"Index_bloat"`
 	IndexBloatTotal        F005IndexBloatTotal       `json:"Index_bloat_total"`
-	OverridedSettingsCount int                       `json:"overrided_settings_count"`
+	OverriddenSettingsCount int                       `json:"overridden_settings_count"`
 	DatabaseSizeBytes      int64                     `json:"database_size_bytes"`
 }
 
