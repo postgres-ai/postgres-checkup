@@ -6,7 +6,7 @@ fi
 
 ${CHECK_HOST_CMD} "${_PSQL} -f -" <<SQL
 with data as (
-  with overrided_tables as (
+  with overridden_tables as (
     select
       pc.oid as table_id,
       pn.nspname as scheme_name,
@@ -125,14 +125,14 @@ with data as (
       from pg_class
       where oid = tblid
     ) as "fillfactor",
-    case when ot.table_id is not null then true else false end as overrided_settings,
+    case when ot.table_id is not null then true else false end as overridden_settings,
     case
       when real_size::numeric > 0 and (real_size - bloat_size)::numeric > 0
         then real_size::numeric / (real_size - bloat_size)::numeric
       else null
     end as "bloat_ratio_factor"
   from step4
-  left join overrided_tables ot on ot.table_id = step4.tblid
+  left join overridden_tables ot on ot.table_id = step4.tblid
   order by bloat_size desc nulls last
 ), limited_data as (
   select * from data
@@ -161,8 +161,8 @@ select
     (select * from limited_json_data),
     'heap_bloat_total',
     (select row_to_json(total_data) from total_data),
-    'overrided_settings_count',
-    (select count(1) from limited_data where overrided_settings = true),
+    'overridden_settings_count',
+    (select count(1) from limited_data where overridden_settings = true),
     'database_size_bytes',
     (select pg_database_size(current_database())),
     'min_table_size_bytes',
