@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	checkup ".."
+	"../../pyraconv"
 	"github.com/dustin/go-humanize/english"
 )
 
@@ -41,6 +42,18 @@ func L003Process(report L003Report) (checkup.ReportResult, error) {
 	return result, nil
 }
 
+func L003ProcessSortTables(data map[string]interface{}, report L003Report) (map[string]interface{}, error) {
+	for host, hostData := range report.Results {
+		sortedTables := checkup.SortItemsByFloat64(hostData.Data.Tables, "CapacityUsedPercent", true)
+		results := pyraconv.ToInterfaceMap(data["results"])
+		rawHostData := pyraconv.ToInterfaceMap(results[host])
+		tablesData := pyraconv.ToInterfaceMap(rawHostData["data"])
+		tablesData["sortedTables"] = sortedTables
+	}
+
+	return data, nil
+}
+
 func L003PreprocessReportData(data map[string]interface{}) {
 	var report L003Report
 	filePath := data["source_path_full"].(string)
@@ -56,5 +69,6 @@ func L003PreprocessReportData(data map[string]interface{}) {
 		return
 	}
 
+	data, _ = L003ProcessSortTables(data, report)
 	checkup.SaveReportResult(data, result)
 }

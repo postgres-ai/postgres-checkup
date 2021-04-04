@@ -274,8 +274,9 @@ func SortItemsByInt(data interface{}, field string, reverse bool) []string {
 // Get map keys sorted by defined float64 field inside struct
 func SortItemsByFloat64(data interface{}, field string, reverse bool) []string {
 	var result []string
-	var numData map[float64]string = map[float64]string{}
+	var numData map[float64]int = map[float64]int{}
 	var keys []float64
+	var values []string
 
 	v := reflect.ValueOf(data)
 
@@ -298,7 +299,16 @@ func SortItemsByFloat64(data interface{}, field string, reverse bool) []string {
 
 			num := valNum.Interface()
 			floatNum := num.(float64)
-			numData[floatNum] = id.(string)
+			for true {
+				if _, ok := numData[floatNum]; ok {
+					floatNum = floatNum * 1.000001
+				} else {
+					break
+				}
+			}
+
+			values = append(values, id.(string))
+			numData[floatNum] = len(values) - 1
 			keys = append(keys, floatNum)
 		}
 
@@ -309,7 +319,7 @@ func SortItemsByFloat64(data interface{}, field string, reverse bool) []string {
 		}
 
 		for _, key := range keys {
-			result = append(result, numData[key])
+			result = append(result, values[numData[key]])
 		}
 	}
 
