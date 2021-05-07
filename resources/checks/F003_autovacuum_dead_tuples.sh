@@ -1,7 +1,7 @@
 # Collect autovacuum dead tuples
 
 ${CHECK_HOST_CMD} "${_PSQL} -f - " <<SQL
-with overrided_tables as (
+with overridden_tables as (
   select
     pc.oid as table_id,
     pn.nspname as scheme_name,
@@ -25,10 +25,10 @@ with overrided_tables as (
     n_live_tup,
     n_dead_tup,
     round((n_dead_tup::numeric * 100 / nullif(n_dead_tup + n_live_tup, 0))::numeric, 2) as dead_ratio,
-    case when ot.table_id is not null then true else false end as overrided_settings
+    case when ot.table_id is not null then true else false end as overridden_settings
   from pg_stat_all_tables
   join pg_class c on c.oid = relid
-  left join overrided_tables ot on ot.table_id = c.oid
+  left join overridden_tables ot on ot.table_id = c.oid
   where reltuples > 10000
   order by 13 desc
 ), num_dead_tuples as (
@@ -58,7 +58,7 @@ select
     (select * from dead_tuples),
     'database_stat',
     (select * from database_stat),
-    'overrided_settings_count',
-    (select count(1) from data where overrided_settings = true)
+    'overridden_settings_count',
+    (select count(1) from data where overridden_settings = true)
   );
 SQL

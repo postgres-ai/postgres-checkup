@@ -21,7 +21,7 @@ type F002Table struct {
 	RelRelfrozenxid   string  `json:"rel_relfrozenxid"`
 	ToastRelfrozenxid string  `json:"toast_relfrozenxid"`
 	Warning           int     `json:"warning"`
-	OverridedSettings bool    `json:"overrided_settings"`
+	OverriddenSettings bool    `json:"overridden_settings"`
 }
 
 type F002ReportHostResultData struct {

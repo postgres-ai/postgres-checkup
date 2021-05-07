@@ -35,7 +35,7 @@ func TestF005Success(t *testing.T) {
 			LiveDataSizeBytes: 0,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  1.0,
 		},
 		"index_2": F005IndexBloat{
@@ -51,7 +51,7 @@ func TestF005Success(t *testing.T) {
 			LiveDataSizeBytes: 0,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  1.0,
 		},
 	}
@@ -120,7 +120,7 @@ func TestF005Warnig(t *testing.T) {
 			LiveDataSizeBytes: 50937856,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  7.684142811193309,
 		},
 		"index_2": F005IndexBloat{
@@ -136,7 +136,7 @@ func TestF005Warnig(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 	}
@@ -180,7 +180,7 @@ func TestF005Critical(t *testing.T) {
 			LiveDataSizeBytes: 50937856,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  7.684142811193309,
 		},
 		"index_2": F005IndexBloat{
@@ -196,7 +196,7 @@ func TestF005Critical(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 	}

@@ -35,7 +35,7 @@
 {{ range $i, $key := (index (index (index (index .results .hosts.master) "data") "per_database") "_keys") }}
 {{- if lt $i $TABLE_LIST_LIMIT -}}
 {{- $value := (index (index (index (index $.results $.hosts.master) "data") "per_database") $key) -}}
-| {{ $value.num }} |`{{ index $value "relation"}}`{{if $value.overrided_settings}}\*{{ end }} |
+| {{ $value.num }} |`{{ index $value "relation"}}`{{if $value.overridden_settings}}\*{{ end }} |
 {{- NumFormat (index $value "age") -1 }} |
 {{- index $value "capacity_used"}} |
 {{- if (index $value "warning") }} &#9888; {{ else }} {{ end }} |
@@ -44,7 +44,7 @@
 {{/* if limit list */}}{{ end -}}
 {{ end }}{{/* range */}}
 {{/*- end -*/}}{{/* if per_instance exists */}}
-{{- if gt (Int (index (index (index .results .hosts.master) "data") "overrided_settings_count")) 0 }}
+{{- if gt (Int (index (index (index .results .hosts.master) "data") "overridden_settings_count")) 0 }}
 \* This table has specific autovacuum settings. See 'F001 Autovacuum: Current settings'
 {{- end }}
 {{- else -}}{{/*Master data*/}}
