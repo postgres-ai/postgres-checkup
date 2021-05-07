@@ -34,7 +34,7 @@ func TestF004Success(t *testing.T) {
 			LiveDataSizeBytes: 0,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  1.0,
 		},
 		"table_2": F004HeapBloat{
@@ -49,7 +49,7 @@ func TestF004Success(t *testing.T) {
 			LiveDataSizeBytes: 0,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  1.0,
 		},
 	}
@@ -119,7 +119,7 @@ func TestF004Warnig(t *testing.T) {
 			LiveDataSizeBytes: 50937856,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  7.684142811193309,
 		},
 		"table_2": F004HeapBloat{
@@ -134,7 +134,7 @@ func TestF004Warnig(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_3": F004HeapBloat{
@@ -149,7 +149,7 @@ func TestF004Warnig(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_4": F004HeapBloat{
@@ -164,7 +164,7 @@ func TestF004Warnig(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_5": F004HeapBloat{
@@ -179,7 +179,7 @@ func TestF004Warnig(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 		"table_6": F004HeapBloat{
@@ -194,7 +194,7 @@ func TestF004Warnig(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 	}
@@ -236,7 +236,7 @@ func TestF004Critical(t *testing.T) {
 			LiveDataSizeBytes: 50937856,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  7.684142811193309,
 		},
 		"table_2": F004HeapBloat{
@@ -251,7 +251,7 @@ func TestF004Critical(t *testing.T) {
 			LiveDataSizeBytes: 2678784,
 			LastVaccuum:       "",
 			Fillfactor:        100.0,
-			OverridedSettings: false,
+			OverriddenSettings: false,
 			BloatRatioFactor:  2.46177370030581,
 		},
 	}
