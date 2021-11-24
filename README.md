@@ -31,7 +31,7 @@ containing 500,000+ tables and 1,000,000+ indexes.
 - *Zero install* (on observed machines): it is able to analyze any Linux
 machine (including virtual machines), as well as cloud Postgres instances
 (such as Amazon RDs or Google Cloud SQL), not requiring any additional setup
-or any changes. It does, hovewer, require a privileged access that a DBA usually
+or any changes. It does, however, require a privileged access that a DBA usually
 has anyway.
 
 - *Complex analysis*: unlike most monitoring tools, which provide just raw data,
@@ -79,7 +79,7 @@ are not yet tested);
 * MacOS.
 
 There are known cases when postgres-checkup was successfully used on Windows,
-althought with some limitations.
+although with some limitations.
 
 The following programs must be installed on the operator machine:
 
@@ -87,13 +87,13 @@ The following programs must be installed on the operator machine:
 * psql
 * coreutils
 * jq >= 1.5
-* golang >= 1.8 (no binaries are shipped at the moment)
+* go >= 1.17 (no binaries are shipped at the moment)
 * awk
 * sed
 * pandoc *
 * wkhtmltopdf >= 0.12.4 *
 
-pandoc and wkhtmltopdf are optional, they are neededed for generating HTML and 
+pandoc and wkhtmltopdf are optional, they are needed for generating HTML and 
 PDF versions of report (options `--html`, `--pdf`).
 
 Nothing special has to be installed on the observed machines. However, they must
@@ -152,7 +152,7 @@ cd postgres-checkup
 
 ```bash
 cd ./pghrep
-make install main
+make main
 cd ..
 ```
 

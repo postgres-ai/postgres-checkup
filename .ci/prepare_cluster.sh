@@ -1,13 +1,12 @@
 #!/bin/bash
 PG_VER=$1
 
+echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main $PG_SERVER_VERSION" > /etc/apt/sources.list.d/pgdg.list
 apt-get update
 apt-get -y upgrade
 apt-get -y install postgresql-${PG_VER} postgresql-contrib-${PG_VER} postgresql-client-${PG_VER} postgresql-server-dev-${PG_VER} && apt-get install -y postgresql-${PG_VER}-pg-stat-kcache
 psql --version
-echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.profile
 source ~/.profile
 echo "127.0.0.2 postgres.test1.node" >> /etc/hosts # replica 1
 echo "127.0.0.3 postgres.test2.node" >> /etc/hosts # replica 2

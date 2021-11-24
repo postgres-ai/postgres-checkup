@@ -15,31 +15,24 @@ BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/${BINARY}
 
 # Setup the -ldflags option for go build here, interpolate the variable values
 LDFLAGS = -ldflags "-s -w \
-	-X main.version=${VERSION} \
-	-X main.commit=${COMMIT} \
-	-X main.branch=${BRANCH}\
-	-X main.buildTime=${BUILD_TIME}"
+	-X version.version=${VERSION} \
+	-X version.commit=${COMMIT} \
+	-X version.branch=${BRANCH}\
+	-X version.buildTime=${BUILD_TIME}"
 
 PLUGINS_SRC := $(wildcard plugins/*.go)
 
 # Build the project
-all: clean install vet main
-
-install:
-	go get golang.org/x/net/html
-	go get github.com/dustin/go-humanize
-	go get gopkg.in/yaml.v2
+all: clean vet main
 
 main:
-	GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./src/
+	GOARCH=${GOARCH} go build ${LDFLAGS} -o bin/${BINARY} ./cmd/checkup
 
 test:
-	go test ./src/
-	go test ./src/fmtutils/
-	go test ./src/checkup/*/
+	go test ./internal/***
 
 vet:
-	go vet ./src/...
+	go vet ./internal/...
 
 fmt:
 	go fmt $$(go list ./... | grep -v /vendor/)
@@ -48,7 +41,7 @@ clean:
 	-rm -f bin/*
 
 run:
-	go run ${LDFLAGS} ./src/*
+	go run ${LDFLAGS} ./cmd/checkup/main.go
 
 .PHONY: all main test vet fmt clean run
 
