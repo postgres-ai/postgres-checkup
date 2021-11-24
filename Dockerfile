@@ -1,7 +1,7 @@
-FROM golang:1.14-alpine as build
+FROM golang:1.17-alpine as build
 COPY ./pghrep /go/pghrep
-RUN apk add --update --no-cache make git
-RUN cd /go/pghrep && make install main
+RUN apk add --update --no-cache make
+RUN cd /go/pghrep && make main
 
 FROM alpine:3.11 as production
 RUN apk add --update --no-cache \
