@@ -54,8 +54,11 @@ index_data as (
     quote_ident(trel.relname) AS formated_table_name,
     coalesce(nullif(quote_ident(tnsp.nspname), 'public') || '.', '') || quote_ident(trel.relname) as formated_relation_name,
     i2.opclasses
-  from
-    index_data as i1
+  from (
+    select indrelid, indexrelid, opclasses, indclass, indexprs, indpred, indisprimary, indisunique, columns
+      from index_data
+      order by indexrelid
+    ) as i1
     join index_data as i2 on (
         i1.indrelid = i2.indrelid -- same table
         and i1.indexrelid <> i2.indexrelid -- NOT same index
