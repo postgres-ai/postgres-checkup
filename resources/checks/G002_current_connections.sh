@@ -11,6 +11,7 @@ with data as (
     count(*) filter (where xact_start < now() - interval '1 minute') as "tx_age_more_1m",
     count(*) filter (where xact_start < now() - interval '1 hour') as "tx_age_more_1h"
   from pg_stat_activity
+  where query not like 'autovacuum: %'
   group by grouping sets ((datname, usename, state), (usename, state), ())
   order by
     usename is null desc,
