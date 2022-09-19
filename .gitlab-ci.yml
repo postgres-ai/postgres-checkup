@@ -187,9 +187,27 @@ test-check-12:
   services:
     - postgres:12
 
+test-check-13:
+  extends: ".test-check"
+  stage: "test"
+  services:
+    - postgres:13
+
+test-check-14:
+  extends: ".test-check"
+  stage: "test"
+  services:
+    - postgres:14
+
+test-check-15:
+  extends: ".test-check"
+  stage: "test"
+  services:
+    - postgres:15beta4
+
 test-check-cli:
   services:
-    - postgres:11
+    - postgres:14
   stage: "test"
   extends: ".prepare"
   script: |

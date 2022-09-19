@@ -5,7 +5,7 @@ echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" 
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 apt-get update
 apt-get -y upgrade
-apt-get -y install postgresql-${PG_VER} postgresql-contrib-${PG_VER} postgresql-client-${PG_VER} postgresql-server-dev-${PG_VER} && apt-get install -y postgresql-${PG_VER}-pg-stat-kcache
+apt-get -y install postgresql-${PG_VER} postgresql-contrib-${PG_VER} postgresql-client-${PG_VER} postgresql-server-dev-${PG_VER} && apt-get install -y postgresql-${PG_VER}-pg-stat-kcache bc
 psql --version
 source ~/.profile
 echo "127.0.0.2 postgres.test1.node" >> /etc/hosts # replica 1
@@ -30,9 +30,13 @@ echo "shared_preload_libraries = 'pg_stat_statements,auto_explain,pg_stat_kcache
 ## Configure general postgres master node params
 echo "wal_level = hot_standby" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "max_wal_senders = 5" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
-echo "wal_keep_segments = 32" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "archive_mode    = on" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
 echo "archive_command = 'cp %p /path_to/archive/%f'" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
+
+if [ $(echo "$PG_VER < 13" | /usr/bin/bc) = "1" ]; then
+  # wal_keep_segments is deprecated in Postgres 12
+  echo "wal_keep_segments = 32" >> /etc/postgresql/${PG_VER}/main/postgresql.conf
+fi
 
 ## Start postgres master node
 /etc/init.d/postgresql start 
@@ -77,10 +81,18 @@ function add_replica() {
 
   ## Configure replica postgres settings
   echo "hot_standby = on" >> /var/lib/postgresql/${PG_VER}/data${num}/postgresql.conf
-  echo "standby_mode = 'on'" > /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
-  echo "primary_conninfo = 'host=127.0.0.4 port=5432 user=replication password=rEpLpAssw'" >> /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
-  echo "trigger_file = '/var/lib/postgresql/${PG_VER}/data${num}/trigger'" >> /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
-  echo "restore_command = 'cp /path_to/archive/%f "%p"'" >> /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
+
+  if [ $(echo "$PG_VER < 13" | /usr/bin/bc) = "1" ]; then
+    echo "standby_mode = 'on'" > /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
+    echo "primary_conninfo = 'host=127.0.0.4 port=5432 user=replication password=rEpLpAssw'" >> /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
+    echo "trigger_file = '/var/lib/postgresql/${PG_VER}/data${num}/trigger'" >> /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
+    echo "restore_command = 'cp /path_to/archive/%f "%p"'" >> /var/lib/postgresql/${PG_VER}/data${num}/recovery.conf
+  else
+    touch "/var/lib/postgresql/${PG_VER}/data${num}/standby.signal"
+    echo "primary_conninfo = 'host=127.0.0.4 port=5432 user=replication password=rEpLpAssw'" >> /var/lib/postgresql/${PG_VER}/data${num}/postgresql.conf
+    echo "promote_trigger_file = '/var/lib/postgresql/${PG_VER}/data${num}/trigger'" >> /var/lib/postgresql/${PG_VER}/data${num}/postgresql.conf
+    echo "restore_command = 'cp /path_to/archive/%f "%p"'" >> /var/lib/postgresql/${PG_VER}/data${num}/postgresql.conf
+  fi
 
   ## Start replica
   sudo -u postgres /usr/lib/postgresql/${PG_VER}/bin/pg_ctl -D /var/lib/postgresql/${PG_VER}/data${num} -l /var/log/postgresql/secondary1.log start || cat /var/log/postgresql/replica${num}.log

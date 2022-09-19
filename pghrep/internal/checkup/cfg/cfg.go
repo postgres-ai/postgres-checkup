@@ -30,36 +30,49 @@ const POSTGRES_RELEASES_URL string = "https://git.postgresql.org/gitweb/?p=postg
 const RELEASE_CODE = "REL"
 
 var versionsDefault map[string]Version = map[string]Version{
+	"14": {
+		FirstRelease:  "2021-09-30",
+		FinalRelease:  "2026-11-12",
+		MinorVersions: []int{0, 1, 2, 3, 4, 5},
+	},
+	"13": {
+		FirstRelease:  "2020-09-24",
+		FinalRelease:  "2025-11-13",
+		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
+	},
 	"12": Version{
 		FirstRelease:  "2019-10-03",
 		FinalRelease:  "2024-11-14",
-		MinorVersions: []int{0},
+		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 	},
 	"11": Version{
 		FirstRelease:  "2018-10-18",
 		FinalRelease:  "2023-11-09",
-		MinorVersions: []int{0, 1, 2, 3, 4},
+		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 	},
 	"10": Version{
-		FirstRelease:  "2017-10-05",
-		FinalRelease:  "2022-11-10",
-		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+		FirstRelease: "2017-10-05",
+		FinalRelease: "2022-11-10",
+		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+			20, 21, 22},
 	},
 	"9.6": Version{
-		FirstRelease:  "2016-09-29",
-		FinalRelease:  "2021-11-11",
-		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+		FirstRelease: "2016-09-29",
+		FinalRelease: "2021-11-11",
+		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+			20, 21, 22, 23, 24},
 	},
 	"9.5": Version{
-		FirstRelease:  "2016-01-07",
-		FinalRelease:  "2021-02-11",
-		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
+		FirstRelease: "2016-01-07",
+		FinalRelease: "2021-02-11",
+		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+			20, 21, 22, 23, 24, 25},
 	},
 	"9.4": Version{
 		FirstRelease: "2014-12-18",
 		FinalRelease: "2020-02-13",
 		MinorVersions: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-			20, 21, 22, 23},
+			20, 21, 22, 23, 24, 25, 26},
 	},
 	"9.3": Version{
 		FirstRelease: "2013-09-09",
