@@ -49,17 +49,15 @@ function get_system_info() {
 }
 
 function get_ctl_info() {
-  local ctl_info="$(${CHECK_HOST_CMD} "hostnamectl status")"
-  ctl_info="${ctl_info/\"/\\\"}"
-  local res_obj="{\"cmd2check\": \"hostnamectl status\""
-  while read -r line; do
-    arg=$(echo "$line" | sed 's/:.*$//g' )
-    value=$(echo "$line" | sed 's/^.*: *//g' )
-    res_obj="$res_obj, \"$arg\": \"$value\""
-  done <<< "$ctl_info"
-  res_obj="$res_obj, \"raw\": \"$ctl_info\""
-  res_obj="${res_obj} }"
-  CTL_INFO=$res_obj #$(jq -n "$res_obj")
+  local ctl_info=$(${CHECK_HOST_CMD} 'echo $(hostname -s)')
+  local kernel=$(${CHECK_HOST_CMD} 'echo $(uname -s) $(uname -r)')
+  local os=$(${CHECK_HOST_CMD} "echo $(cat /etc/*-release | grep PRETTY_NAME | sed 's/PRETTY_NAME=//g' | sed 's/\"//g')")
+
+  CTL_INFO=$(jq -n -c \
+    --arg hostname "$ctl_info" \
+    --arg os "$os" \
+    --arg kernel "$kernel" \
+    '{"cmd2check": "hostname -s", "Static hostname": $hostname, "Operating System": $os, "Kernel": $kernel}')
 }
 
 not_first=false

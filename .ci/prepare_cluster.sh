@@ -39,7 +39,7 @@ if [ $(echo "$PG_VER < 13" | /usr/bin/bc) = "1" ]; then
 fi
 
 ## Start postgres master node
-/etc/init.d/postgresql start 
+service postgresql restart
 psql -U postgres -c "create role replication with replication password 'rEpLpAssw' login"
 psql -U postgres -c 'create database dbname;'
 psql -U postgres dbname -b -c 'create extension if not exists pg_stat_statements;'
