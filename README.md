@@ -266,7 +266,7 @@ There is an option to run postgres-checkup in a Docker container:
 docker run --rm \
   --name postgres-checkup \
   --env PGPASSWORD="postgres" \
-  --volume `pwd`/artifacts:/artifacts \
+  --volume `pwd`/artifacts:/checkup/artifacts \
   postgresai/postgres-checkup:latest \
     ./checkup \
       --hostname hostname \
@@ -290,7 +290,7 @@ on Windows, but should work well on Linux and MacOS machines):
 ```bash
 docker run --rm \
   --name postgres-checkup \
-  --volume "$(pwd)/artifacts:/artifacts" \
+  --volume "$(pwd)/artifacts:/checkup/artifacts" \
   --volume "$(echo ~)/.ssh/id_rsa:/root/.ssh/id_rsa:ro" \
   postgresai/postgres-checkup:latest \
   ./checkup \
