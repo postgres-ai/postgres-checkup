@@ -203,11 +203,17 @@ test-check-15:
   extends: ".test-check"
   stage: "test"
   services:
-    - postgres:15beta4
+    - postgres:15
+
+test-check-16:
+  extends: ".test-check"
+  stage: "test"
+  services:
+    - postgres:16
 
 test-check-cli:
   services:
-    - postgres:14
+    - postgres:16
   stage: "test"
   extends: ".prepare"
   script: |
