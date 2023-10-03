@@ -74,17 +74,19 @@ select from pg_stat_kcache limit 1 -- the fastest way
 SQL
 ) || err_code="$?"
 
+total_time_expr="coalesce((row_to_json(s)->>'total_time')::DOUBLE PRECISION, (row_to_json(s)->>'total_plan_time')::DOUBLE PRECISION + (row_to_json(s)->>'total_exec_time')::DOUBLE PRECISION)"
+
 # main query to save statistics
 if [[ "${err_code}" -ne "0" ]]; then
   # WITHOUT pg_stat_kcache
   QUERY="
     select
       /* rownum in snapshot may be not equal to resulting rownum */
-      row_number() over (order by total_time desc) as rownum,
+      row_number() over (order by ${total_time_expr} desc) as rownum,
       /* pg_stat_statements_part */
       left(query, 50000) as query, /*  obsolete left ? check pg_stat_statements for cutting */
       calls,
-      total_time,
+      ${total_time_expr} as total_time,
       /*
       min_time,
       max_time,
@@ -118,11 +120,11 @@ else
   QUERY="
     select
       /* rownum in snapshot may be not equal to resulting rownum */
-      row_number() over (order by total_time desc) as rownum,
+      row_number() over (order by ${total_time_expr} desc) as rownum,
       /* pg_stat_statements_part */
       left(query, 50000) as query, /*  obsolete left ? check pg_stat_statements for cutting */
       calls,
-      total_time,
+      ${total_time_expr} as total_time,
       /*
       min_time,
       max_time,

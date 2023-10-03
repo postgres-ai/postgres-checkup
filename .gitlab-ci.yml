@@ -27,7 +27,7 @@ test-general:
     - echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.profile
     - source ~/.profile
     - cd ./pghrep && make main && cd ..
-    - sudo .ci/prepare_cluster.sh "11"
+    - sudo .ci/prepare_cluster.sh "15"
     - ps ax | grep postgres
     - psql -U postgres -p 5432 -c 'show data_directory;'
     - psql -U postgres -p 5433 -c 'show data_directory;'
