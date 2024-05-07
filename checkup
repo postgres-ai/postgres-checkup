@@ -719,7 +719,7 @@ generate_report_json() {
      --arg Host "${HOST}" \
      --arg Project "${PROJECT}" \
      --arg Database "${DBNAME}" \
-    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | ."database" = $Database | .results += { ($Host): { data: $Results } }' \
+    '.checkId = $CheckId | .name = $CheckName | ."timestamptz" = $TimestampTz | ."project" = $Project | ."database" = $Database | .results += { ($Host): { data: ($Results[0]) } }' \
     "${json_input_fname}" \
     > "${tmp_output_json_fname}"
   mv "${tmp_output_json_fname}" "${json_output_fname}"
@@ -728,7 +728,7 @@ generate_report_json() {
   # extend check for current host with actual 'nodes.json' inside a json report
   tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
   jq --slurpfile nodes_json "${PROJECT_DIR}/nodes.json" \
-     '.results.'\"${HOST}\"'."nodes.json" = $nodes_json' \
+     '.results.'\"${HOST}\"'."nodes.json" = ($nodes_json[0])' \
      "${json_output_fname}" \
      > "$tmp_output_json_fname"
   mv "$tmp_output_json_fname" "${json_output_fname}"
@@ -736,7 +736,7 @@ generate_report_json() {
   # update json report by attaching 'nodes.json' into top of the report
   tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
   jq --slurpfile nodes_json "${PROJECT_DIR}/nodes.json" \
-     '.last_nodes_json = $nodes_json' \
+     '.last_nodes_json = ($nodes_json[0])' \
      "${json_output_fname}" \
      > "$tmp_output_json_fname"
   mv "$tmp_output_json_fname" "${json_output_fname}"
