@@ -712,7 +712,7 @@ generate_report_json() {
 
   local tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_XXXXXX)
   jq -r \
-     --argfile Results "${tmp_input_json_fname}" \
+     --slurpfile Results "${tmp_input_json_fname}" \
      --arg CheckId "${check_id}" \
      --arg CheckName "${check_name}" \
      --arg TimestampTz "${TIMESTAMPTZ}" \
@@ -727,7 +727,7 @@ generate_report_json() {
 
   # extend check for current host with actual 'nodes.json' inside a json report
   tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
-  jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
+  jq --slurpfile nodes_json "${PROJECT_DIR}/nodes.json" \
      '.results.'\"${HOST}\"'."nodes.json" = $nodes_json' \
      "${json_output_fname}" \
      > "$tmp_output_json_fname"
@@ -735,7 +735,7 @@ generate_report_json() {
 
   # update json report by attaching 'nodes.json' into top of the report
   tmp_output_json_fname=$(mktemp "${JSON_REPORTS_DIR}"/${check_id}_${check_name}_tmp_ex_XXXXXX)
-  jq --argfile nodes_json "${PROJECT_DIR}/nodes.json" \
+  jq --slurpfile nodes_json "${PROJECT_DIR}/nodes.json" \
      '.last_nodes_json = $nodes_json' \
      "${json_output_fname}" \
      > "$tmp_output_json_fname"
