@@ -15,6 +15,17 @@ with data as (
     from pg_class pc
     join pg_namespace pn on pn.oid = pc.relnamespace
     where reloptions::text ~ 'autovacuum'
+  ), pg_rel_stats as (
+      select n.nspname as schemaname,
+        c.relname as tablename,
+        a.attname,
+        s.stawidth as avg_width,
+        s.stanullfrac as null_frac
+      from pg_statistic s
+      join pg_class c on c.oid = s.starelid
+      join pg_attribute a on c.oid = a.attrelid AND a.attnum = s.staattnum
+      left join pg_namespace n on n.oid = c.relnamespace
+      where not a.attisdropped 
   ), step0 as (
       select
         tbl.oid tblid,
