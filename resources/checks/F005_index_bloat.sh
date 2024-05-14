@@ -79,7 +79,7 @@ with data as (
       i.table_size_bytes
     from pg_attribute as a
     join step0 as i on a.attrelid = i.indexrelid
-    join pg_stats as s on
+    join pg_rel_stats as s on
       s.schemaname = i.nspname
       and (
         (s.tablename = i.tblname and s.attname = pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, true)) -- stats from tbl
