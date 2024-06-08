@@ -15,6 +15,17 @@ with data as (
     from pg_class pc
     join pg_namespace pn on pn.oid = pc.relnamespace
     where reloptions::text ~ 'autovacuum'
+  ), pg_rel_stats as (
+      select n.nspname as schemaname,
+        c.relname as tablename,
+        a.attname,
+        s.stawidth as avg_width,
+        s.stanullfrac as null_frac
+      from pg_statistic s
+      join pg_class c on c.oid = s.starelid
+      join pg_attribute a on c.oid = a.attrelid AND a.attnum = s.staattnum
+      left join pg_namespace n on n.oid = c.relnamespace
+      where not a.attisdropped 
   ), step0 as (
       select
         tbl.oid tblid,
@@ -68,7 +79,7 @@ with data as (
       i.table_size_bytes
     from pg_attribute as a
     join step0 as i on a.attrelid = i.indexrelid
-    join pg_stats as s on
+    join pg_rel_stats as s on
       s.schemaname = i.nspname
       and (
         (s.tablename = i.tblname and s.attname = pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, true)) -- stats from tbl
