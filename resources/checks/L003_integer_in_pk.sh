@@ -42,6 +42,7 @@ begin
       and (c.relpages > MIN_RELPAGES or (select pg_get_serial_sequence(quote_ident(nspname) || '.' || quote_ident(relname), attname)) is not null)
       and t.typname in ('int2', 'int4')
       and nspname <> 'pg_toast'
+      and nspname <> 'pg_catalog'
       group by 1, 2, 3, 4, 5, 6
       having count(*) = 1 -- skip PKs with 2+ columns
   loop
