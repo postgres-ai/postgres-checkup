@@ -1,3 +1,8 @@
+# IMPORTANT
+This project is in archived state. See: [postgres_ai monitoring](https://gitlab.com/postgres-ai/postgres_ai) – the "checkup" part of it is successor of postgres-checkup.
+
+---
+
 Please support the project giving a GitLab star (it's on [the main page](https://gitlab.com/postgres-ai/postgres-checkup/),
 at the upper right corner):
 
