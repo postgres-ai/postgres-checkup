@@ -1,5 +1,8 @@
 # IMPORTANT
-This project is in archived state. See: [postgres_ai monitoring](https://gitlab.com/postgres-ai/postgres_ai) – the "checkup" part of it is successor of postgres-checkup.
+This project is in archived state. See: [postgres_ai monitoring](https://gitlab.com/postgres-ai/postgres_ai) – the "checkup" part of it is successor of postgres-checkup. To try it out:
+```bash
+npx postgresai checkup --help
+```
 
 ---
 
